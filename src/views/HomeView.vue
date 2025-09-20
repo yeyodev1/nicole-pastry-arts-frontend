@@ -63,6 +63,201 @@
       </div>
     </section>
 
+    <!-- Categories Section -->
+    <section class="categories">
+      <div class="categories__container">
+        <h2 class="categories__title">CATEGORÍAS</h2>
+        <p class="categories__subtitle">
+          Descubre nuestras categorías y encuentra el dulce perfecto para cada ocasión. 
+          Desde pasteles clásicos hasta galletas y postres de vanguardia. 
+          Navega por nuestras opciones y déjate tentar por nuestras creaciones.
+        </p>
+        <div class="categories__grid">
+          <div class="category-card">
+            <div class="category-card__image">
+              <i class="fas fa-birthday-cake"></i>
+            </div>
+            <h3 class="category-card__title">Pasteles</h3>
+            <p class="category-card__description">Pasteles artesanales para celebraciones especiales</p>
+          </div>
+          <div class="category-card">
+            <div class="category-card__image">
+              <i class="fas fa-cookie"></i>
+            </div>
+            <h3 class="category-card__title">Galletas</h3>
+            <p class="category-card__description">Galletas gourmet con sabores únicos</p>
+          </div>
+          <div class="category-card">
+            <div class="category-card__image">
+              <i class="fas fa-ice-cream"></i>
+            </div>
+            <h3 class="category-card__title">Postres</h3>
+            <p class="category-card__description">Postres de vanguardia con técnicas modernas</p>
+          </div>
+          <div class="category-card">
+            <div class="category-card__image">
+              <i class="fas fa-bread-slice"></i>
+            </div>
+            <h3 class="category-card__title">Bollería</h3>
+            <p class="category-card__description">Bollería fresca elaborada diariamente</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Best Sellers Section -->
+    <section class="bestsellers">
+      <div class="bestsellers__container">
+        <h2 class="bestsellers__title">BEST SELLERS</h2>
+        <p class="bestsellers__subtitle">
+          ¡No te pierdas nuestros Best Sellers! Estos son los dulces favoritos de nuestros clientes. 
+          Pruébalos y elige tu favorito.
+        </p>
+        <div class="bestsellers__grid">
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-heart"></i>
+            </div>
+            <h3 class="product-card__title">Chocolate & Frutos Rojos</h3>
+            <p class="product-card__price">$5.36 – $45.00</p>
+            <p class="product-card__description">
+              Perfecta combinación de chocolate y compota de frutos rojos a base de fresa, frambuesa, mora y arándanos.
+            </p>
+          </div>
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-apple-alt"></i>
+            </div>
+            <h3 class="product-card__title">Flor de Manzana</h3>
+            <p class="product-card__price">$5.40</p>
+            <p class="product-card__description">
+              Mousse de crema inglesa, bizcocho de vainilla con núcleo de manzana y toffee salado, glaseado con brillo de caramelo.
+            </p>
+          </div>
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-seedling"></i>
+            </div>
+            <h3 class="product-card__title">Hazzelnut</h3>
+            <p class="product-card__price">$5.36 – $45.00</p>
+            <p class="product-card__description">
+              Postre de avellana caramelizada, bizcocho francés de chocolate y harina de almendra, cubierto de una mousse ligera de chocolate dark milk.
+            </p>
+          </div>
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-leaf"></i>
+            </div>
+            <h3 class="product-card__title">Pistacho y Mora</h3>
+            <p class="product-card__price">$6.40</p>
+            <p class="product-card__description">
+              Mousse a base de pasta de pistacho, núcleo de mora y bizcocho de vainilla, cubierto de un crocante de frutos secos.
+            </p>
+          </div>
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-coffee"></i>
+            </div>
+            <h3 class="product-card__title">Tiramisú</h3>
+            <p class="product-card__price">$5.36 – $45.00</p>
+            <p class="product-card__description">
+              Clásico postre italiano elaborado con café nacional, licor amaretto y mousse de queso mascarpone.
+            </p>
+          </div>
+          <div class="product-card">
+            <div class="product-card__image">
+              <i class="fas fa-lemon"></i>
+            </div>
+            <h3 class="product-card__title">Peach Melba</h3>
+            <p class="product-card__price">$5.15 – $43.00</p>
+            <p class="product-card__description">
+              Postre refrescante y ligero, contiene durazno y frambuesa con un bizcocho de vainilla, cubierto de mousse a base de crema inglesa.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chef Section -->
+    <section class="chef">
+      <div class="chef__container">
+        <div class="chef__content">
+          <div class="chef__text">
+            <h2 class="chef__title">PASTRY CHEF</h2>
+            <blockquote class="chef__quote">
+              "Como pastelera, cada capa, cada sabor y cada técnica reflejan las lecciones valiosas que hemos aprendido de aquellos que compartieron generosamente su conocimiento. Entre ellos, los mentores que más han influido en mi trayectoria hasta el día de hoy son; Joaquim Prat, Albert Adriá, Jose Romero, Olivier Fernandez, Fabrizio Donatone, Rodrigo Fontana y Antonio Bachour."
+            </blockquote>
+            <div class="chef__info">
+              <h3 class="chef__name">Nicole Robalino</h3>
+              <p class="chef__role">CoFounder | Pastry Chef</p>
+            </div>
+          </div>
+          <div class="chef__image">
+            <div class="chef__avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+      <div class="testimonials__container">
+        <h2 class="testimonials__title">Lo que dicen nuestros clientes</h2>
+        <div class="testimonials__grid">
+          <div class="testimonial-card">
+            <div class="testimonial-card__content">
+              <p class="testimonial-card__text">
+                "Un lugar con mucho encanto y tradición. Los postres son deliciosos y el café es muy bueno."
+              </p>
+              <div class="testimonial-card__author">
+                <div class="testimonial-card__avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="testimonial-card__info">
+                  <h4 class="testimonial-card__name">Carolina Viteri</h4>
+                  <p class="testimonial-card__handle">@carolinaviterij</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-card__content">
+              <p class="testimonial-card__text">
+                "La pastelería es un lujo para los sentidos. Cada pastel está meticulosamente elaborado. Definitivamente, una experiencia gourmet."
+              </p>
+              <div class="testimonial-card__author">
+                <div class="testimonial-card__avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="testimonial-card__info">
+                  <h4 class="testimonial-card__name">Hanz Von Buchwald</h4>
+                  <p class="testimonial-card__handle">@hanzvba</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-card__content">
+              <p class="testimonial-card__text">
+                "Cada pastel es una obra de arte. La atención al detalle y la calidad de los ingredientes son sobresalientes."
+              </p>
+              <div class="testimonial-card__author">
+                <div class="testimonial-card__avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="testimonial-card__info">
+                  <h4 class="testimonial-card__name">Priscilla Granizo</h4>
+                  <p class="testimonial-card__handle">@prisciigraniizo</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="cta">
       <div class="cta__container">
@@ -338,6 +533,432 @@
         box-shadow: 0 8px 25px rgba($white, 0.3);
       }
     }
+  }
+}
+
+// Categories Section
+.categories {
+  padding: 6rem 0;
+  background-color: $background-cream;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    @media (min-width: 768px) {
+      padding: 0 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0 3rem;
+    }
+  }
+
+  &__title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+    letter-spacing: 2px;
+
+    @media (min-width: 768px) {
+      font-size: 3rem;
+    }
+  }
+
+  &__subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: $text-light;
+    margin-bottom: 4rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+
+    @media (min-width: 768px) {
+      font-size: 1.2rem;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+  }
+}
+
+.category-card {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border-radius: 16px;
+  background-color: $white;
+  transition: all 0.3s ease;
+  border: 1px solid rgba($purple-primary, 0.1);
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba($purple-primary, 0.15);
+    border-color: rgba($purple-primary, 0.2);
+  }
+
+  &__image {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    color: $purple-primary;
+    
+    i {
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  &:hover &__image i {
+    transform: scale(1.1);
+  }
+
+  &__title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: $purple-primary;
+    margin-bottom: 0.8rem;
+  }
+
+  &__description {
+    color: $text-light;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+}
+
+// Best Sellers Section
+.bestsellers {
+  padding: 6rem 0;
+  background-color: $white;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    @media (min-width: 768px) {
+      padding: 0 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0 3rem;
+    }
+  }
+
+  &__title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+    letter-spacing: 2px;
+
+    @media (min-width: 768px) {
+      font-size: 3rem;
+    }
+  }
+
+  &__subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: $text-light;
+    margin-bottom: 4rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+
+    @media (min-width: 768px) {
+      font-size: 1.2rem;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+  }
+}
+
+.product-card {
+  padding: 2rem;
+  border-radius: 16px;
+  background-color: $background-cream;
+  transition: all 0.3s ease;
+  border: 1px solid rgba($purple-primary, 0.1);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba($purple-primary, 0.12);
+    border-color: rgba($purple-primary, 0.2);
+  }
+
+  &__image {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: $purple-primary;
+    
+    i {
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  &:hover &__image i {
+    transform: scale(1.1);
+  }
+
+  &__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: $purple-primary;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+
+  &__price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $purple-dark;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  &__description {
+    color: $text-light;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+}
+
+// Chef Section
+.chef {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $purple-primary 0%, $purple-dark 100%);
+  color: $white;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    @media (min-width: 768px) {
+      padding: 0 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0 3rem;
+    }
+  }
+
+  &__content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+
+    @media (min-width: 1024px) {
+      grid-template-columns: 2fr 1fr;
+      gap: 4rem;
+    }
+  }
+
+  &__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+
+    @media (min-width: 768px) {
+      font-size: 3rem;
+    }
+  }
+
+  &__quote {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 2.5rem;
+    padding-left: 2rem;
+    border-left: 4px solid $white;
+    opacity: 0.95;
+
+    @media (min-width: 768px) {
+      font-size: 1.3rem;
+    }
+  }
+
+  &__info {
+    text-align: left;
+
+    @media (max-width: 1023px) {
+      text-align: center;
+    }
+  }
+
+  &__name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  &__role {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  &__image {
+    text-align: center;
+  }
+
+  &__avatar {
+    font-size: 8rem;
+    color: $white;
+    opacity: 0.8;
+    
+    i {
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover i {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Testimonials Section
+.testimonials {
+  padding: 6rem 0;
+  background-color: $background-cream;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    @media (min-width: 768px) {
+      padding: 0 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0 3rem;
+    }
+  }
+
+  &__title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 4rem;
+
+    @media (min-width: 768px) {
+      font-size: 3rem;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+  }
+}
+
+.testimonial-card {
+  background-color: $white;
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba($purple-primary, 0.1);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba($purple-primary, 0.12);
+    border-color: rgba($purple-primary, 0.2);
+  }
+
+  &__content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  &__text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: $text-light;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: $purple-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $white;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $purple-primary;
+    margin-bottom: 0.2rem;
+  }
+
+  &__handle {
+    font-size: 0.9rem;
+    color: $text-light;
+    opacity: 0.8;
   }
 }
 </style>
