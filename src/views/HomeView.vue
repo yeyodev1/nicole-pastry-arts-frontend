@@ -43,11 +43,11 @@
           </div>
           <div class="feature-card">
             <div class="feature-card__icon">
-              <i class="fas fa-birthday-cake"></i>
+              <i class="fas fa-heart"></i>
             </div>
-            <h3 class="feature-card__title">Personalizado</h3>
+            <h3 class="feature-card__title">Delicioso</h3>
             <p class="feature-card__description">
-              Diseños únicos adaptados a tus celebraciones especiales
+              Sabores únicos que harán especial cada momento
             </p>
           </div>
           <div class="feature-card">
@@ -193,9 +193,11 @@
             </div>
           </div>
           <div class="chef__image">
-            <div class="chef__avatar">
-              <i class="fas fa-user-circle"></i>
-            </div>
+            <img 
+              src="/src/assets/team/nicole/nicole-ropa-negra.jpeg" 
+              alt="Nicole Robalino - Pastry Chef" 
+              class="chef__photo"
+            />
           </div>
         </div>
       </div>
@@ -212,9 +214,11 @@
                 "Un lugar con mucho encanto y tradición. Los postres son deliciosos y el café es muy bueno."
               </p>
               <div class="testimonial-card__author">
-                <div class="testimonial-card__avatar">
-                  <i class="fas fa-user"></i>
-                </div>
+                <img 
+                  src="https://i.pravatar.cc/150?img=1" 
+                  alt="Carolina Viteri" 
+                  class="testimonial-card__avatar"
+                />
                 <div class="testimonial-card__info">
                   <h4 class="testimonial-card__name">Carolina Viteri</h4>
                   <p class="testimonial-card__handle">@carolinaviterij</p>
@@ -228,9 +232,11 @@
                 "La pastelería es un lujo para los sentidos. Cada pastel está meticulosamente elaborado. Definitivamente, una experiencia gourmet."
               </p>
               <div class="testimonial-card__author">
-                <div class="testimonial-card__avatar">
-                  <i class="fas fa-user"></i>
-                </div>
+                <img 
+                  src="https://i.pravatar.cc/150?img=7" 
+                  alt="Hanz Von Buchwald" 
+                  class="testimonial-card__avatar"
+                />
                 <div class="testimonial-card__info">
                   <h4 class="testimonial-card__name">Hanz Von Buchwald</h4>
                   <p class="testimonial-card__handle">@hanzvba</p>
@@ -244,9 +250,11 @@
                 "Cada pastel es una obra de arte. La atención al detalle y la calidad de los ingredientes son sobresalientes."
               </p>
               <div class="testimonial-card__author">
-                <div class="testimonial-card__avatar">
-                  <i class="fas fa-user"></i>
-                </div>
+                <img 
+                  src="https://i.pravatar.cc/150?img=5" 
+                  alt="Priscilla Granizo" 
+                  class="testimonial-card__avatar"
+                />
                 <div class="testimonial-card__info">
                   <h4 class="testimonial-card__name">Priscilla Granizo</h4>
                   <p class="testimonial-card__handle">@prisciigraniizo</p>
@@ -420,12 +428,12 @@
     font-size: 3rem;
     margin-bottom: 1.5rem;
     color: $purple-primary;
-    
+
     i {
       transition: transform 0.3s ease;
     }
   }
-  
+
   &:hover &__icon i {
     transform: scale(1.1);
   }
@@ -618,12 +626,12 @@
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
     color: $purple-primary;
-    
+
     i {
       transition: transform 0.3s ease;
     }
   }
-  
+
   &:hover &__image i {
     transform: scale(1.1);
   }
@@ -724,12 +732,12 @@
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
     color: $purple-primary;
-    
+
     i {
       transition: transform 0.3s ease;
     }
   }
-  
+
   &:hover &__image i {
     transform: scale(1.1);
   }
@@ -838,17 +846,28 @@
     text-align: center;
   }
 
-  &__avatar {
-    font-size: 8rem;
-    color: $white;
-    opacity: 0.8;
+  &__photo {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid $white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
     
-    i {
-      transition: transform 0.3s ease;
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
     }
     
-    &:hover i {
-      transform: scale(1.05);
+    @media (max-width: 767px) {
+      width: 220px;
+      height: 220px;
+    }
+    
+    @media (max-width: 480px) {
+      width: 180px;
+      height: 180px;
     }
   }
 }
@@ -936,16 +955,19 @@
   }
 
   &__avatar {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background-color: $purple-primary;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: $white;
-    font-size: 1.2rem;
+    margin-right: 1rem;
     flex-shrink: 0;
+    object-fit: cover;
+    border: 3px solid $purple-primary;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+      border-color: $purple-dark;
+    }
   }
 
   &__name {
