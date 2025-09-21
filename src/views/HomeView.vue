@@ -211,30 +211,78 @@ const setupAnimations = () => {
     }
   })
 
-  // Chef Section - Premium Animations
-  const chefTimeline = gsap.timeline({
+  // Chef Section - Advanced Premium Animations
+  const chefMainTimeline = gsap.timeline({
     scrollTrigger: {
       trigger: '.chef',
-      start: 'top 80%',
-      end: 'bottom 20%',
-      toggleActions: 'play none none reverse'
+      start: 'top 85%',
+      end: 'bottom 15%',
+      toggleActions: 'play none none reverse',
+      onEnter: () => {
+        // Trigger background animation
+        gsap.to('.chef::before', {
+          scale: 1.2,
+          opacity: 0.8,
+          duration: 2,
+          ease: 'power2.out'
+        })
+      }
     }
   })
 
-  // Chef content entrance with staggered reveal
-  chefTimeline
+  // Enhanced chef content entrance with sophisticated reveals
+  chefMainTimeline
     .fromTo('.chef__title', {
-      y: 60,
+      y: 80,
       opacity: 0,
-      rotationX: -15
+      rotationX: -20,
+      transformOrigin: 'center bottom',
+      filter: 'blur(10px)'
     }, {
       y: 0,
       opacity: 1,
       rotationX: 0,
-      duration: 1,
+      filter: 'blur(0px)',
+      duration: 1.2,
       ease: 'power3.out'
     })
+    .fromTo('.chef__title::after', {
+      scaleX: 0,
+      opacity: 0
+    }, {
+      scaleX: 1,
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out'
+    }, '-=0.4')
     .fromTo('.chef__quote', {
+      y: 60,
+      opacity: 0,
+      scale: 0.9,
+      rotationX: -10,
+      filter: 'blur(8px)'
+    }, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      rotationX: 0,
+      filter: 'blur(0px)',
+      duration: 1.4,
+      ease: 'power2.out'
+    }, '-=0.8')
+    .fromTo('.chef__quote::before, .chef__quote::after', {
+      scale: 0,
+      opacity: 0,
+      rotation: -45
+    }, {
+      scale: 1,
+      opacity: 0.3,
+      rotation: 0,
+      duration: 0.6,
+      ease: 'back.out(1.7)',
+      stagger: 0.1
+    }, '-=0.6')
+    .fromTo('.chef__info', {
       y: 40,
       opacity: 0,
       scale: 0.95
@@ -242,84 +290,261 @@ const setupAnimations = () => {
       y: 0,
       opacity: 1,
       scale: 1,
-      duration: 1.2,
+      duration: 1,
       ease: 'power2.out'
     }, '-=0.6')
-    .fromTo('.chef__info', {
-      y: 30,
-      opacity: 0
-    }, {
-      y: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: 'power2.out'
-    }, '-=0.4')
     .fromTo('.chef__image', {
-      x: 80,
+      x: 100,
       opacity: 0,
-      rotationY: -15,
-      scale: 0.9
+      rotationY: -25,
+      scale: 0.8,
+      filter: 'blur(15px)'
     }, {
       x: 0,
       opacity: 1,
       rotationY: 0,
       scale: 1,
-      duration: 1.4,
+      filter: 'blur(0px)',
+      duration: 1.6,
       ease: 'power3.out'
-    }, '-=1')
+    }, '-=1.2')
+    .fromTo('.chef__image::before, .chef__image::after', {
+      scale: 0,
+      opacity: 0,
+      rotation: 180
+    }, {
+      scale: 1,
+      opacity: 1,
+      rotation: 0,
+      duration: 1.2,
+      ease: 'power2.out',
+      stagger: 0.2
+    }, '-=0.8')
 
-  // Chef photo floating animation
-  gsap.to('.chef__photo', {
-    y: -10,
-    duration: 3,
-    ease: 'power1.inOut',
-    yoyo: true,
-    repeat: -1
-  })
+  // Advanced floating animation with multiple layers
+  const floatingTl = gsap.timeline({ repeat: -1 })
+  floatingTl
+    .to('.chef__photo', {
+      y: -15,
+      rotation: 2,
+      duration: 4,
+      ease: 'power1.inOut'
+    })
+    .to('.chef__photo', {
+      y: 0,
+      rotation: -1,
+      duration: 3,
+      ease: 'power1.inOut'
+    })
+    .to('.chef__photo', {
+      y: -8,
+      rotation: 0,
+      duration: 3.5,
+      ease: 'power1.inOut'
+    })
 
-  // Parallax effect for chef section
+  // Multi-layer parallax effects
   gsap.to('.chef__image', {
-    y: -50,
+    y: -60,
     ease: 'none',
     scrollTrigger: {
       trigger: '.chef',
       start: 'top bottom',
       end: 'bottom top',
+      scrub: 1.5
+    }
+  })
+
+  gsap.to('.chef__text', {
+    y: -30,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 0.8
+    }
+  })
+
+  // Background elements parallax
+  gsap.to('.chef::before', {
+    y: -40,
+    rotation: 5,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 2
+    }
+  })
+
+  gsap.to('.chef::after', {
+    y: -20,
+    rotation: -3,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 1.2
+    }
+  })
+
+  // Progressive reveal on scroll
+  gsap.fromTo('.chef__container', {
+    clipPath: 'inset(0 0 100% 0)'
+  }, {
+    clipPath: 'inset(0 0 0% 0)',
+    duration: 1.5,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top 90%',
+      end: 'top 60%',
       scrub: 1
     }
   })
 
-  // Interactive hover effects for chef section
+  // Advanced interactive effects for chef section
   const chefSection = document.querySelector('.chef__content') as HTMLElement
-  if (chefSection) {
+  const chefPhoto = document.querySelector('.chef__photo') as HTMLElement
+  
+  if (chefSection && chefPhoto) {
+    // Enhanced hover effects with 3D transforms
     chefSection.addEventListener('mouseenter', () => {
-      gsap.to('.chef__photo', {
-        scale: 1.05,
-        rotationY: 5,
-        duration: 0.6,
-        ease: 'power2.out'
-      })
-      gsap.to('.chef__quote', {
-        scale: 1.02,
-        duration: 0.4,
-        ease: 'power2.out'
-      })
+      const hoverTl = gsap.timeline()
+      hoverTl
+        .to('.chef__photo', {
+          scale: 1.08,
+          rotationY: 8,
+          rotationX: 3,
+          z: 50,
+          boxShadow: '0 30px 100px rgba(0, 0, 0, 0.5)',
+          duration: 0.8,
+          ease: 'power2.out'
+        })
+        .to('.chef__quote', {
+          scale: 1.03,
+          y: -5,
+          boxShadow: '0 15px 50px rgba(255, 255, 255, 0.1)',
+          duration: 0.6,
+          ease: 'power2.out'
+        }, '-=0.4')
+        .to('.chef__title', {
+          scale: 1.02,
+          y: -3,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.3')
+        .to('.chef__image::before, .chef__image::after', {
+          scale: 1.1,
+          opacity: 0.8,
+          duration: 0.6,
+          ease: 'power2.out'
+        }, '-=0.6')
     })
 
     chefSection.addEventListener('mouseleave', () => {
+      const leaveTl = gsap.timeline()
+      leaveTl
+        .to('.chef__photo', {
+          scale: 1,
+          rotationY: 0,
+          rotationX: 0,
+          z: 0,
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          duration: 0.8,
+          ease: 'power2.out'
+        })
+        .to('.chef__quote', {
+          scale: 1,
+          y: 0,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          duration: 0.6,
+          ease: 'power2.out'
+        }, '-=0.4')
+        .to('.chef__title', {
+          scale: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.3')
+        .to('.chef__image::before, .chef__image::after', {
+          scale: 1,
+          opacity: 0.3,
+          duration: 0.6,
+          ease: 'power2.out'
+        }, '-=0.6')
+    })
+
+    // Mouse movement parallax effect
+    chefSection.addEventListener('mousemove', (e) => {
+      const rect = chefSection.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / rect.width - 0.5
+      const y = (e.clientY - rect.top) / rect.height - 0.5
+
       gsap.to('.chef__photo', {
-        scale: 1,
-        rotationY: 0,
-        duration: 0.6,
+        rotationY: x * 15,
+        rotationX: -y * 10,
+        duration: 0.3,
         ease: 'power2.out'
       })
+
       gsap.to('.chef__quote', {
-        scale: 1,
+        x: x * 10,
+        y: y * 5,
         duration: 0.4,
+        ease: 'power2.out'
+      })
+
+      gsap.to('.chef__title', {
+        x: x * 8,
+        y: y * 3,
+        duration: 0.5,
         ease: 'power2.out'
       })
     })
   }
+
+  // Scroll-based text reveal animation
+  gsap.fromTo('.chef__quote', {
+    backgroundPosition: '0% 50%'
+  }, {
+    backgroundPosition: '100% 50%',
+    duration: 2,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef__quote',
+      start: 'top 80%',
+      end: 'bottom 60%',
+      scrub: 1
+    }
+  })
+
+  // Advanced scroll-triggered morphing effects
+  gsap.to('.chef__container', {
+    borderRadius: '0px',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top center',
+      end: 'bottom center',
+      scrub: 2
+    }
+  })
+
+  // Dynamic color shifting on scroll
+  gsap.to('.chef', {
+    filter: 'hue-rotate(10deg) brightness(1.1)',
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top center',
+      end: 'bottom center',
+      scrub: 1.5
+    }
+  })
 
   // 3D Tilt Effects for Interactive Cards
   const tiltElements = document.querySelectorAll('.feature-highlight, .category-tile, .product-showcase, .testimonial-card')
@@ -2305,6 +2530,9 @@ const setupAnimations = () => {
     padding: 0 1rem;
     position: relative;
     z-index: 2;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    will-change: transform, clip-path, border-radius;
 
     @media (min-width: 768px) {
       padding: 0 2rem;
@@ -2321,6 +2549,8 @@ const setupAnimations = () => {
     gap: 4rem;
     align-items: center;
     position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
 
     @media (min-width: 1024px) {
       grid-template-columns: 2fr 1fr;
@@ -2339,6 +2569,8 @@ const setupAnimations = () => {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     position: relative;
+    will-change: transform, filter, scale;
+    transform-style: preserve-3d;
 
     &::after {
       content: '';
@@ -2369,6 +2601,8 @@ const setupAnimations = () => {
     backdrop-filter: blur(10px);
     position: relative;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    will-change: transform, scale, box-shadow, background-position;
+    transform-style: preserve-3d;
 
     &::before {
       content: '"';
@@ -2400,6 +2634,8 @@ const setupAnimations = () => {
 
   &__info {
     text-align: left;
+    will-change: transform, scale;
+    transform-style: preserve-3d;
 
     @media (max-width: 1023px) {
       text-align: center;
