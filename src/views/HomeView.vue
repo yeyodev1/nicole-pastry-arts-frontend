@@ -781,7 +781,7 @@ const setupAnimations = () => {
           </div>
         </div>
 
-        <!-- Grid de categorías con diseño hexagonal -->
+        <!-- Grid de categorías con diseño de collage -->
         <div class="categories__grid">
           <!-- Categoría Principal - Pasteles -->
           <article class="category-card category-card--hero" data-category="pasteles">
@@ -888,8 +888,8 @@ const setupAnimations = () => {
             </div>
           </article>
 
-          <!-- Bollería -->
-          <article class="category-card category-card--wide" data-category="bolleria">
+          <!-- Bollería - Ahora al lado de Postres -->
+          <article class="category-card category-card--secondary category-card--featured" data-category="bolleria">
             <div class="category-card__background">
               <div class="category-card__image-overlay"></div>
               <div class="category-card__gradient"></div>
@@ -2017,13 +2017,58 @@ const setupAnimations = () => {
     gap: 2rem;
 
     @media (min-width: 768px) {
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: auto;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, auto);
       gap: 2.5rem;
+
+      // Layout de collage específico
+      .category-card--hero {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+      }
+
+      .category-card[data-category="galletas"] {
+        grid-column: 3;
+        grid-row: 1;
+      }
+
+      .category-card[data-category="postres"] {
+        grid-column: 4;
+        grid-row: 1;
+      }
+
+      .category-card[data-category="bolleria"] {
+        grid-column: 3 / 5;
+        grid-row: 2;
+      }
     }
 
     @media (min-width: 1024px) {
       gap: 3rem;
+    }
+
+    @media (max-width: 1200px) and (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+      
+      .category-card--hero {
+        grid-column: 1 / 3;
+        grid-row: 1;
+      }
+
+      .category-card[data-category="galletas"] {
+        grid-column: 3;
+        grid-row: 1;
+      }
+
+      .category-card[data-category="postres"] {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .category-card[data-category="bolleria"] {
+        grid-column: 2 / 4;
+        grid-row: 2;
+      }
     }
   }
 
@@ -2160,6 +2205,34 @@ const setupAnimations = () => {
 
     @media (min-width: 1024px) {
       min-height: 320px;
+    }
+  }
+
+  &--featured {
+    background: linear-gradient(135deg, rgba($white, 0.95), rgba($background-cream, 0.9));
+    border: 2px solid rgba($purple-primary, 0.15);
+    box-shadow: 0 12px 40px rgba($purple-primary, 0.12);
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba($purple-primary, 0.2);
+    }
+
+    .category-card__features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+
+      .feature {
+        background: linear-gradient(135deg, rgba($purple-primary, 0.1), rgba($purple-primary, 0.05));
+        color: $purple-primary;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid rgba($purple-primary, 0.2);
+      }
     }
   }
 
