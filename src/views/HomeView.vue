@@ -211,6 +211,116 @@ const setupAnimations = () => {
     }
   })
 
+  // Chef Section - Premium Animations
+  const chefTimeline = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top 80%',
+      end: 'bottom 20%',
+      toggleActions: 'play none none reverse'
+    }
+  })
+
+  // Chef content entrance with staggered reveal
+  chefTimeline
+    .fromTo('.chef__title', {
+      y: 60,
+      opacity: 0,
+      rotationX: -15
+    }, {
+      y: 0,
+      opacity: 1,
+      rotationX: 0,
+      duration: 1,
+      ease: 'power3.out'
+    })
+    .fromTo('.chef__quote', {
+      y: 40,
+      opacity: 0,
+      scale: 0.95
+    }, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      duration: 1.2,
+      ease: 'power2.out'
+    }, '-=0.6')
+    .fromTo('.chef__info', {
+      y: 30,
+      opacity: 0
+    }, {
+      y: 0,
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out'
+    }, '-=0.4')
+    .fromTo('.chef__image', {
+      x: 80,
+      opacity: 0,
+      rotationY: -15,
+      scale: 0.9
+    }, {
+      x: 0,
+      opacity: 1,
+      rotationY: 0,
+      scale: 1,
+      duration: 1.4,
+      ease: 'power3.out'
+    }, '-=1')
+
+  // Chef photo floating animation
+  gsap.to('.chef__photo', {
+    y: -10,
+    duration: 3,
+    ease: 'power1.inOut',
+    yoyo: true,
+    repeat: -1
+  })
+
+  // Parallax effect for chef section
+  gsap.to('.chef__image', {
+    y: -50,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: '.chef',
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 1
+    }
+  })
+
+  // Interactive hover effects for chef section
+  const chefSection = document.querySelector('.chef__content') as HTMLElement
+  if (chefSection) {
+    chefSection.addEventListener('mouseenter', () => {
+      gsap.to('.chef__photo', {
+        scale: 1.05,
+        rotationY: 5,
+        duration: 0.6,
+        ease: 'power2.out'
+      })
+      gsap.to('.chef__quote', {
+        scale: 1.02,
+        duration: 0.4,
+        ease: 'power2.out'
+      })
+    })
+
+    chefSection.addEventListener('mouseleave', () => {
+      gsap.to('.chef__photo', {
+        scale: 1,
+        rotationY: 0,
+        duration: 0.6,
+        ease: 'power2.out'
+      })
+      gsap.to('.chef__quote', {
+        scale: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      })
+    })
+  }
+
   // 3D Tilt Effects for Interactive Cards
   const tiltElements = document.querySelectorAll('.feature-highlight, .category-tile, .product-showcase, .testimonial-card')
   
@@ -2160,14 +2270,41 @@ const setupAnimations = () => {
 
 // Chef Section
 .chef {
-  padding: 6rem 0;
+  padding: 8rem 0;
   background: linear-gradient(135deg, $purple-primary 0%, $purple-dark 100%);
   color: $white;
+  position: relative;
+  overflow: hidden;
+
+  // Animated background elements
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 70%, rgba($white, 0.1) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    right: -20%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, rgba($purple-light, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
 
   &__container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    position: relative;
+    z-index: 2;
 
     @media (min-width: 768px) {
       padding: 0 2rem;
@@ -2181,12 +2318,13 @@ const setupAnimations = () => {
   &__content {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 4rem;
     align-items: center;
+    position: relative;
 
     @media (min-width: 1024px) {
       grid-template-columns: 2fr 1fr;
-      gap: 4rem;
+      gap: 5rem;
     }
   }
 
@@ -2194,24 +2332,69 @@ const setupAnimations = () => {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 2rem;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, $white 0%, rgba($white, 0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, $white, transparent);
+      border-radius: 2px;
+    }
 
     @media (min-width: 768px) {
-      font-size: 3rem;
+      font-size: 3.2rem;
+      letter-spacing: 4px;
     }
   }
 
   &__quote {
     font-size: 1.2rem;
-    line-height: 1.7;
+    line-height: 1.8;
     font-style: italic;
     margin-bottom: 2.5rem;
-    padding-left: 2rem;
+    padding: 2rem;
     border-left: 4px solid $white;
-    opacity: 0.95;
+    background: rgba($white, 0.05);
+    border-radius: 0 12px 12px 0;
+    backdrop-filter: blur(10px);
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    &::before {
+      content: '"';
+      position: absolute;
+      top: -10px;
+      left: 15px;
+      font-size: 4rem;
+      font-weight: 700;
+      opacity: 0.3;
+      line-height: 1;
+    }
+
+    &::after {
+      content: '"';
+      position: absolute;
+      bottom: -20px;
+      right: 15px;
+      font-size: 4rem;
+      font-weight: 700;
+      opacity: 0.3;
+      line-height: 1;
+    }
 
     @media (min-width: 768px) {
       font-size: 1.3rem;
+      padding: 2.5rem;
     }
   }
 
@@ -2236,6 +2419,53 @@ const setupAnimations = () => {
 
   &__image {
     text-align: center;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      height: 320px;
+      border: 2px solid rgba($white, 0.3);
+      border-radius: 50%;
+      z-index: 1;
+
+      @media (max-width: 767px) {
+        width: 260px;
+        height: 260px;
+      }
+
+      @media (max-width: 480px) {
+        width: 220px;
+        height: 220px;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 360px;
+      height: 360px;
+      border: 1px solid rgba($white, 0.1);
+      border-radius: 50%;
+      z-index: 0;
+
+      @media (max-width: 767px) {
+        width: 300px;
+        height: 300px;
+      }
+
+      @media (max-width: 480px) {
+        width: 260px;
+        height: 260px;
+      }
+    }
   }
 
   &__photo {
@@ -2243,23 +2473,33 @@ const setupAnimations = () => {
     height: 280px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid $white;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 6px solid $white;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba($white, 0.1),
+      inset 0 0 0 1px rgba($white, 0.1);
+    position: relative;
+    z-index: 2;
     // Removed transition - using GSAP for animations
 
     &:hover {
       transform: scale(1.05);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: 
+        0 25px 80px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba($white, 0.2),
+        inset 0 0 0 1px rgba($white, 0.2);
     }
 
     @media (max-width: 767px) {
       width: 220px;
       height: 220px;
+      border-width: 4px;
     }
 
     @media (max-width: 480px) {
       width: 180px;
       height: 180px;
+      border-width: 3px;
     }
   }
 }
@@ -2691,4 +2931,17 @@ const setupAnimations = () => {
 }
 
 // Removed conflicting keyframes - now using GSAP for all animations
+
+// Float animation for chef section background
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-10px) rotate(-1deg);
+  }
+}
 </style>
