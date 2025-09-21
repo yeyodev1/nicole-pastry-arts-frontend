@@ -86,6 +86,8 @@ const handleLoadingComplete = () => {
   min-height: 70vh;
   display: flex;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 
   @media (min-width: 768px) {
     padding: 6rem 0 8rem;
@@ -118,6 +120,9 @@ const handleLoadingComplete = () => {
     color: $text-dark;
     margin-bottom: 1.5rem;
     line-height: 1.2;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: heroTitleFadeIn 1.2s ease-out 0.5s forwards;
 
     @media (min-width: 768px) {
       font-size: 3.5rem;
@@ -128,9 +133,22 @@ const handleLoadingComplete = () => {
     }
   }
 
+  &__title-line {
+    display: block;
+    font-weight: 400;
+    opacity: 0;
+    transform: translateX(-50px);
+    animation: titleLineSlideIn 1s ease-out 0.3s forwards;
+  }
+
   &__title-accent {
     color: $purple-primary;
     display: block;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateX(50px);
+    animation: titleAccentSlideIn 1s ease-out 0.8s forwards;
 
     @media (min-width: 768px) {
       display: inline;
@@ -142,6 +160,9 @@ const handleLoadingComplete = () => {
     color: $text-light;
     margin-bottom: 2.5rem;
     line-height: 1.6;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: subtitleFadeIn 1s ease-out 1.3s forwards;
 
     @media (min-width: 768px) {
       font-size: 1.4rem;
@@ -153,6 +174,9 @@ const handleLoadingComplete = () => {
     flex-direction: column;
     gap: 1rem;
     align-items: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: actionsSlideIn 1s ease-out 1.8s forwards;
 
     @media (min-width: 768px) {
       flex-direction: row;
@@ -266,7 +290,61 @@ const handleLoadingComplete = () => {
 
 // Testimonials styles are now handled in the TestimonialsSection component
 
-// Removed conflicting keyframes - now using GSAP for all animations
+// Hero animations
+@keyframes heroTitleFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes titleLineSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes titleAccentSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes subtitleFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes actionsSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 
 </style>
