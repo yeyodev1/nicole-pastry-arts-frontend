@@ -928,11 +928,11 @@ const setupAnimations = () => {
         <!-- Call to Action -->
         <div class="categories__cta">
           <div class="categories__cta-content">
-            <h3 class="categories__cta-title">¿No encuentras lo que buscas?</h3>
-            <p class="categories__cta-text">Creamos productos personalizados para ocasiones especiales</p>
+            <h3 class="categories__cta-title">¿Tienes un evento especial?</h3>
+            <p class="categories__cta-text">Contáctanos y te ayudamos a hacer de tu celebración algo inolvidable</p>
             <button class="categories__cta-btn">
-              <span>Solicitar Personalización</span>
-              <i class="fas fa-magic"></i>
+              <span>Escríbenos Aquí</span>
+              <i class="fas fa-envelope"></i>
             </button>
           </div>
         </div>
