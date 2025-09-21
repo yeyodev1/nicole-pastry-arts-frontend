@@ -1,138 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
-
-onMounted(() => {
-  // Configuración de animaciones para la sección de testimonios
-  const testimonialsSection = document.querySelector('.testimonials')
-
-  if (testimonialsSection) {
-    // Animación del header
-    const testimonialsHeader = testimonialsSection.querySelector('.testimonials__header')
-    if (testimonialsHeader) {
-      gsap.fromTo(testimonialsHeader.children, {
-        opacity: 0,
-        y: 50,
-        scale: 0.9
-      }, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: testimonialsHeader,
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
-      })
-    }
-
-    // Animación de testimonios individuales con direcciones variadas
-    const testimonialStories = testimonialsSection.querySelectorAll('.testimonial-story')
-    testimonialStories.forEach((story, index) => {
-      const direction = index % 4 // Ciclo de 4 direcciones
-      let fromProps: any = { opacity: 0, scale: 0.8 }
-
-      switch (direction) {
-        case 0: // Desde la izquierda
-          fromProps = { ...fromProps, x: -100, rotation: -5 }
-          break
-        case 1: // Desde la derecha
-          fromProps = { ...fromProps, x: 100, rotation: 5 }
-          break
-        case 2: // Desde abajo
-          fromProps = { ...fromProps, y: 100, rotation: 3 }
-          break
-        case 3: // Desde arriba
-          fromProps = { ...fromProps, y: -100, rotation: -3 }
-          break
-      }
-
-      gsap.fromTo(story, fromProps, {
-        opacity: 1,
-        x: 0,
-        y: 0,
-        scale: 1,
-        rotation: 0,
-        duration: 0.8,
-        delay: index * 0.1,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: story,
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
-      })
-    })
-
-    // Animación del CTA
-    const testimonialsCta = testimonialsSection.querySelector('.testimonials__cta')
-    if (testimonialsCta) {
-      gsap.fromTo(testimonialsCta, {
-        opacity: 0,
-        y: 50,
-        scale: 0.95
-      }, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: testimonialsCta,
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
-      })
-    }
-
-    // Animación de estrellas de rating
-    const ratingStars = testimonialsSection.querySelectorAll('.rating-stars i')
-    ratingStars.forEach((star, index) => {
-      gsap.fromTo(star, {
-        opacity: 0,
-        scale: 0,
-        rotation: -180
-      }, {
-        opacity: 1,
-        scale: 1,
-        rotation: 0,
-        duration: 0.5,
-        delay: index * 0.1,
-        ease: "back.out(1.7)",
-        scrollTrigger: {
-          trigger: star.closest('.testimonial-story'),
-          start: "top 85%",
-          toggleActions: "play none none none"
-        }
-      })
-    })
-
-    // Efecto hover para testimonios
-    testimonialStories.forEach((story) => {
-      story.addEventListener('mouseenter', () => {
-        gsap.to(story, {
-          scale: 1.02,
-          duration: 0.3,
-          ease: "power2.out"
-        })
-      })
-
-      story.addEventListener('mouseleave', () => {
-        gsap.to(story, {
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        })
-      })
-    })
-  }
-})
+// Componente de testimonios sin animaciones GSAP
 </script>
 
 <template>
@@ -305,6 +172,9 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+// NOTA: Asegúrate de tener tus variables de SCSS ($purple-primary, $white, etc.)
+// definidas globalmente o importadas en este archivo para que los estilos compilen.
+
 @keyframes parallaxFloat1 {
 
   0%,
@@ -349,6 +219,11 @@ onMounted(() => {
       rgba($background-cream, 0.8) 50%,
       rgba($purple-primary, 0.05) 100%);
   overflow: hidden;
+
+  // Se han eliminado los estados iniciales de animación de CSS.
+  // GSAP es ahora la única fuente de verdad para estos estilos,
+  // lo que previene conflictos y asegura que las animaciones
+  // se inicien correctamente.
 
   &__background {
     position: absolute;
@@ -502,10 +377,6 @@ onMounted(() => {
       box-shadow: 0 8px 25px rgba($purple-primary, 0.4);
     }
 
-    // i {
-    //   // Removed transition - using GSAP for animations
-    // }
-
     &:hover i {
       transform: translateX(4px);
     }
@@ -516,13 +387,13 @@ onMounted(() => {
   background: $white;
   border-radius: 20px;
   overflow: hidden;
-  // Removed transition - using GSAP for animations
   border: 1px solid rgba($purple-primary, 0.08);
   position: relative;
+  // La animación de hover (transform) ahora es manejada por GSAP.
+  // Mantenemos solo el cambio de color del borde en el hover de CSS.
+  transition: border-color 0.3s ease;
 
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba($purple-primary, 0.15);
     border-color: rgba($purple-primary, 0.2);
   }
 

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { ref } from 'vue'
 import TestimonialsSection from '@/components/globals/TestimonialsSection.vue'
 import CategoriesSection from '@/components/globals/CategoriesSection.vue'
 import FeaturesSection from '@/components/globals/FeaturesSection.vue'
@@ -11,155 +9,10 @@ import ChefSection from '@/components/ChefSection.vue'
 
 // Vista principal de Nicole Pastry Arts
 const isLoaded = ref(false)
-let ctx: gsap.Context
 
 // Función que se ejecuta cuando la pantalla de carga termina
 const handleLoadingComplete = () => {
   isLoaded.value = true
-  setupAnimations()
-}
-
-onMounted(() => {
-  // Register GSAP plugins
-  gsap.registerPlugin(ScrollTrigger)
-
-  // Create GSAP context for proper cleanup
-  ctx = gsap.context(() => {
-    // Testimonials animations are now handled in the TestimonialsSection component
-  })
-})
-
-onUnmounted(() => {
-  if (ctx) ctx.revert()
-})
-
-const setupAnimations = () => {
-  // Hero Section Animations
-  const heroTl = gsap.timeline()
-
-  // Set initial states
-  gsap.set('.hero__title-line', { yPercent: 100, opacity: 0 })
-  gsap.set('.hero__title-accent', { yPercent: 100, opacity: 0 })
-  gsap.set('.hero__subtitle', { y: 30, opacity: 0 })
-  gsap.set('.hero__actions .btn', { y: 30, opacity: 0 })
-
-  heroTl
-    .to('.hero__title-line', {
-      yPercent: 0,
-      opacity: 1,
-      duration: 1.2,
-      ease: 'power3.out',
-      stagger: 0.1
-    })
-    .to('.hero__title-accent', {
-      yPercent: 0,
-      opacity: 1,
-      duration: 1,
-      ease: 'power3.out'
-    }, '-=0.8')
-    .to('.hero__subtitle', {
-      y: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: 'power2.out'
-    }, '-=0.5')
-    .to('.hero__actions .btn', {
-      y: 0,
-      opacity: 1,
-      duration: 0.6,
-      ease: 'power2.out',
-      stagger: 0.1
-    }, '-=0.3')
-
-
-
-
-  // Testimonials Section - Handled in onMounted context
-
-
-
-
-
-
-
-
-
-  // 3D Tilt Effects for Interactive Cards
-  const tiltElements = document.querySelectorAll('.feature-highlight, .category-tile, .product-showcase, .testimonial-card')
-
-  tiltElements.forEach(element => {
-    const tiltElement = element as HTMLElement
-
-    tiltElement.addEventListener('mouseenter', () => {
-      gsap.to(tiltElement, {
-        scale: 1.02,
-        duration: 0.3,
-        ease: 'power2.out'
-      })
-    })
-
-    tiltElement.addEventListener('mousemove', (e) => {
-      const rect = tiltElement.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-
-      const deltaX = (e.clientX - centerX) / (rect.width / 2)
-      const deltaY = (e.clientY - centerY) / (rect.height / 2)
-
-      gsap.to(tiltElement, {
-        rotationY: deltaX * 8,
-        rotationX: -deltaY * 8,
-        duration: 0.3,
-        ease: 'power2.out'
-      })
-    })
-
-    tiltElement.addEventListener('mouseleave', () => {
-      gsap.to(tiltElement, {
-        rotationY: 0,
-        rotationX: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: 'power2.out'
-      })
-    })
-  })
-
-  // Magnetic Button Effects
-  const magneticButtons = document.querySelectorAll('.btn, .product-showcase__cta, .carousel-nav')
-
-  magneticButtons.forEach(button => {
-    const magneticButton = button as HTMLElement
-
-    magneticButton.addEventListener('mousemove', (e) => {
-      const rect = magneticButton.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-
-      const deltaX = e.clientX - centerX
-      const deltaY = e.clientY - centerY
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-      if (distance < 80) {
-        const strength = (80 - distance) / 80
-        gsap.to(magneticButton, {
-          x: deltaX * strength * 0.3,
-          y: deltaY * strength * 0.3,
-          duration: 0.3,
-          ease: 'power2.out'
-        })
-      }
-    })
-
-    magneticButton.addEventListener('mouseleave', () => {
-      gsap.to(magneticButton, {
-        x: 0,
-        y: 0,
-        duration: 0.5,
-        ease: 'elastic.out(1, 0.3)'
-      })
-    })
-  })
 }
 </script>
 
@@ -204,15 +57,7 @@ const setupAnimations = () => {
     <ChefSection />
 
     <!-- Testimonials Section -->
-    <section class="testimonials">
-      <div class="testimonials__background">
-        <div class="testimonials__parallax-layer testimonials__parallax-layer--1"></div>
-        <div class="testimonials__parallax-layer testimonials__parallax-layer--2"></div>
-        <div class="testimonials__parallax-layer testimonials__parallax-layer--3"></div>
-      </div>
-      
-      <TestimonialsSection />
-    </section>
+    <TestimonialsSection />
 
     <!-- CTA Section -->
     <section class="cta">
@@ -364,7 +209,7 @@ const setupAnimations = () => {
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
-  // Removed transition - using GSAP for magnetic effects
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
   cursor: pointer;
 

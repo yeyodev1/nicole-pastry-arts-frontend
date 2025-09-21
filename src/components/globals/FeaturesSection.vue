@@ -1,55 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
-
-let ctx: gsap.Context
-
-onMounted(() => {
-  ctx = gsap.context(() => {
-    // Features Section with ScrollTrigger
-    gsap.fromTo('.features__header', {
-      y: 60,
-      opacity: 0
-    }, {
-      y: 0,
-      opacity: 1,
-      duration: 1,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '.features',
-        start: 'top 80%',
-        end: 'bottom 20%',
-        toggleActions: 'play none none reverse'
-      }
-    })
-
-    gsap.fromTo('.feature-highlight', {
-      y: 80,
-      rotationX: -15,
-      opacity: 0
-    }, {
-      y: 0,
-      rotationX: 0,
-      opacity: 1,
-      duration: 1.2,
-      ease: 'power3.out',
-      stagger: 0.2,
-      scrollTrigger: {
-        trigger: '.features__showcase',
-        start: 'top 75%',
-        end: 'bottom 25%',
-        toggleActions: 'play none none reverse'
-      }
-    })
-  })
-})
-
-onUnmounted(() => {
-  ctx?.revert()
-})
+// FeaturesSection component - No GSAP animations
 </script>
 
 <template>

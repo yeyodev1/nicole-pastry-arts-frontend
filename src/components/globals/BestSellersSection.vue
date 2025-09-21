@@ -1,44 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger)
-
-onMounted(() => {
-  // Best Sellers Section Animations
-  gsap.fromTo('.best-sellers__header', {
-    y: 50,
-    opacity: 0
-  }, {
-    y: 0,
-    opacity: 1,
-    duration: 0.8,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: '.best-sellers',
-      start: 'top 80%'
-    }
-  })
-
-  gsap.fromTo('.product-showcase', {
-    y: 60,
-    rotationX: -10,
-    opacity: 0
-  }, {
-    y: 0,
-    rotationX: 0,
-    opacity: 1,
-    duration: 1,
-    ease: 'power2.out',
-    stagger: 0.1,
-    scrollTrigger: {
-      trigger: '.best-sellers__carousel',
-      start: 'top 75%'
-    }
-  })
-})
+// Componente estático sin animaciones GSAP
 </script>
 
 <template>
