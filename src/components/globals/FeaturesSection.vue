@@ -1,17 +1,50 @@
 <script setup lang="ts">
-// FeaturesSection component - No GSAP animations
+import { ref, onMounted, onUnmounted } from 'vue'
+
+// Referencias reactivas
+const featuresSection = ref<HTMLElement>()
+const isVisible = ref(false)
+
+// Intersection Observer para detectar cuando la sección es visible
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (featuresSection.value) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+            isVisible.value = true
+            // Una vez que se activa, ya no necesitamos observar más
+            observer?.disconnect()
+          }
+        })
+      },
+      {
+        threshold: 0.3, // Se activa cuando el 30% de la sección es visible
+        rootMargin: '-50px 0px' // Se activa un poco antes de que sea completamente visible
+      }
+    )
+    
+    observer.observe(featuresSection.value)
+  }
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
   <!-- Features Section -->
-  <section class="features">
+  <section ref="featuresSection" class="features" :class="{ 'features--visible': isVisible }">
     <div class="features__container">
       <div class="features__header">
         <h2 class="features__title">¿Por qué elegir Nicole Pastry Arts?</h2>
         <p class="features__subtitle">Tres pilares fundamentales que nos distinguen en el mundo de la pastelería artesanal</p>
       </div>
       <div class="features__showcase">
-        <div class="feature-highlight">
+        <div class="feature-highlight feature-highlight--animate-1">
           <div class="feature-highlight__visual">
             <div class="feature-highlight__icon-wrapper">
               <i class="fas fa-cookie-bite"></i>
@@ -27,7 +60,7 @@
             <div class="feature-highlight__badge">Hecho a mano</div>
           </div>
         </div>
-        <div class="feature-highlight feature-highlight--reverse">
+        <div class="feature-highlight feature-highlight--reverse feature-highlight--animate-2">
           <div class="feature-highlight__visual">
             <div class="feature-highlight__icon-wrapper">
               <i class="fas fa-heart"></i>
@@ -43,7 +76,7 @@
             <div class="feature-highlight__badge">Sabor único</div>
           </div>
         </div>
-        <div class="feature-highlight">
+        <div class="feature-highlight feature-highlight--animate-3">
           <div class="feature-highlight__visual">
             <div class="feature-highlight__icon-wrapper">
               <i class="fas fa-star"></i>
@@ -114,6 +147,8 @@
     color: $text-dark;
     margin-bottom: 1.5rem;
     line-height: 1.2;
+    opacity: 0;
+    transform: translateY(40px);
 
     @media (min-width: 768px) {
       font-size: 3.5rem;
@@ -125,9 +160,22 @@
     color: $text-light;
     line-height: 1.6;
     font-weight: 400;
+    opacity: 0;
+    transform: translateY(30px);
 
     @media (min-width: 768px) {
       font-size: 1.3rem;
+    }
+  }
+
+  // Animaciones que se activan cuando la sección es visible
+  &--visible {
+    .features__title {
+      animation: fadeInUp 1.2s ease-out 0.2s forwards;
+    }
+
+    .features__subtitle {
+      animation: fadeInUp 1s ease-out 0.6s forwards;
     }
   }
 
@@ -155,11 +203,28 @@
   position: relative;
   overflow: hidden;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(60px) scale(0.95);
 
   @media (min-width: 1024px) {
     grid-template-columns: 1fr 2fr;
     gap: 4rem;
     padding: 4rem 3rem;
+  }
+
+  // Animaciones escalonadas (solo cuando la sección es visible)
+  .features--visible & {
+    &--animate-1 {
+      animation: featureSlideIn 1.2s ease-out 1s forwards;
+    }
+
+    &--animate-2 {
+      animation: featureSlideIn 1.2s ease-out 1.4s forwards;
+    }
+
+    &--animate-3 {
+      animation: featureSlideIn 1.2s ease-out 1.8s forwards;
+    }
   }
 
   &::before {
@@ -231,6 +296,8 @@
     z-index: 2;
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 10px 30px rgba($purple-primary, 0.3);
+    opacity: 0;
+    transform: scale(0.5) rotate(-180deg);
 
     @media (min-width: 1024px) {
       width: 140px;
@@ -260,8 +327,9 @@
     border-radius: 50%;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0);
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
 
     &::before {
       content: '';
@@ -293,6 +361,8 @@
     border-radius: 20px;
     margin-bottom: 1rem;
     letter-spacing: 1px;
+    opacity: 0;
+    transform: translateX(-30px);
   }
 
   &__title {
@@ -301,6 +371,8 @@
     color: $purple-primary;
     margin-bottom: 1.5rem;
     line-height: 1.2;
+    opacity: 0;
+    transform: translateY(20px);
 
     @media (min-width: 768px) {
       font-size: 2.2rem;
@@ -312,6 +384,8 @@
     color: $text-light;
     line-height: 1.7;
     margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
 
     @media (min-width: 768px) {
       font-size: 1.15rem;
@@ -329,6 +403,112 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 15px rgba($purple-primary, 0.3);
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  // Animaciones cuando el feature aparece (solo cuando la sección es visible)
+  .features--visible & {
+    &--animate-1,
+    &--animate-2,
+    &--animate-3 {
+      .feature-highlight__icon-wrapper {
+        animation: iconSpinIn 1s ease-out 0.3s forwards;
+      }
+
+      .feature-highlight__decoration {
+        animation: decorationGrow 1.2s ease-out 0.5s forwards;
+      }
+
+      .feature-highlight__number {
+        animation: slideInLeft 0.8s ease-out 0.7s forwards;
+      }
+
+      .feature-highlight__title {
+        animation: fadeInUp 0.8s ease-out 0.9s forwards;
+      }
+
+      .feature-highlight__description {
+        animation: fadeInUp 0.8s ease-out 1.1s forwards;
+      }
+
+      .feature-highlight__badge {
+        animation: badgePopIn 0.6s ease-out 1.3s forwards;
+      }
+    }
   }
 }
+
+// Keyframes para las animaciones
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes featureSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes iconSpinIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-180deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes decorationGrow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(360deg);
+  }
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes badgePopIn {
+   0% {
+     opacity: 0;
+     transform: translateY(20px) scale(0.9);
+   }
+   50% {
+     transform: translateY(-5px) scale(1.05);
+   }
+   100% {
+     opacity: 1;
+     transform: translateY(0) scale(1);
+   }
+ }
 </style>
