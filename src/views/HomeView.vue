@@ -1,15 +1,316 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 // Vista principal de Nicole Pastry Arts
+const isLoaded = ref(false)
+let ctx: gsap.Context
+
+onMounted(() => {
+  // Register GSAP plugins
+  gsap.registerPlugin(ScrollTrigger)
+  
+  // Create GSAP context for proper cleanup
+  ctx = gsap.context(() => {
+    // Loading screen animation
+    const loadingTl = gsap.timeline()
+    loadingTl
+      .to('.loading-screen__progress-fill', {
+        width: '100%',
+        duration: 2,
+        ease: 'power2.out'
+      })
+      .to('.loading-screen__text', {
+        opacity: 0,
+        y: -20,
+        duration: 0.5,
+        ease: 'power2.inOut'
+      }, '-=0.5')
+      .to('.loading-screen', {
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          isLoaded.value = true
+          setupAnimations()
+        }
+      })
+  })
+})
+
+onUnmounted(() => {
+  if (ctx) ctx.revert()
+})
+
+const setupAnimations = () => {
+  // Hero Section Animations
+  const heroTl = gsap.timeline()
+  
+  // Set initial states
+  gsap.set('.hero__title-line', { yPercent: 100, opacity: 0 })
+  gsap.set('.hero__title-accent', { yPercent: 100, opacity: 0 })
+  gsap.set('.hero__subtitle', { y: 30, opacity: 0 })
+  gsap.set('.hero__actions .btn', { y: 30, opacity: 0 })
+  
+  heroTl
+    .to('.hero__title-line', {
+      yPercent: 0,
+      opacity: 1,
+      duration: 1.2,
+      ease: 'power3.out',
+      stagger: 0.1
+    })
+    .to('.hero__title-accent', {
+      yPercent: 0,
+      opacity: 1,
+      duration: 1,
+      ease: 'power3.out'
+    }, '-=0.8')
+    .to('.hero__subtitle', {
+      y: 0,
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out'
+    }, '-=0.5')
+    .to('.hero__actions .btn', {
+      y: 0,
+      opacity: 1,
+      duration: 0.6,
+      ease: 'power2.out',
+      stagger: 0.1
+    }, '-=0.3')
+
+  // Features Section with ScrollTrigger
+  gsap.fromTo('.features__header', {
+    y: 60,
+    opacity: 0
+  }, {
+    y: 0,
+    opacity: 1,
+    duration: 1,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '.features',
+      start: 'top 80%',
+      end: 'bottom 20%',
+      toggleActions: 'play none none reverse'
+    }
+  })
+
+  gsap.fromTo('.feature-highlight', {
+    y: 80,
+    rotationX: -15,
+    opacity: 0
+  }, {
+    y: 0,
+    rotationX: 0,
+    opacity: 1,
+    duration: 1.2,
+    ease: 'power3.out',
+    stagger: 0.2,
+    scrollTrigger: {
+      trigger: '.features__showcase',
+      start: 'top 75%',
+      end: 'bottom 25%',
+      toggleActions: 'play none none reverse'
+    }
+  })
+
+  // Categories Section
+  gsap.fromTo('.categories__header', {
+    y: 50,
+    opacity: 0
+  }, {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '.categories',
+      start: 'top 80%'
+    }
+  })
+
+  gsap.fromTo('.category-tile', {
+    scale: 0.9,
+    opacity: 0,
+    y: 40
+  }, {
+    scale: 1,
+    opacity: 1,
+    y: 0,
+    duration: 1,
+    ease: 'power2.out',
+    stagger: 0.15,
+    scrollTrigger: {
+      trigger: '.categories__mosaic',
+      start: 'top 75%'
+    }
+  })
+
+  // Best Sellers Section
+  gsap.fromTo('.best-sellers__header', {
+    y: 50,
+    opacity: 0
+  }, {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '.best-sellers',
+      start: 'top 80%'
+    }
+  })
+
+  gsap.fromTo('.product-showcase', {
+    y: 60,
+    rotationX: -10,
+    opacity: 0
+  }, {
+    y: 0,
+    rotationX: 0,
+    opacity: 1,
+    duration: 1,
+    ease: 'power2.out',
+    stagger: 0.1,
+    scrollTrigger: {
+      trigger: '.best-sellers__carousel',
+      start: 'top 75%'
+    }
+  })
+
+  // Testimonials Section
+  gsap.fromTo('.testimonials__header', {
+    y: 50,
+    opacity: 0
+  }, {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '.testimonials',
+      start: 'top 80%'
+    }
+  })
+
+  gsap.fromTo('.testimonial-card', {
+    y: 40,
+    opacity: 0
+  }, {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+    ease: 'power2.out',
+    stagger: 0.1,
+    scrollTrigger: {
+      trigger: '.testimonials__grid',
+      start: 'top 75%'
+    }
+  })
+
+  // 3D Tilt Effects for Interactive Cards
+  const tiltElements = document.querySelectorAll('.feature-highlight, .category-tile, .product-showcase, .testimonial-card')
+  
+  tiltElements.forEach(element => {
+    const tiltElement = element as HTMLElement
+    
+    tiltElement.addEventListener('mouseenter', () => {
+      gsap.to(tiltElement, {
+        scale: 1.02,
+        duration: 0.3,
+        ease: 'power2.out'
+      })
+    })
+    
+    tiltElement.addEventListener('mousemove', (e) => {
+      const rect = tiltElement.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      
+      const deltaX = (e.clientX - centerX) / (rect.width / 2)
+      const deltaY = (e.clientY - centerY) / (rect.height / 2)
+      
+      gsap.to(tiltElement, {
+        rotationY: deltaX * 8,
+        rotationX: -deltaY * 8,
+        duration: 0.3,
+        ease: 'power2.out'
+      })
+    })
+    
+    tiltElement.addEventListener('mouseleave', () => {
+      gsap.to(tiltElement, {
+        rotationY: 0,
+        rotationX: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      })
+    })
+  })
+
+  // Magnetic Button Effects
+  const magneticButtons = document.querySelectorAll('.btn, .product-showcase__cta, .carousel-nav')
+  
+  magneticButtons.forEach(button => {
+    const magneticButton = button as HTMLElement
+    
+    magneticButton.addEventListener('mousemove', (e) => {
+      const rect = magneticButton.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      
+      const deltaX = e.clientX - centerX
+      const deltaY = e.clientY - centerY
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+      
+      if (distance < 80) {
+        const strength = (80 - distance) / 80
+        gsap.to(magneticButton, {
+          x: deltaX * strength * 0.3,
+          y: deltaY * strength * 0.3,
+          duration: 0.3,
+          ease: 'power2.out'
+        })
+      }
+    })
+    
+    magneticButton.addEventListener('mouseleave', () => {
+      gsap.to(magneticButton, {
+        x: 0,
+        y: 0,
+        duration: 0.5,
+        ease: 'elastic.out(1, 0.3)'
+      })
+    })
+  })
+}
 </script>
 
 <template>
-  <div class="home">
+  <!-- Loading Screen -->
+  <div v-if="!isLoaded" class="loading-screen">
+    <div class="loading-screen__content">
+      <div class="loading-screen__logo">
+        <i class="fas fa-birthday-cake"></i>
+      </div>
+      <div class="loading-screen__text">Nicole Pastry Arts</div>
+      <div class="loading-screen__progress">
+        <div class="loading-screen__progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="isLoaded" class="home">
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero__container">
         <div class="hero__content">
           <h1 class="hero__title">
-            Bienvenidos a 
+            <span class="hero__title-line">Bienvenidos a</span>
             <span class="hero__title-accent">Nicole Pastry Arts</span>
           </h1>
           <p class="hero__subtitle">
@@ -814,7 +1115,7 @@
   border: 1px solid rgba($purple-primary, 0.1);
   position: relative;
   overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  // Removed transition - using GSAP for animations
 
   @media (min-width: 1024px) {
     grid-template-columns: 1fr 2fr;
@@ -830,7 +1131,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba($purple-primary, 0.05), transparent);
-    transition: left 0.8s ease;
+    // Removed transition - using GSAP for animations
   }
 
   &:hover {
@@ -889,7 +1190,7 @@
     color: $white;
     position: relative;
     z-index: 2;
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    // Removed transition - using GSAP for animations
     box-shadow: 0 10px 30px rgba($purple-primary, 0.3);
 
     @media (min-width: 1024px) {
@@ -921,7 +1222,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    // Removed transition - using GSAP for animations
 
     &::before {
       content: '';
@@ -1038,7 +1339,7 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  // Removed transition - using GSAP for magnetic effects
   border: 2px solid transparent;
   cursor: pointer;
 
@@ -1187,7 +1488,7 @@
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  // Removed transition - using GSAP for animations
   min-height: 250px;
 
   @media (min-width: 768px) {
@@ -1237,7 +1538,7 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(135deg, $white 0%, $background-cream 100%);
-    transition: all 0.6s ease;
+    // Removed transition - using GSAP for animations
   }
 
   &__overlay {
@@ -1478,7 +1779,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  // Removed transition - using GSAP for animations
   backdrop-filter: blur(10px);
   pointer-events: all;
   box-shadow: 0 8px 25px rgba($purple-primary, 0.15);
@@ -1486,7 +1787,7 @@
   i {
     font-size: 1.2rem;
     color: $purple-primary;
-    transition: all 0.3s ease;
+    // Removed transition - using GSAP for animations
   }
 
   &:hover {
@@ -1522,7 +1823,7 @@
 
 .carousel-track {
   display: flex;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  // Removed transition - using GSAP for animations
 }
 
 .product-showcase {
@@ -1731,7 +2032,7 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    // Removed transition - using GSAP for animations
     box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
     position: relative;
     overflow: hidden;
@@ -1744,7 +2045,7 @@
       width: 100%;
       height: 100%;
       background: linear-gradient(90deg, transparent, rgba($white, 0.2), transparent);
-      transition: left 0.6s ease;
+      // Removed transition - using GSAP for animations
     }
 
     &:hover {
@@ -1761,7 +2062,7 @@
     }
 
     i {
-      transition: transform 0.3s ease;
+      // Removed transition - using GSAP for animations
     }
   }
 
@@ -1790,7 +2091,7 @@
   border: 2px solid rgba($purple-primary, 0.3);
   background: transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  // Removed transition - using GSAP for animations
 
   &.active,
   &:hover {
@@ -1800,16 +2101,61 @@
   }
 }
 
-@keyframes float {
+// Loading Screen Styles
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, $purple-primary 0%, $purple-dark 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
+  &__content {
+    text-align: center;
+    color: $white;
   }
 
-  50% {
-    transform: translateY(-20px) rotate(180deg);
+  &__logo {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+
+    i {
+      animation: pulse 2s ease-in-out infinite;
+    }
   }
+
+  &__text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+  }
+
+  &__progress {
+    width: 200px;
+    height: 4px;
+    background: rgba($white, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto;
+  }
+
+  &__progress-fill {
+    width: 0%;
+    height: 100%;
+    background: $white;
+    border-radius: 2px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
 }
 
 // Chef Section
@@ -1899,7 +2245,7 @@
     object-fit: cover;
     border: 4px solid $white;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    // Removed transition - using GSAP for animations
 
     &:hover {
       transform: scale(1.05);
@@ -2082,7 +2428,7 @@
     }
 
     i {
-      transition: transform 0.3s ease;
+      // Removed transition - using GSAP for animations
     }
 
     &:hover i {
@@ -2095,7 +2441,7 @@
   background: $white;
   border-radius: 20px;
   overflow: hidden;
-  transition: all 0.4s ease;
+  // Removed transition - using GSAP for animations
   border: 1px solid rgba($purple-primary, 0.08);
   position: relative;
 
@@ -2344,51 +2690,5 @@
   }
 }
 
-@keyframes parallaxFloat1 {
-
-  0%,
-  100% {
-    transform: translateY(0px) translateX(0px);
-  }
-
-  25% {
-    transform: translateY(-10px) translateX(5px);
-  }
-
-  50% {
-    transform: translateY(-5px) translateX(-3px);
-  }
-
-  75% {
-    transform: translateY(-15px) translateX(8px);
-  }
-}
-
-@keyframes parallaxFloat2 {
-
-  0%,
-  100% {
-    transform: translateY(0px) translateX(0px);
-  }
-
-  33% {
-    transform: translateY(-8px) translateX(-6px);
-  }
-
-  66% {
-    transform: translateY(-12px) translateX(4px);
-  }
-}
-
-@keyframes parallaxFloat3 {
-
-  0%,
-  100% {
-    transform: translateY(0px) translateX(0px);
-  }
-
-  50% {
-    transform: translateY(-6px) translateX(-2px);
-  }
-}
+// Removed conflicting keyframes - now using GSAP for all animations
 </style>
