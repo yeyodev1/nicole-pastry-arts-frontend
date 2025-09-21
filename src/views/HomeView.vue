@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { inject, type Ref } from 'vue'
 import TestimonialsSection from '@/components/globals/TestimonialsSection.vue'
 import CategoriesSection from '@/components/globals/CategoriesSection.vue'
 import FeaturesSection from '@/components/globals/FeaturesSection.vue'
@@ -7,18 +7,14 @@ import BestSellersSection from '@/components/globals/BestSellersSection.vue'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import ChefSection from '@/components/ChefSection.vue'
 
-// Vista principal de Nicole Pastry Arts
-const isLoaded = ref(false)
-
-// Función que se ejecuta cuando la pantalla de carga termina
-const handleLoadingComplete = () => {
-  isLoaded.value = true
-}
+// Inyectar el estado global de carga desde App.vue
+const isLoaded = inject<Ref<boolean>>('isAppLoaded')
+const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 </script>
 
 <template>
   <!-- Loading Screen -->
-  <LoadingScreen :on-loading-complete="handleLoadingComplete" />
+  <LoadingScreen :on-loading-complete="() => handleLoadingComplete?.()" />
 
   <div v-show="isLoaded" class="home">
     <!-- Hero Section -->

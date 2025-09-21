@@ -1,18 +1,31 @@
 <script setup lang="ts">
+import { ref, provide } from 'vue'
 import { RouterView } from 'vue-router'
 import AppHeader from '@/components/globals/AppHeader.vue'
 import AppFooter from '@/components/globals/AppFooter.vue'
+
+// Estado global de carga
+const isAppLoaded = ref(false)
+
+// Función para manejar cuando la carga global termine
+const handleGlobalLoadingComplete = () => {
+  isAppLoaded.value = true
+}
+
+// Proveer el estado y función a todos los componentes hijos
+provide('isAppLoaded', isAppLoaded)
+provide('handleGlobalLoadingComplete', handleGlobalLoadingComplete)
 </script>
 
 <template>
   <div id="app">
-    <AppHeader />
+    <AppHeader v-show="isAppLoaded" />
     
-    <main class="main-content">
+    <main class="main-content" :class="{ 'main-content--loading': !isAppLoaded }">
       <RouterView />
     </main>
 
-    <AppFooter />
+    <AppFooter v-show="isAppLoaded" />
   </div>
 </template>
 
@@ -34,6 +47,11 @@ import AppFooter from '@/components/globals/AppFooter.vue'
 
   @media (min-width: 768px) {
     padding-top: 80px;
+  }
+
+  // Cuando está cargando, no necesita padding para el header
+  &--loading {
+    padding-top: 0;
   }
 }
 
