@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger)
 onMounted(() => {
   // Configuración de animaciones para la sección de testimonios
   const testimonialsSection = document.querySelector('.testimonials')
-  
+
   if (testimonialsSection) {
     // Animación del header
     const testimonialsHeader = testimonialsSection.querySelector('.testimonials__header')
@@ -37,7 +37,7 @@ onMounted(() => {
     testimonialStories.forEach((story, index) => {
       const direction = index % 4 // Ciclo de 4 direcciones
       let fromProps: any = { opacity: 0, scale: 0.8 }
-      
+
       switch (direction) {
         case 0: // Desde la izquierda
           fromProps = { ...fromProps, x: -100, rotation: -5 }
@@ -306,18 +306,39 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 @keyframes parallaxFloat1 {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
 }
 
 @keyframes parallaxFloat2 {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(-1deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(-1deg);
+  }
 }
 
 @keyframes parallaxFloat3 {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-25px) rotate(1deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-25px) rotate(1deg);
+  }
 }
 
 .testimonials {
@@ -481,9 +502,9 @@ onMounted(() => {
       box-shadow: 0 8px 25px rgba($purple-primary, 0.4);
     }
 
-    i {
-      // Removed transition - using GSAP for animations
-    }
+    // i {
+    //   // Removed transition - using GSAP for animations
+    // }
 
     &:hover i {
       transform: translateX(4px);
