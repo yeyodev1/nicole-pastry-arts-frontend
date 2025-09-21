@@ -681,9 +681,7 @@
       }
     }
 
-    i {
-      // Removed transition - using GSAP for animations
-    }
+   
   }
 
   &:hover {
