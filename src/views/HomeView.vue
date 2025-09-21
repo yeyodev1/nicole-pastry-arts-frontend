@@ -10,7 +10,7 @@ let ctx: gsap.Context
 onMounted(() => {
   // Register GSAP plugins
   gsap.registerPlugin(ScrollTrigger)
-  
+
   // Create GSAP context for proper cleanup
   ctx = gsap.context(() => {
     // Loading screen animation
@@ -46,13 +46,13 @@ onUnmounted(() => {
 const setupAnimations = () => {
   // Hero Section Animations
   const heroTl = gsap.timeline()
-  
+
   // Set initial states
   gsap.set('.hero__title-line', { yPercent: 100, opacity: 0 })
   gsap.set('.hero__title-accent', { yPercent: 100, opacity: 0 })
   gsap.set('.hero__subtitle', { y: 30, opacity: 0 })
   gsap.set('.hero__actions .btn', { y: 30, opacity: 0 })
-  
+
   heroTl
     .to('.hero__title-line', {
       yPercent: 0,
@@ -409,7 +409,7 @@ const setupAnimations = () => {
   // Advanced interactive effects for chef section
   const chefSection = document.querySelector('.chef__content') as HTMLElement
   const chefPhoto = document.querySelector('.chef__photo') as HTMLElement
-  
+
   if (chefSection && chefPhoto) {
     // Enhanced hover effects with 3D transforms
     chefSection.addEventListener('mouseenter', () => {
@@ -548,10 +548,10 @@ const setupAnimations = () => {
 
   // 3D Tilt Effects for Interactive Cards
   const tiltElements = document.querySelectorAll('.feature-highlight, .category-tile, .product-showcase, .testimonial-card')
-  
+
   tiltElements.forEach(element => {
     const tiltElement = element as HTMLElement
-    
+
     tiltElement.addEventListener('mouseenter', () => {
       gsap.to(tiltElement, {
         scale: 1.02,
@@ -559,15 +559,15 @@ const setupAnimations = () => {
         ease: 'power2.out'
       })
     })
-    
+
     tiltElement.addEventListener('mousemove', (e) => {
       const rect = tiltElement.getBoundingClientRect()
       const centerX = rect.left + rect.width / 2
       const centerY = rect.top + rect.height / 2
-      
+
       const deltaX = (e.clientX - centerX) / (rect.width / 2)
       const deltaY = (e.clientY - centerY) / (rect.height / 2)
-      
+
       gsap.to(tiltElement, {
         rotationY: deltaX * 8,
         rotationX: -deltaY * 8,
@@ -575,7 +575,7 @@ const setupAnimations = () => {
         ease: 'power2.out'
       })
     })
-    
+
     tiltElement.addEventListener('mouseleave', () => {
       gsap.to(tiltElement, {
         rotationY: 0,
@@ -589,19 +589,19 @@ const setupAnimations = () => {
 
   // Magnetic Button Effects
   const magneticButtons = document.querySelectorAll('.btn, .product-showcase__cta, .carousel-nav')
-  
+
   magneticButtons.forEach(button => {
     const magneticButton = button as HTMLElement
-    
+
     magneticButton.addEventListener('mousemove', (e) => {
       const rect = magneticButton.getBoundingClientRect()
       const centerX = rect.left + rect.width / 2
       const centerY = rect.top + rect.height / 2
-      
+
       const deltaX = e.clientX - centerX
       const deltaY = e.clientY - centerY
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-      
+
       if (distance < 80) {
         const strength = (80 - distance) / 80
         gsap.to(magneticButton, {
@@ -612,7 +612,7 @@ const setupAnimations = () => {
         })
       }
     })
-    
+
     magneticButton.addEventListener('mouseleave', () => {
       gsap.to(magneticButton, {
         x: 0,
@@ -645,7 +645,7 @@ const setupAnimations = () => {
       <div class="hero__container">
         <div class="hero__content">
           <h1 class="hero__title">
-            <span class="hero__title-line">Bienvenidos a</span>
+            <span class="hero__title-line">Bienvenidos a </span>
             <span class="hero__title-accent">Nicole Pastry Arts</span>
           </h1>
           <p class="hero__subtitle">
@@ -2489,8 +2489,15 @@ const setupAnimations = () => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 // Chef Section
@@ -2710,7 +2717,7 @@ const setupAnimations = () => {
     border-radius: 50%;
     object-fit: cover;
     border: 6px solid $white;
-    box-shadow: 
+    box-shadow:
       0 20px 60px rgba(0, 0, 0, 0.3),
       0 0 0 1px rgba($white, 0.1),
       inset 0 0 0 1px rgba($white, 0.1);
@@ -2720,7 +2727,7 @@ const setupAnimations = () => {
 
     &:hover {
       transform: scale(1.05);
-      box-shadow: 
+      box-shadow:
         0 25px 80px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba($white, 0.2),
         inset 0 0 0 1px rgba($white, 0.2);
@@ -3170,12 +3177,16 @@ const setupAnimations = () => {
 
 // Float animation for chef section background
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
   }
+
   33% {
     transform: translateY(-20px) rotate(1deg);
   }
+
   66% {
     transform: translateY(-10px) rotate(-1deg);
   }
