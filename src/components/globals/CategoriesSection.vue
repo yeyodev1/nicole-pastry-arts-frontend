@@ -205,13 +205,46 @@ onMounted(() => {
 
       <!-- Call to Action -->
       <div class="categories__cta">
+        <div class="categories__cta-background">
+          <div class="categories__cta-overlay"></div>
+          <div class="categories__cta-particles">
+            <div class="particle particle--1"></div>
+            <div class="particle particle--2"></div>
+            <div class="particle particle--3"></div>
+            <div class="particle particle--4"></div>
+          </div>
+        </div>
         <div class="categories__cta-content">
+          <div class="categories__cta-badge">
+            <i class="fas fa-star"></i>
+            <span>Eventos Especiales</span>
+          </div>
           <h3 class="categories__cta-title">¿Tienes un evento especial?</h3>
-          <p class="categories__cta-text">Contáctanos y te ayudamos a hacer de tu celebración algo inolvidable</p>
-          <button class="categories__cta-btn">
-            <span>Escríbenos Aquí</span>
-            <i class="fas fa-envelope"></i>
-          </button>
+          <p class="categories__cta-text">Contáctanos y te ayudamos a hacer de tu celebración algo inolvidable con nuestras creaciones artesanales</p>
+          <div class="categories__cta-actions">
+            <button class="categories__cta-btn categories__cta-btn--primary">
+              <span>Escríbenos Aquí</span>
+              <i class="fas fa-envelope"></i>
+            </button>
+            <button class="categories__cta-btn categories__cta-btn--secondary">
+              <span>Ver Galería</span>
+              <i class="fas fa-images"></i>
+            </button>
+          </div>
+          <div class="categories__cta-features">
+            <div class="feature">
+              <i class="fas fa-heart"></i>
+              <span>Diseños Únicos</span>
+            </div>
+            <div class="feature">
+              <i class="fas fa-clock"></i>
+              <span>Entrega Puntual</span>
+            </div>
+            <div class="feature">
+              <i class="fas fa-award"></i>
+              <span>Calidad Premium</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1276,6 +1309,373 @@ onMounted(() => {
   }
 }
 
+// ===== SECCIÓN CTA INCREÍBLE =====
+.categories__cta {
+  position: relative;
+  margin-top: 8rem;
+  border-radius: 30px;
+  overflow: hidden;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+  
+  &-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('@/assets/events/PASTRY 173.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    transform: scale(1.1);
+    animation: ctaBackgroundZoom 20s ease-in-out infinite alternate;
+    
+    @media (max-width: 768px) {
+      background-attachment: scroll;
+      transform: scale(1.05);
+    }
+  }
+  
+  &-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+       radial-gradient(ellipse at center, rgba($purple-primary, 0.2) 0%, rgba($purple-dark, 0.4) 50%, rgba($gray-900, 0.6) 100%),
+       linear-gradient(135deg, rgba($purple-primary, 0.3) 0%, rgba($purple-dark, 0.5) 100%);
+    backdrop-filter: blur(2px);
+  }
+  
+  &-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    
+    .particle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle, rgba($white, 0.8), rgba($purple-primary, 0.4));
+      border-radius: 50%;
+      animation: ctaParticleFloat 8s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba($white, 0.5);
+      
+      &--1 {
+        top: 20%;
+        left: 15%;
+        animation-delay: 0s;
+        animation-duration: 6s;
+      }
+      
+      &--2 {
+        top: 70%;
+        right: 20%;
+        animation-delay: 2s;
+        animation-duration: 8s;
+      }
+      
+      &--3 {
+        bottom: 30%;
+        left: 70%;
+        animation-delay: 4s;
+        animation-duration: 7s;
+      }
+      
+      &--4 {
+        top: 40%;
+        right: 60%;
+        animation-delay: 1s;
+        animation-duration: 9s;
+      }
+    }
+  }
+  
+  &-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 800px;
+    padding: 4rem 2rem;
+    background: rgba($white, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    border: 2px solid rgba($white, 0.2);
+    box-shadow: 
+       0 25px 80px rgba($gray-900, 0.3),
+       inset 0 1px 0 rgba($white, 0.2);
+    animation: ctaContentFloat 6s ease-in-out infinite;
+    
+    @media (max-width: 768px) {
+      padding: 3rem 1.5rem;
+      margin: 0 1rem;
+    }
+  }
+  
+  &-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: linear-gradient(135deg, rgba($white, 0.9), rgba($purple-primary, 0.1));
+    color: $purple-primary;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+    border: 2px solid rgba($white, 0.3);
+    box-shadow: 0 10px 30px rgba($purple-primary, 0.2);
+    animation: ctaBadgePulse 3s ease-in-out infinite;
+    
+    i {
+       color: $warning;
+       animation: ctaStarSpin 4s linear infinite;
+     }
+  }
+  
+  &-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: $white;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    text-shadow: 
+       2px 2px 4px rgba($gray-900, 0.5),
+       0 0 20px rgba($white, 0.3);
+    background: linear-gradient(135deg, $white, rgba($white, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: ctaTitleGlow 4s ease-in-out infinite alternate;
+    
+    @media (max-width: 768px) {
+      font-size: 2.5rem;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 2rem;
+    }
+  }
+  
+  &-text {
+    font-size: 1.3rem;
+    color: rgba($white, 0.9);
+    margin-bottom: 3rem;
+    line-height: 1.6;
+    text-shadow: 1px 1px 3px rgba($gray-900, 0.5);
+    
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+      margin-bottom: 2.5rem;
+    }
+  }
+  
+  &-actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+  
+  &-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 2.5rem;
+    border-radius: 60px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba($white, 0.2), transparent);
+      transition: left 0.6s;
+    }
+    
+    &:hover::before {
+      left: 100%;
+    }
+    
+    &--primary {
+      background: linear-gradient(135deg, $purple-primary, $purple-dark);
+      color: $white;
+      box-shadow: 
+        0 15px 40px rgba($purple-primary, 0.4),
+        inset 0 1px 0 rgba($white, 0.2);
+      
+      &:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 
+          0 25px 60px rgba($purple-primary, 0.6),
+          inset 0 1px 0 rgba($white, 0.3);
+      }
+      
+      &:active {
+        transform: translateY(-2px) scale(1.02);
+      }
+    }
+    
+    &--secondary {
+      background: rgba($white, 0.15);
+      color: $white;
+      border: 2px solid rgba($white, 0.3);
+      backdrop-filter: blur(10px);
+      
+      &:hover {
+        background: rgba($white, 0.25);
+        border-color: rgba($white, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba($white, 0.2);
+      }
+      
+      &:active {
+        transform: translateY(-1px);
+      }
+    }
+    
+    i {
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover i {
+      transform: translateX(5px);
+    }
+  }
+  
+  &-features {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    
+    @media (max-width: 768px) {
+      gap: 2rem;
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      color: rgba($white, 0.9);
+      font-size: 1rem;
+      font-weight: 600;
+      
+      i {
+         color: $warning;
+         font-size: 1.2rem;
+         animation: ctaFeatureIcon 3s ease-in-out infinite;
+       }
+      
+      &:nth-child(2) i {
+        animation-delay: 1s;
+      }
+      
+      &:nth-child(3) i {
+        animation-delay: 2s;
+      }
+    }
+  }
+}
+
+// ===== ANIMACIONES CTA =====
+@keyframes ctaBackgroundZoom {
+  0% { transform: scale(1.1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(1deg); }
+  100% { transform: scale(1.1) rotate(0deg); }
+}
+
+@keyframes ctaParticleFloat {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-30px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes ctaContentFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes ctaBadgePulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 10px 30px rgba($purple-primary, 0.2);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba($purple-primary, 0.4);
+  }
+}
+
+@keyframes ctaStarSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ctaTitleGlow {
+   0% { 
+     text-shadow: 
+       2px 2px 4px rgba($gray-900, 0.5),
+       0 0 20px rgba($white, 0.3);
+   }
+   100% { 
+     text-shadow: 
+       2px 2px 4px rgba($gray-900, 0.5),
+       0 0 30px rgba($white, 0.6),
+       0 0 40px rgba($purple-primary, 0.3);
+   }
+ }
+ 
+ @keyframes ctaFeatureIcon {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    color: $warning;
+  }
+  50% { 
+    transform: scale(1.2) rotate(10deg);
+    color: $warning-light;
+  }
+}
+
 // ===== ANIMACIONES AUXILIARES =====
 @keyframes blink {
   0%, 50% { opacity: 1; }
@@ -1323,6 +1723,57 @@ onMounted(() => {
 
       &__description {
         font-size: 1rem;
+      }
+    }
+
+    // CTA Mobile Optimizations
+    .categories__cta {
+      margin-top: 6rem;
+      min-height: 500px;
+      border-radius: 20px;
+
+      &-content {
+        padding: 2.5rem 1.5rem;
+        margin: 0 1rem;
+      }
+
+      &-badge {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      &-title {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+      }
+
+      &-text {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      &-actions {
+        margin-bottom: 2rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      &-btn {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        min-width: auto;
+        width: 100%;
+      }
+
+      &-features {
+        gap: 1.5rem;
+        flex-direction: column;
+
+        .feature {
+          justify-content: center;
+          font-size: 0.9rem;
+        }
       }
     }
   }
