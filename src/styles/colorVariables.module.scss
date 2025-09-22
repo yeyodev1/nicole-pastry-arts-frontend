@@ -44,3 +44,14 @@ $success: #4caf50;
 $warning: #ff9800;
 $error: #f44336;
 $info: $NICOLE-PURPLE;
+
+// Variaciones de colores de estado usando funciones modernas de Sass
+$success-light: color.scale($success, $lightness: 20%);
+$success-dark: color.scale($success, $lightness: -20%);
+$warning-light: color.scale($warning, $lightness: 20%);
+$warning-dark: color.scale($warning, $lightness: -20%);
+$error-light: color.scale($error, $lightness: 20%);
+$error-dark: color.scale($error, $lightness: -20%);
+
+// Funciones de utilidad para colores (usando las nuevas funciones de Sass)
+// Estas reemplazan las funciones deprecadas como lighten(), darken(), etc.
