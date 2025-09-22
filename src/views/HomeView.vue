@@ -77,7 +77,11 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 
 // Hero Section
 .hero {
-  background: linear-gradient(135deg, $background-cream 0%, $white 100%);
+  background: url('@/assets/background/NPR 131.JPG');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   padding: 4rem 0 6rem;
   min-height: 70vh;
   display: flex;
@@ -85,15 +89,36 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
   position: relative;
   overflow: hidden;
 
+  // Optimización para móvil - background-attachment: scroll en dispositivos móviles
+  @media (max-width: 767px) {
+    background-attachment: scroll;
+  }
+
   @media (min-width: 768px) {
     padding: 6rem 0 8rem;
     min-height: 80vh;
+  }
+
+  // Overlay gradual que preserva la imagen pero mejora la legibilidad
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(ellipse at center, rgba($white, 0.2) 0%, rgba($background-cream, 0.4) 50%, rgba($purple-primary, 0.3) 100%),
+      linear-gradient(to bottom, rgba($white, 0.1) 0%, rgba($background-cream, 0.3) 100%);
+    z-index: 1;
   }
 
   &__container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    position: relative;
+    z-index: 2;
 
     @media (min-width: 768px) {
       padding: 0 2rem;
@@ -108,6 +133,18 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     text-align: center;
     max-width: 800px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    padding: 3rem 2rem;
+    background: rgba($white, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    border: 1px solid rgba($white, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    @media (min-width: 768px) {
+      padding: 4rem 3rem;
+    }
   }
 
   &__title {
@@ -119,6 +156,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(30px);
     animation: heroTitleFadeIn 1.2s ease-out 0.5s forwards;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 
     @media (min-width: 768px) {
       font-size: 3.5rem;
@@ -159,6 +197,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(20px);
     animation: subtitleFadeIn 1s ease-out 1.3s forwards;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.08);
 
     @media (min-width: 768px) {
       font-size: 1.4rem;
