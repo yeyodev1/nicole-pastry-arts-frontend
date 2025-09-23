@@ -2,12 +2,16 @@
 import { onMounted } from 'vue'
 import { useProductsStore } from '@/stores/products.store'
 import type { Category } from '@/types/products'
+import ProductList from './ProductList.vue'
 
 const productsStore = useProductsStore()
 
-// Cargar categorías al montar el componente
+// Cargar categorías y productos al montar el componente
 onMounted(async () => {
-  await productsStore.fetchCategories()
+  await Promise.all([
+    productsStore.fetchCategories(),
+    productsStore.fetchProducts()
+  ])
 })
 
 // Manejar selección de categoría
@@ -66,16 +70,19 @@ const handleCategorySelect = async (category: Category | null) => {
       </div>
     </header>
 
-    <!-- Contenido principal (placeholder por ahora) -->
+    <!-- Contenido principal -->
     <main class="products-content">
-      <div class="content-placeholder">
-        <p v-if="productsStore.selectedCategory">
-          Mostrando productos de: <strong>{{ productsStore.selectedCategory.name }}</strong>
-        </p>
-        <p v-else>
-          Mostrando todos los productos
-        </p>
-        <p>Total de productos: {{ productsStore.totalProducts }}</p>
+      <div class="products-container">
+        <!-- Información de la categoría actual -->
+        <div v-if="productsStore.selectedCategory" class="category-info">
+          <h2 class="category-title">{{ productsStore.selectedCategory.name }}</h2>
+          <p v-if="productsStore.selectedCategory.description" class="category-description">
+            {{ productsStore.selectedCategory.description }}
+          </p>
+        </div>
+
+        <!-- Lista de productos -->
+        <ProductList />
       </div>
     </main>
   </div>
@@ -190,28 +197,43 @@ const handleCategorySelect = async (category: Category | null) => {
 
 .products-content {
   padding: 2rem 0;
+  min-height: 60vh;
 }
 
-.content-placeholder {
+.products-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
-  text-align: center;
 
   @media (min-width: 768px) {
     padding: 0 2rem;
   }
+}
 
-  p {
-    @include body-font(400);
-    color: $text-light;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
+.category-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $border-light;
 
-    strong {
-      color: $purple-primary;
-      font-weight: 600;
+  .category-title {
+    @include heading-font(700);
+    font-size: 1.8rem;
+    color: $purple-primary;
+    margin-bottom: 0.75rem;
+
+    @media (min-width: 768px) {
+      font-size: 2.2rem;
     }
+  }
+
+  .category-description {
+    @include body-font(400);
+    font-size: 1.1rem;
+    color: $text-light;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
   }
 }
 </style>
