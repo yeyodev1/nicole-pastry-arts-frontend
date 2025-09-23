@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { productsService } from '@/services/products'
 import type { Product } from '@/types/products'
+import PaymentButton from '@/components/PaymentButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,10 +35,11 @@ const formattedPrice = computed(() => {
   }).format(price)
 })
 
-// Estado de disponibilidad
+// Estado de disponibilidad - Siempre disponible según política de la empresa
 const isAvailable = computed(() => {
   if (!product.value) return false
-  return product.value.active !== false && (product.value.quantity || 0) > 0
+  // Los productos siempre están disponibles según la política de Nicole Pastry Arts
+  return product.value.active !== false
 })
 
 // Cargar producto por ID
@@ -138,10 +140,7 @@ onMounted(() => {
                 </svg>
               </div>
               
-              <!-- Badge de no disponible -->
-              <div v-if="!isAvailable" class="unavailable-badge">
-                No disponible
-              </div>
+
             </div>
           </div>
 
@@ -170,8 +169,8 @@ onMounted(() => {
               <div class="product-details">
                 <div class="detail-item">
                   <span class="detail-label">Disponibilidad:</span>
-                  <span class="detail-value" :class="{ 'available': isAvailable, 'unavailable': !isAvailable }">
-                    {{ isAvailable ? 'En stock' : 'Agotado' }}
+                  <span class="detail-value available">
+                    Siempre disponible
                   </span>
                 </div>
                 
@@ -186,15 +185,19 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Botón de agregar al carrito -->
+              <!-- Botón de pago -->
               <div class="product-actions">
-                <button 
-                  class="add-to-cart-btn"
-                  :disabled="!isAvailable"
-                  @click="addToCart"
-                >
-                  {{ isAvailable ? 'Agregar al carrito' : 'Producto agotado' }}
-                </button>
+                <PaymentButton
+                  :product-id="product.web_id"
+                  :product-name="product.title"
+                  :price="parseFloat(product.price)"
+                  :description="product.description"
+                  variant="primary"
+                  size="large"
+                  full-width
+                  @payment-started="(productId) => console.log('Pago iniciado para:', productId)"
+                  @payment-error="(error) => console.error('Error en pago:', error)"
+                />
               </div>
             </div>
           </div>
