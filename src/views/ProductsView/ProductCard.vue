@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Product } from '@/types/products'
+import PaymentButton from '@/components/PaymentButton.vue'
 
 const router = useRouter()
 
@@ -11,6 +12,12 @@ const props = defineProps({
     required: true,
   },
 })
+
+// Emits
+const emit = defineEmits<{
+  paymentStarted: [productId: string];
+  paymentError: [error: string];
+}>()
 
 // Función para navegar al detalle del producto
 const navigateToProduct = () => {
@@ -39,14 +46,15 @@ const formattedPrice = computed(() => {
   }).format(price)
 })
 
-// Estado de disponibilidad
+// Estado de disponibilidad - Siempre disponible según política de la empresa
 const isAvailable = computed(() => {
-  return props.product.active !== false && (props.product.quantity || 0) > 0
+  // Los productos siempre están disponibles según la política de Nicole Pastry Arts
+  return props.product.active !== false
 })
 </script>
 
 <template>
-  <article class="product-card" :class="{ 'unavailable': !isAvailable }" @click="navigateToProduct">
+  <article class="product-card" @click="navigateToProduct">
     <!-- Imagen del producto -->
     <div class="product-image-container">
       <img
@@ -62,10 +70,7 @@ const isAvailable = computed(() => {
         </svg>
       </div>
       
-      <!-- Badge de no disponible -->
-      <div v-if="!isAvailable" class="unavailable-badge">
-        No disponible
-      </div>
+
     </div>
 
     <!-- Información del producto -->
@@ -81,13 +86,17 @@ const isAvailable = computed(() => {
       <div class="product-footer">
         <span class="product-price">{{ formattedPrice }}</span>
         
-        <button 
-          class="add-to-cart-btn"
-          :disabled="!isAvailable"
-          @click.stop="$emit('addToCart', product)"
-        >
-          {{ isAvailable ? 'Agregar' : 'Agotado' }}
-        </button>
+        <PaymentButton
+          :product-id="product.web_id"
+          :product-name="product.title"
+          :price="parseFloat(product.price)"
+          :description="product.description"
+          variant="primary"
+          size="small"
+          @click.stop
+          @payment-started="(productId) => emit('paymentStarted', productId)"
+          @payment-error="(error) => emit('paymentError', error)"
+        />
       </div>
     </div>
   </article>
