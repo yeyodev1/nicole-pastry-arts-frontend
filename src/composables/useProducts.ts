@@ -28,10 +28,7 @@ export function useProducts() {
    * Inicializa los datos básicos (productos y categorías)
    */
   const initialize = async (): Promise<void> => {
-    await Promise.all([
-      store.fetchProducts({ page: 1 }),
-      store.fetchCategories()
-    ])
+    await Promise.all([store.fetchProducts({ page: 1 }), store.fetchCategories()])
   }
 
   /**
@@ -123,29 +120,27 @@ export function useProducts() {
   /**
    * Verifica si hay más páginas disponibles
    */
-  const hasMorePages = computed(() => 
-    pagination.value?.hasNextPage ?? false
-  )
+  const hasMorePages = computed(() => pagination.value?.hasNextPage ?? false)
 
   /**
    * Obtiene productos de una categoría específica
    */
   const getProductsByCategory = (categoryId: string) => {
-    return products.value.filter(product => product.category_id === categoryId)
+    return products.value.filter((product: Product) => product.category?.web_id === categoryId)
   }
 
   /**
    * Busca un producto por ID en el estado actual
    */
   const findProductById = (id: string) => {
-    return products.value.find(product => product.id === id)
+    return products.value.find((product: Product) => product.id === id)
   }
 
   /**
    * Busca una categoría por ID
    */
   const findCategoryById = (id: string) => {
-    return categories.value.find(category => category.id === id)
+    return categories.value.find((category: Category) => category.id === id)
   }
 
   /**
@@ -190,7 +185,7 @@ export function useProducts() {
     getProductsByCategory,
     findProductById,
     findCategoryById,
-    getCategoryName
+    getCategoryName,
   }
 }
 
@@ -236,6 +231,6 @@ export function useProductFilters() {
     applyFilters,
     applyFiltersWithDebounce,
     clearAllFilters,
-    isLoading
+    isLoading,
   }
 }
