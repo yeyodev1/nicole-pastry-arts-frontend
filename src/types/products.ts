@@ -1,30 +1,30 @@
 // Product Types
 export interface Product {
-  web_id: string
-  title: string
-  description?: string
-  price: string // La API devuelve price como string
-  quantity: number
-  active: boolean
-  url?: string
-  sku?: string
-  wholesale_price?: string | null
-  images: string[] // Array de URLs de imágenes
-  subcategory?: {
-    name: string
-    web_id: string
-    order: number
+  readonly web_id: string
+  readonly title: string
+  readonly description?: string
+  readonly price: string // La API devuelve price como string
+  readonly quantity: number
+  readonly active: boolean
+  readonly url?: string
+  readonly sku?: string
+  readonly wholesale_price?: string | null
+  readonly images: readonly string[] // Array readonly de URLs de imágenes
+  readonly subcategory?: {
+    readonly name: string
+    readonly web_id: string
+    readonly order: number
   } | null
-  category?: {
-    name: string
-    web_id: string
-    order: number
+  readonly category?: {
+    readonly name: string
+    readonly web_id: string
+    readonly order: number
   } | null
   // Propiedades computadas para compatibilidad
-  id?: string // Alias para web_id
-  name?: string // Alias para title
-  stock?: number // Alias para quantity
-  is_available?: boolean // Alias para active
+  readonly id?: string // Alias para web_id
+  readonly name?: string // Alias para title
+  readonly stock?: number // Alias para quantity
+  readonly is_available?: boolean // Alias para active
 }
 
 export interface ProductImage {
@@ -36,31 +36,31 @@ export interface ProductImage {
 
 // Category Types
 export interface Category {
-  web_id: string
-  name: string
-  description?: string | null
-  image_url?: string
-  products_count: number
-  order: number
-  subcategories?: Subcategory[]
-  created_at?: string
-  updated_at?: string
+  readonly web_id: string
+  readonly name: string
+  readonly description?: string | null
+  readonly image_url?: string
+  readonly products_count: number
+  readonly order: number
+  readonly subcategories?: readonly Subcategory[]
+  readonly created_at?: string
+  readonly updated_at?: string
   // Alias para compatibilidad con el código existente
-  id?: string
+  readonly id?: string
 }
 
 export interface Subcategory {
-  web_id: string
-  name: string
-  description?: string | null
-  products_count: number
-  order: number
-  image_url?: string
-  created_at?: string
-  updated_at?: string
+  readonly web_id: string
+  readonly name: string
+  readonly description?: string | null
+  readonly products_count: number
+  readonly order: number
+  readonly image_url?: string
+  readonly created_at?: string
+  readonly updated_at?: string
   // Alias para compatibilidad con el código existente
-  id?: string
-  category_id?: string
+  readonly id?: string
+  readonly category_id?: string
 }
 
 // API Response Types
