@@ -177,6 +177,7 @@ const isAvailable = computed(() => {
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 
@@ -193,6 +194,7 @@ const isAvailable = computed(() => {
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 
@@ -207,11 +209,13 @@ const isAvailable = computed(() => {
   }
 
   // Resetear estilos de elementos HTML comunes
-  :deep(strong), :deep(b) {
+  :deep(strong),
+  :deep(b) {
     font-weight: 600;
   }
 
-  :deep(em), :deep(i) {
+  :deep(em),
+  :deep(i) {
     font-style: italic;
   }
 }
