@@ -56,7 +56,7 @@ export const useProductsStore = defineStore('products', () => {
    */
   const categoriesWithProducts = computed(() => 
     categories.value.filter(category => 
-      products.value.some(product => product.category_id === category.id)
+      category.products_count > 0
     )
   )
 
