@@ -1,9 +1,3 @@
-/**
- * Servicio de Autenticación
- * Maneja todas las operaciones relacionadas con autenticación de usuarios
- * Extiende APIBase para reutilizar la configuración HTTP
- */
-
 import APIBase from './httpBase'
 import type {
   RegisterData,
@@ -16,7 +10,7 @@ import type {
   AuthError,
   AuthErrorType,
   TokenPayload,
-  SessionInfo
+  SessionInfo,
 } from '@/types/auth'
 
 export class AuthService extends APIBase {
@@ -38,9 +32,9 @@ export class AuthService extends APIBase {
   async register(userData: RegisterData): Promise<RegisterResponse> {
     try {
       this.validateRegisterData(userData)
-      
+
       const response = await this.post<RegisterResponse>('/auth/register', userData)
-      
+
       if (!response.data) {
         throw this.createAuthError('UNKNOWN_ERROR', 'No se recibió respuesta del servidor')
       }
@@ -57,16 +51,16 @@ export class AuthService extends APIBase {
   async login(loginData: LoginData, rememberMe = false): Promise<AuthResponse> {
     try {
       this.validateLoginData(loginData)
-      
+
       const response = await this.post<AuthResponse>('/auth/login', loginData)
-      
+
       if (!response.data) {
         throw this.createAuthError('UNKNOWN_ERROR', 'No se recibió respuesta del servidor')
       }
 
       // Guardar sesión
       await this.saveSession(response.data, rememberMe)
-      
+
       return response.data
     } catch (error) {
       throw this.handleAuthError(error, 'login')
@@ -79,9 +73,12 @@ export class AuthService extends APIBase {
   async confirmEmail(confirmationData: EmailConfirmationData): Promise<EmailConfirmationResponse> {
     try {
       this.validateEmailConfirmationData(confirmationData)
-      
-      const response = await this.post<EmailConfirmationResponse>('/auth/confirm-email', confirmationData)
-      
+
+      const response = await this.post<EmailConfirmationResponse>(
+        '/auth/confirm-email',
+        confirmationData,
+      )
+
       if (!response.data) {
         throw this.createAuthError('UNKNOWN_ERROR', 'No se recibió respuesta del servidor')
       }
@@ -99,7 +96,7 @@ export class AuthService extends APIBase {
     try {
       // Limpiar almacenamiento local
       this.clearSession()
-      
+
       // Opcional: notificar al servidor (si tienes endpoint de logout)
       // await this.post('/auth/logout')
     } catch (error) {
@@ -133,7 +130,7 @@ export class AuthService extends APIBase {
 
       // Si no hay usuario almacenado, obtenerlo del servidor
       const response = await this.get<{ user: User }>('/auth/profile')
-      
+
       if (response.data?.user) {
         this.saveUser(response.data.user)
         return response.data.user
@@ -156,7 +153,7 @@ export class AuthService extends APIBase {
    */
   private async saveSession(authResponse: AuthResponse, rememberMe: boolean): Promise<void> {
     const storage = rememberMe ? localStorage : sessionStorage
-    
+
     storage.setItem(this.TOKEN_KEY, authResponse.token)
     storage.setItem(this.USER_KEY, JSON.stringify(authResponse.user))
     localStorage.setItem(this.REMEMBER_ME_KEY, rememberMe.toString())
@@ -208,7 +205,7 @@ export class AuthService extends APIBase {
   getSessionInfo(): SessionInfo | null {
     const token = this.getStoredToken()
     const user = this.getStoredUser()
-    
+
     if (!token || !user) {
       return null
     }
@@ -219,7 +216,7 @@ export class AuthService extends APIBase {
         user,
         token,
         expiresAt: new Date(payload.exp * 1000),
-        issuedAt: new Date(payload.iat * 1000)
+        issuedAt: new Date(payload.iat * 1000),
       }
     } catch {
       return null
@@ -326,8 +323,8 @@ export class AuthService extends APIBase {
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(''),
       )
       return JSON.parse(jsonPayload)
     } catch (error) {
@@ -371,7 +368,10 @@ export class AuthService extends APIBase {
 
     // Manejar errores de red
     if (error.code === 'NETWORK_ERROR' || !error.response) {
-      return this.createAuthError('NETWORK_ERROR', 'Error de conexión. Verifica tu conexión a internet.')
+      return this.createAuthError(
+        'NETWORK_ERROR',
+        'Error de conexión. Verifica tu conexión a internet.',
+      )
     }
 
     // Error desconocido
@@ -387,7 +387,7 @@ export class AuthService extends APIBase {
       message,
       field,
       code: type,
-      details: {}
+      details: {},
     }
   }
 }
