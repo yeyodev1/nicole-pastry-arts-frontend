@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Product } from '@/types/products'
+
+const router = useRouter()
 
 const props = defineProps({
   product: {
@@ -8,6 +11,11 @@ const props = defineProps({
     required: true,
   },
 })
+
+// Función para navegar al detalle del producto
+const navigateToProduct = () => {
+  router.push({ name: 'product-detail', params: { id: props.product.web_id } })
+}
 
 // Imagen principal del producto
 const primaryImage = computed(() => {
@@ -38,7 +46,7 @@ const isAvailable = computed(() => {
 </script>
 
 <template>
-  <article class="product-card" :class="{ 'unavailable': !isAvailable }">
+  <article class="product-card" :class="{ 'unavailable': !isAvailable }" @click="navigateToProduct">
     <!-- Imagen del producto -->
     <div class="product-image-container">
       <img
@@ -76,7 +84,7 @@ const isAvailable = computed(() => {
         <button 
           class="add-to-cart-btn"
           :disabled="!isAvailable"
-          @click="$emit('addToCart', product)"
+          @click.stop="$emit('addToCart', product)"
         >
           {{ isAvailable ? 'Agregar' : 'Agotado' }}
         </button>
