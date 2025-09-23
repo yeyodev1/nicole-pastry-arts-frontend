@@ -1,17 +1,30 @@
 // Product Types
 export interface Product {
-  id: string
-  name: string
+  web_id: string
+  title: string
   description?: string
-  price: number
-  currency?: string
-  category_id?: string
-  subcategory_id?: string
-  images?: ProductImage[]
-  stock?: number
-  is_available?: boolean
-  created_at?: string
-  updated_at?: string
+  price: string // La API devuelve price como string
+  quantity: number
+  active: boolean
+  url?: string
+  sku?: string
+  wholesale_price?: string | null
+  images: string[] // Array de URLs de imágenes
+  subcategory?: {
+    name: string
+    web_id: string
+    order: number
+  } | null
+  category?: {
+    name: string
+    web_id: string
+    order: number
+  } | null
+  // Propiedades computadas para compatibilidad
+  id?: string // Alias para web_id
+  name?: string // Alias para title
+  stock?: number // Alias para quantity
+  is_available?: boolean // Alias para active
 }
 
 export interface ProductImage {
