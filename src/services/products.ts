@@ -34,9 +34,21 @@ class ProductsService extends APIBase {
       const queryString = this.buildQueryString(params)
       const endpoint = queryString ? `${this.ENDPOINTS.PRODUCTS}?${queryString}` : this.ENDPOINTS.PRODUCTS
       
-      const response: AxiosResponse<ProductsResponse> = await this.get<ProductsResponse>(endpoint)
+      const response: AxiosResponse<PaginatedResponse<Product>> = await this.get<PaginatedResponse<Product>>(endpoint)
       
-      return this.transformProductsResponse(response.data, params.page || 1)
+      // Agregar aliases para compatibilidad con el código existente
+      const productsWithAliases = response.data.data.map(product => ({
+        ...product,
+        id: product.web_id, // Alias para compatibilidad
+        name: product.title, // Alias para compatibilidad
+        stock: product.quantity, // Alias para compatibilidad
+        is_available: product.active // Alias para compatibilidad
+      }))
+      
+      return {
+        ...response.data,
+        data: productsWithAliases
+      }
     } catch (error) {
       throw this.handleServiceError(error, 'Error al obtener productos')
     }
@@ -79,9 +91,21 @@ class ProductsService extends APIBase {
         ? `${this.ENDPOINTS.PRODUCTS_BY_CATEGORY(categoryId.trim())}?${queryString}`
         : this.ENDPOINTS.PRODUCTS_BY_CATEGORY(categoryId.trim())
       
-      const response: AxiosResponse<ProductsResponse> = await this.get<ProductsResponse>(endpoint)
+      const response: AxiosResponse<PaginatedResponse<Product>> = await this.get<PaginatedResponse<Product>>(endpoint)
       
-      return this.transformProductsResponse(response.data, params.page || 1)
+      // Agregar aliases para compatibilidad con el código existente
+      const productsWithAliases = response.data.data.map(product => ({
+        ...product,
+        id: product.web_id, // Alias para compatibilidad
+        name: product.title, // Alias para compatibilidad
+        stock: product.quantity, // Alias para compatibilidad
+        is_available: product.active // Alias para compatibilidad
+      }))
+      
+      return {
+        ...response.data,
+        data: productsWithAliases
+      }
     } catch (error) {
       throw this.handleServiceError(error, `Error al obtener productos de categoría: ${categoryId}`)
     }
@@ -105,9 +129,21 @@ class ProductsService extends APIBase {
         ? `${this.ENDPOINTS.PRODUCTS_BY_SUBCATEGORY(subcategoryId.trim())}?${queryString}`
         : this.ENDPOINTS.PRODUCTS_BY_SUBCATEGORY(subcategoryId.trim())
       
-      const response: AxiosResponse<ProductsResponse> = await this.get<ProductsResponse>(endpoint)
+      const response: AxiosResponse<PaginatedResponse<Product>> = await this.get<PaginatedResponse<Product>>(endpoint)
       
-      return this.transformProductsResponse(response.data, params.page || 1)
+      // Agregar aliases para compatibilidad con el código existente
+      const productsWithAliases = response.data.data.map(product => ({
+        ...product,
+        id: product.web_id, // Alias para compatibilidad
+        name: product.title, // Alias para compatibilidad
+        stock: product.quantity, // Alias para compatibilidad
+        is_available: product.active // Alias para compatibilidad
+      }))
+      
+      return {
+        ...response.data,
+        data: productsWithAliases
+      }
     } catch (error) {
       throw this.handleServiceError(error, `Error al obtener productos de subcategoría: ${subcategoryId}`)
     }
