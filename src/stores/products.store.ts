@@ -8,7 +8,7 @@ import type {
   ProductFilters,
   ProductsQueryParams,
   PaginationInfo,
-  ApiError
+  ApiError,
 } from '@/types/products'
 
 /**
@@ -24,40 +24,39 @@ export const useProductsStore = defineStore('products', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const pagination = ref<PaginationInfo | null>(null)
-  
+
   // Estado para filtros activos
   const activeFilters = ref<ProductFilters>({})
   const searchTerm = ref('')
 
   // ===== GETTERS COMPUTADOS =====
-  
+
   /**
    * Productos filtrados por término de búsqueda local
    */
   const filteredProducts = computed(() => {
     if (!searchTerm.value) return products.value
-    
+
     const term = searchTerm.value.toLowerCase()
-    return products.value.filter(product => 
-      product.name.toLowerCase().includes(term) ||
-      product.description?.toLowerCase().includes(term)
+    return products.value.filter(
+      (product) =>
+        product.title.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term),
     )
   })
 
   /**
    * Productos disponibles (en stock)
    */
-  const availableProducts = computed(() => 
-    products.value.filter(product => product.is_available !== false)
+  const availableProducts = computed(() =>
+    products.value.filter((product) => product.is_available !== false),
   )
 
   /**
    * Categorías con productos disponibles
    */
-  const categoriesWithProducts = computed(() => 
-    categories.value.filter(category => 
-      category.products_count > 0
-    )
+  const categoriesWithProducts = computed(() =>
+    categories.value.filter((category) => category.products_count > 0),
   )
 
   /**
@@ -101,7 +100,7 @@ export const useProductsStore = defineStore('products', () => {
    */
   const handleError = (err: unknown, context: string): void => {
     console.error(`[ProductsStore] ${context}:`, err)
-    
+
     if (typeof err === 'object' && err !== null && 'message' in err) {
       error.value = (err as ApiError).message
     } else {
@@ -118,16 +117,15 @@ export const useProductsStore = defineStore('products', () => {
       clearError()
 
       const response = await productsService.getAllProducts(params)
-      
+
       // Si es la primera página, reemplaza; si no, agrega (para paginación infinita)
       if (params.page === 1 || !params.page) {
         products.value = response.data
       } else {
         products.value.push(...response.data)
       }
-      
+
       pagination.value = response.pagination
-      
     } catch (err) {
       handleError(err, 'obtener productos')
     } finally {
@@ -145,7 +143,7 @@ export const useProductsStore = defineStore('products', () => {
 
       const response = await productsService.getProductById(id)
       selectedProduct.value = response.data
-      
+
       return response.data
     } catch (err) {
       handleError(err, `obtener producto ${id}`)
@@ -159,24 +157,23 @@ export const useProductsStore = defineStore('products', () => {
    * Obtiene productos por categoría
    */
   const fetchProductsByCategory = async (
-    categoryId: string, 
-    params: Omit<ProductsQueryParams, 'category_id'> = {}
+    categoryId: string,
+    params: Omit<ProductsQueryParams, 'category_id'> = {},
   ): Promise<void> => {
     try {
       setLoading(true)
       clearError()
 
       const response = await productsService.getProductsByCategory(categoryId, params)
-      
+
       if (params.page === 1 || !params.page) {
         products.value = response.data
       } else {
         products.value.push(...response.data)
       }
-      
+
       pagination.value = response.pagination
       activeFilters.value = { ...activeFilters.value, categoryId }
-      
     } catch (err) {
       handleError(err, `obtener productos de categoría ${categoryId}`)
     } finally {
@@ -188,24 +185,23 @@ export const useProductsStore = defineStore('products', () => {
    * Obtiene productos por subcategoría
    */
   const fetchProductsBySubcategory = async (
-    subcategoryId: string, 
-    params: Omit<ProductsQueryParams, 'subcategory_id'> = {}
+    subcategoryId: string,
+    params: Omit<ProductsQueryParams, 'subcategory_id'> = {},
   ): Promise<void> => {
     try {
       setLoading(true)
       clearError()
 
       const response = await productsService.getProductsBySubcategory(subcategoryId, params)
-      
+
       if (params.page === 1 || !params.page) {
         products.value = response.data
       } else {
         products.value.push(...response.data)
       }
-      
+
       pagination.value = response.pagination
       activeFilters.value = { ...activeFilters.value, subcategoryId }
-      
     } catch (err) {
       handleError(err, `obtener productos de subcategoría ${subcategoryId}`)
     } finally {
@@ -223,7 +219,6 @@ export const useProductsStore = defineStore('products', () => {
 
       const response = await productsService.getAllCategories()
       categories.value = response.data
-      
     } catch (err) {
       handleError(err, 'obtener categorías')
     } finally {
@@ -243,7 +238,7 @@ export const useProductsStore = defineStore('products', () => {
    */
   const applyFilters = async (filters: ProductFilters): Promise<void> => {
     activeFilters.value = { ...filters }
-    
+
     const params: ProductsQueryParams = {
       page: 1,
       category_id: filters.categoryId,
@@ -251,7 +246,7 @@ export const useProductsStore = defineStore('products', () => {
       min_price: filters.minPrice,
       max_price: filters.maxPrice,
       search: filters.searchTerm,
-      is_available: filters.isAvailable
+      is_available: filters.isAvailable,
     }
 
     await fetchProducts(params)
@@ -275,7 +270,7 @@ export const useProductsStore = defineStore('products', () => {
     const nextPage = pagination.value.currentPage + 1
     const params: ProductsQueryParams = {
       page: nextPage,
-      ...activeFilters.value
+      ...activeFilters.value,
     }
 
     await fetchProducts(params)
@@ -314,7 +309,7 @@ export const useProductsStore = defineStore('products', () => {
    * Actualiza un producto en la lista (útil para actualizaciones optimistas)
    */
   const updateProduct = (updatedProduct: Product): void => {
-    const index = products.value.findIndex(p => p.id === updatedProduct.id)
+    const index = products.value.findIndex((p) => p.id === updatedProduct.id)
     if (index !== -1) {
       products.value[index] = updatedProduct
     }
@@ -324,7 +319,7 @@ export const useProductsStore = defineStore('products', () => {
    * Elimina un producto de la lista
    */
   const removeProduct = (productId: string): void => {
-    products.value = products.value.filter(p => p.id !== productId)
+    products.value = products.value.filter((p) => p.id !== productId)
   }
 
   // ===== RETORNO DEL STORE =====
@@ -364,6 +359,6 @@ export const useProductsStore = defineStore('products', () => {
     selectCategory,
     resetStore,
     updateProduct,
-    removeProduct
+    removeProduct,
   }
 })
