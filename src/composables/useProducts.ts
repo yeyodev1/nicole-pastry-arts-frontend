@@ -1,5 +1,5 @@
 import { computed, onMounted, watch } from 'vue'
-import { useProductsStore } from '@/stores/products'
+import { useProductsStore } from '@/stores/products.store'
 import type { Product, Category, ProductFilters, ProductsQueryParams } from '@/types/products'
 
 /**
