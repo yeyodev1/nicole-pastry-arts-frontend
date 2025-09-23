@@ -119,13 +119,25 @@ class ProductsService extends APIBase {
    */
   async getAllCategories(): Promise<ApiResponse<Category[]>> {
     try {
-      const response: AxiosResponse<CategoriesResponse> = await this.get<CategoriesResponse>(
+      const response: AxiosResponse<ApiResponse<Category[]>> = await this.get<ApiResponse<Category[]>>(
         this.ENDPOINTS.CATEGORIES
       )
       
+      // La API ya devuelve la estructura correcta { message, data }
+      // Solo necesitamos agregar el alias id para compatibilidad
+      const categoriesWithId = response.data.data.map(category => ({
+        ...category,
+        id: category.web_id, // Alias para compatibilidad
+        subcategories: category.subcategories?.map(sub => ({
+          ...sub,
+          id: sub.web_id, // Alias para compatibilidad
+          category_id: category.web_id
+        }))
+      }))
+      
       return {
-        message: 'Categorías obtenidas exitosamente',
-        data: response.data.categories
+        message: response.data.message,
+        data: categoriesWithId
       }
     } catch (error) {
       throw this.handleServiceError(error, 'Error al obtener categorías')
