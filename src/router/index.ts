@@ -20,6 +20,11 @@ const router = createRouter({
       component: () => import('@/views/ProductsView/ProductDetailView.vue'),
       props: true,
     },
+    {
+      path: '/pay-response',
+      name: 'payment-confirmation',
+      component: () => import('@/views/PaymentConfirmationView.vue'),
+    },
   ],
 })
 
