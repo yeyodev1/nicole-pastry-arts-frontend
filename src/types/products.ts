@@ -23,23 +23,31 @@ export interface ProductImage {
 
 // Category Types
 export interface Category {
-  id: string
+  web_id: string
   name: string
-  description?: string
+  description?: string | null
   image_url?: string
+  products_count: number
+  order: number
   subcategories?: Subcategory[]
   created_at?: string
   updated_at?: string
+  // Alias para compatibilidad con el código existente
+  id?: string
 }
 
 export interface Subcategory {
-  id: string
+  web_id: string
   name: string
-  description?: string
-  category_id: string
+  description?: string | null
+  products_count: number
+  order: number
   image_url?: string
   created_at?: string
   updated_at?: string
+  // Alias para compatibilidad con el código existente
+  id?: string
+  category_id?: string
 }
 
 // API Response Types
