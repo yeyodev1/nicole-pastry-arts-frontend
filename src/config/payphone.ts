@@ -11,7 +11,6 @@ const requiredEnvVars = {
   RESPONSE_URL: import.meta.env.VITE_PAYPHONE_RESPONSE_URL,
   CANCEL_URL: import.meta.env.VITE_PAYPHONE_CANCEL_URL,
 }
-console.log('requiredEnvVars: ', requiredEnvVars)
 
 // Verificar que todas las variables de entorno estén definidas
 Object.entries(requiredEnvVars).forEach(([key, value]) => {
@@ -57,6 +56,8 @@ export interface PayphoneTransaction {
   reference: string // Referencia del comercio
   clientTransactionId: string // ID único de la transacción
   storeId: string
+  responseUrl: string // URL de respuesta después del pago
+  cancellationUrl?: string // URL de cancelación (opcional)
 }
 
 export interface PayphoneResponse {
