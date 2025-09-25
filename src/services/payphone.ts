@@ -40,7 +40,9 @@ export class PayphoneService {
         currency: PAYPHONE_CONFIG.CURRENCY,
         reference: `${productData.productName} - ${productData.productId}`,
         clientTransactionId,
-        storeId: PAYPHONE_CONFIG.STORE_ID
+        storeId: PAYPHONE_CONFIG.STORE_ID,
+        responseUrl: PAYPHONE_CONFIG.RESPONSE_URL,
+        cancellationUrl: PAYPHONE_CONFIG.CANCEL_URL
       };
 
       console.log('🚀 Preparando pago Payphone:', {
