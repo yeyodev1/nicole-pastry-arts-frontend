@@ -5,7 +5,7 @@ class APIBase {
   private baseUrl: string
 
   constructor() {
-    this.baseUrl = import.meta.env.VITE_BAKANO_API || 'http://localhost:8100/api'
+    this.baseUrl = import.meta.env.VITE_NICOLE_API || 'http://localhost:8100/api'
   }
 
   private buildUrl(endpoint: string): string {
