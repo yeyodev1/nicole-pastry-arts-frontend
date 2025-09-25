@@ -22,6 +22,11 @@ const router = createRouter({
     },
     {
       path: '/pay-response',
+      name: 'pay-response',
+      component: () => import('@/views/PaymentConfirmationView.vue'),
+    },
+    {
+      path: '/payment-confirmation',
       name: 'payment-confirmation',
       component: () => import('@/views/PaymentConfirmationView.vue'),
     },
