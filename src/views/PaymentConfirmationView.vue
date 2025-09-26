@@ -5,7 +5,7 @@ import { usePayphonePayment } from '@/composables/usePayphonePayment';
 import { useOrdersStore } from '@/stores/orders.store';
 import { useAuth } from '@/composables/useAuth';
 import PayphoneService from '@/services/payphone';
-import type { CreateOrderRequest } from '@/types/orders';
+import type { CreateOrderRequest, Address } from '@/types/orders';
 
 const route = useRoute();
 const router = useRouter();
@@ -27,13 +27,13 @@ const { user, isAuthenticated } = useAuth();
 const statusIcon = computed(() => {
   switch (paymentStatus.value) {
     case 'success':
-      return '✅';
+      return 'fas fa-check-circle';
     case 'error':
-      return '❌';
+      return 'fas fa-times-circle';
     case 'cancelled':
-      return '⚠️';
+      return 'fas fa-exclamation-triangle';
     default:
-      return '⏳';
+      return 'fas fa-clock';
   }
 });
 
@@ -114,7 +114,7 @@ const transformCartItems = (cartItems: any[]): any[] => {
 const getValidCustomerId = (customer: any): string => {
   // Si hay un usuario autenticado, usar su ID
   if (isAuthenticated && user?._id) {
-    console.log('👤 Usuario autenticado encontrado:', user._id);
+    console.log('[AUTH] Usuario autenticado encontrado:', user._id);
     return user._id;
   }
   
@@ -126,13 +126,13 @@ const getValidCustomerId = (customer: any): string => {
   // Para usuarios invitados, crear un identificador único basado en email y timestamp
   if (customer?.email) {
     const guestId = `guest-${customer.email.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
-    console.log('👥 Usuario invitado creado:', guestId);
+    console.log('[GUEST] Usuario invitado creado:', guestId);
     return guestId;
   }
   
   // ID por defecto para invitados sin email
   const defaultGuestId = `guest-anonymous-${Date.now()}`;
-  console.log('👥 Usuario anónimo creado:', defaultGuestId);
+  console.log('[GUEST] Usuario anónimo creado:', defaultGuestId);
   return defaultGuestId;
 };
 
@@ -192,129 +192,169 @@ const saveGuestUserInfo = (customerData: any, orderId: string) => {
     }
 
     localStorage.setItem(`guest_${customerData.email}`, JSON.stringify(guestInfo));
-    console.log('💾 Información de usuario invitado guardada:', guestInfo);
+    console.log('[STORAGE] Información de usuario invitado guardada:', guestInfo);
   }
 };
 
 const createOrderFromPayment = async (paymentResult: any, transactionId: string) => {
   try {
-    console.log('🚀 Iniciando creación de orden desde pago');
-    console.log('📊 Payment Result:', paymentResult);
-    console.log('🔑 Transaction ID:', transactionId);
+    console.log('[ORDER] Iniciando creación de orden desde pago');
+    console.log('[PAYMENT] Payment Result:', paymentResult);
+    console.log('[TRANSACTION] Transaction ID:', transactionId);
     
-    // Obtener datos del carrito desde localStorage o sessionStorage
-    const cartData = localStorage.getItem('cart') || sessionStorage.getItem('cart');
-    const customerData = localStorage.getItem('customerData') || sessionStorage.getItem('customerData');
+    // Obtener datos del carrito y del pago desde localStorage
+    const payphoneDataStr = localStorage.getItem('payphoneData');
+    const cartDataStr = localStorage.getItem('cart');
+    const customerDataStr = localStorage.getItem('customerData');
     
-    console.log('🛒 Cart Data encontrado:', !!cartData);
-    console.log('👤 Customer Data encontrado:', !!customerData);
-    console.log('📦 Cart Data raw:', cartData);
-    console.log('👤 Customer Data raw:', customerData);
+    console.log('[PAYPHONE] Payphone Data encontrado:', !!payphoneDataStr);
+    console.log('[CART] Cart Data encontrado:', !!cartDataStr);
+    console.log('[CUSTOMER] Customer Data encontrado:', !!customerDataStr);
     
-    let cart: any;
-    let customer: any;
+    let payphoneData: any = null;
+    let cartData: any = null;
+    let customerData: any = null;
     
-    if (!cartData) {
-      console.warn('❌ No se encontraron datos del carrito para crear la orden');
-      console.log('🔍 Verificando localStorage keys:', Object.keys(localStorage));
-      console.log('🔍 Verificando sessionStorage keys:', Object.keys(sessionStorage));
-      
-      // TEMPORAL: Crear datos de prueba para testing
-      console.log('🧪 Creando datos de carrito de prueba...');
-      cart = {
-        items: [
-          {
-            product: '507f1f77bcf86cd799439011', // ObjectId válido de prueba
-            productName: 'Tarta de Chocolate',
-            quantity: 1,
-            unitPrice: 25.00,
-            totalPrice: 25.00,
-            sku: 'TARTA-CHOC-001',
-            notes: 'Producto de prueba'
-          }
-        ],
-        subtotal: 25.00,
-        tax: 3.00,
-        taxRate: 0.12,
-        discount: 0,
-        discountType: 'fixed',
-        total: 28.00,
-        shippingCost: 0
-      };
-      
-      customer = {
-        id: 'test-customer-123',
-        name: 'Cliente de Prueba',
-        email: 'test@example.com',
-        phone: '0999999999',
-        address: {
-          street: 'Calle de Prueba 123',
-          city: 'Quito',
-          state: 'Pichincha',
-          zipCode: '170101',
-          country: 'Ecuador'
-        },
-        shippingMethod: 'pickup'
-      };
-      
-      // Crear datos profesionales del cliente
-      const professionalCustomerData = createProfessionalCustomerData(customer);
-      console.log('👤 Datos profesionales del cliente:', professionalCustomerData);
-      
-      console.log('🧪 Usando datos de prueba:', { cart, customer });
-    } else {
-      cart = JSON.parse(cartData);
-      customer = customerData ? JSON.parse(customerData) : null;
-      
-      console.log('🛒 Cart parseado:', cart);
-      console.log('👤 Customer parseado:', customer);
+    // Parsear datos guardados
+    if (payphoneDataStr) {
+      payphoneData = JSON.parse(payphoneDataStr);
+      console.log('[PAYPHONE] Payphone Data parseado:', payphoneData);
     }
-
-    // Transformar items del carrito al formato correcto
-    const transformedItems = transformCartItems(cart.items || []);
-    console.log('🔄 Items transformados:', transformedItems);
     
-    // Crear datos profesionales del cliente si no se hizo antes
-    const professionalCustomerData = createProfessionalCustomerData(customer);
-    console.log('👤 Datos profesionales del cliente:', professionalCustomerData);
+    if (cartDataStr) {
+      cartData = JSON.parse(cartDataStr);
+      console.log('[CART] Cart Data parseado:', cartData);
+    }
     
-    // Preparar datos de la orden desde Payphone
+    if (customerDataStr) {
+      customerData = JSON.parse(customerDataStr);
+      console.log('[CUSTOMER] Customer Data parseado:', customerData);
+    }
+    
+    // Si no hay datos de payphone, usar datos del carrito como fallback
+    if (!payphoneData && !cartData) {
+      console.error('[ERROR] No se encontraron datos del carrito ni de payphone');
+      throw new Error('No se encontraron datos para crear la orden');
+    }
+    
+    // Usar datos de payphone si están disponibles, sino usar datos del carrito
+    const orderSource = payphoneData || cartData;
+    
+    // Crear datos profesionales del cliente
+    const professionalCustomerData = createProfessionalCustomerData(
+      customerData || orderSource.customer || { email: 'guest@example.com' }
+    );
+    console.log('[CUSTOMER] Datos profesionales del cliente:', professionalCustomerData);
+    
+    // Transformar items al formato correcto para el backend
+    const transformedItems = (orderSource.items || []).map((item: any) => ({
+      product: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
+      productName: item.productName || item.name || 'Producto sin nombre',
+      quantity: item.quantity || 1,
+      unitPrice: item.unitPrice || item.price || 0,
+      totalPrice: item.totalPrice || (item.price * item.quantity) || 0,
+      productSku: item.productSku || item.sku || `SKU-${item.productId || item.id || 'UNKNOWN'}`,
+      productId: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
+      notes: item.notes || item.description || ''
+    }));
+    
+    console.log('[ITEMS] Items transformados:', transformedItems);
+    
+    // Preparar dirección de envío con datos del destinatario (campos obligatorios)
+    const getRecipientName = (): string => {
+      return orderSource.shippingAddress?.recipientName?.trim() ||
+             orderSource.customer?.firstName?.trim() ||
+             customerData?.name?.trim() ||
+             customerData?.firstName?.trim() ||
+             'Cliente';
+    };
+    
+    const getRecipientPhone = (): string => {
+      return orderSource.shippingAddress?.recipientPhone?.trim() ||
+             orderSource.customer?.phone?.trim() ||
+             customerData?.phone?.trim() ||
+             '0999999999'; // Teléfono por defecto válido
+    };
+    
+    const shippingAddress: Address = {
+      recipientName: getRecipientName(),
+      recipientPhone: getRecipientPhone(),
+      street: orderSource.shippingAddress?.street || 'Dirección no especificada',
+      city: orderSource.shippingAddress?.city || 'Quito',
+      state: orderSource.shippingAddress?.state || 'Pichincha',
+      zipCode: orderSource.shippingAddress?.zipCode || '170101',
+      country: orderSource.shippingAddress?.country || 'Ecuador',
+      notes: orderSource.shippingAddress?.notes || ''
+    };
+    
+    console.log('[ADDRESS] Dirección de envío preparada:', shippingAddress);
+    
+    // Generar orderNumber único y válido
+    const generateOrderNumber = (): string => {
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 11).toUpperCase();
+      return `NPA-${timestamp}-${randomSuffix}`;
+    };
+    
+    const finalOrderNumber = orderSource.orderNumber && orderSource.orderNumber.trim() 
+      ? orderSource.orderNumber.trim() 
+      : generateOrderNumber();
+    
+    console.log('[ORDER_NUMBER] Order Number generado/usado:', finalOrderNumber);
+    
+    // Preparar datos de la orden con todos los campos requeridos
     const orderData: CreateOrderRequest = {
+      // Campo requerido: orderNumber
+      orderNumber: finalOrderNumber,
+      
+      // Datos del cliente
       customer: professionalCustomerData.id,
+      
+      // Items con productSku y productId requeridos
       items: transformedItems,
-      subtotal: cart.subtotal || 0,
-      tax: cart.tax || 0,
-      taxRate: cart.taxRate || 0.12,
-      discount: cart.discount || 0,
-      discountType: cart.discountType || 'fixed',
-      discountCode: cart.discountCode,
-      total: parseFloat(paymentResult.amount) || cart.total || 0,
+      
+      // Totales
+      subtotal: orderSource.subtotal || 0,
+      tax: orderSource.tax || (orderSource.subtotal * 0.12) || 0,
+      taxRate: orderSource.taxRate || 0.12,
+      discount: orderSource.discount || 0,
+      discountType: orderSource.discountType || 'fixed',
+      discountCode: orderSource.discountCode,
+      total: parseFloat(paymentResult.amount) || orderSource.total || 0,
+      
+      // Método de pago (payphone es válido según el enum)
       paymentMethod: 'payphone',
       paymentReference: paymentResult.transactionId,
-      shippingAddress: customer?.address || {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'Ecuador'
-      },
-      shippingMethod: customer?.shippingMethod || 'pickup',
-      shippingCost: cart.shippingCost || 0,
+      
+      // Dirección de envío con recipientName y recipientPhone requeridos
+      shippingAddress: shippingAddress,
+      shippingMethod: orderSource.shippingMethod || 'delivery',
+      shippingCost: orderSource.shippingCost || 0,
+      
+      // Notas
       notes: `Pago procesado con Payphone. Transaction ID: ${paymentResult.transactionId}, Client Transaction ID: ${transactionId}`
     };
 
-    console.log('📋 Order Data preparado:', orderData);
-    console.log('🏪 Llamando a ordersStore.createOrder...');
+    console.log('[ORDER] Order Data preparado:', orderData);
+    console.log('[DEBUG] Verificando orderNumber específicamente:', {
+      orderNumber: orderData.orderNumber,
+      type: typeof orderData.orderNumber,
+      length: orderData.orderNumber?.length,
+      isEmpty: !orderData.orderNumber,
+      isString: typeof orderData.orderNumber === 'string'
+    });
+    console.log('[DEBUG] JSON que se enviará:', JSON.stringify(orderData, null, 2));
+    console.log('[STORE] Llamando a ordersStore.createOrder...');
     
     // Crear la orden usando el store
     const createdOrder = await ordersStore.createOrder(orderData);
     
-    console.log('📦 Respuesta del store:', createdOrder);
-    console.log('❌ Error del store:', ordersStore.error);
-    console.log('⏳ Loading del store:', ordersStore.isLoading);
+    console.log('[STORE] Respuesta del store:', createdOrder);
+    console.log('[ERROR] Error del store:', ordersStore.error);
+    console.log('[LOADING] Loading del store:', ordersStore.isLoading);
     
     if (createdOrder) {
-      console.log('✅ Orden creada exitosamente:', createdOrder);
+      console.log('[SUCCESS] Orden creada exitosamente:', createdOrder);
       orderCreated.value = true;
       createdOrderId.value = createdOrder._id;
       
@@ -326,12 +366,13 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
       sessionStorage.removeItem('cart');
       localStorage.removeItem('customerData');
       sessionStorage.removeItem('customerData');
+      localStorage.removeItem('payphoneData');
       
-      console.log('🧹 Datos del carrito limpiados');
+      console.log('[CLEANUP] Datos del carrito limpiados');
       return createdOrder;
     } else {
-      console.warn('⚠️ No se pudo crear la orden - respuesta vacía del store');
-      console.log('🔍 Estado del store:', {
+      console.warn('[WARNING] No se pudo crear la orden - respuesta vacía del store');
+      console.log('[DEBUG] Estado del store:', {
         isLoading: ordersStore.isLoading,
         hasError: ordersStore.hasError,
         error: ordersStore.error
@@ -340,60 +381,60 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
     
     return null;
   } catch (error) {
-    console.error('💥 Error al crear la orden:', error);
-    console.error('📊 Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    console.error('[ERROR] Error al crear la orden:', error);
+    console.error('[STACK] Error stack:', error instanceof Error ? error.stack : 'No stack available');
     return null;
   }
 };
 
 const processPaymentResponse = async () => {
   try {
-    console.log('🎯 Iniciando processPaymentResponse');
-    console.log('🌐 URL actual:', window.location.href);
-    console.log('📋 Query params:', route.query);
+    console.log('[PROCESS] Iniciando processPaymentResponse');
+    console.log('[URL] URL actual:', window.location.href);
+    console.log('[PARAMS] Query params:', route.query);
     
     isProcessing.value = true;
     
     // Verificar si el pago fue cancelado
     if (route.query.cancelled === 'true') {
-      console.log('❌ Pago cancelado por el usuario');
+      console.log('[CANCELLED] Pago cancelado por el usuario');
       paymentStatus.value = 'cancelled';
       return;
     }
 
     // Extraer parámetros de la URL usando el servicio
     const params = PayphoneService.extractResponseParams(window.location.href);
-    console.log('🔍 Parámetros extraídos:', params);
+    console.log('[PARAMS] Parámetros extraídos:', params);
     
     if (!params) {
       throw new Error('No se encontraron parámetros de respuesta válidos');
     }
 
     // Confirmar el pago con Payphone
-    console.log('💳 Confirmando pago con Payphone...');
+    console.log('[PAYMENT] Confirmando pago con Payphone...');
     const result = await confirmPayment(params.transactionId, params.clientTransactionId);
-    console.log('💰 Resultado de confirmación:', result);
+    console.log('[RESULT] Resultado de confirmación:', result);
     
     if (result && result.transactionStatus === 'Approved') {
-      console.log('✅ Pago aprobado - iniciando creación de orden');
+      console.log('[SUCCESS] Pago aprobado - iniciando creación de orden');
       paymentStatus.value = 'success';
       paymentDetails.value = result;
       
       // Crear la orden automáticamente cuando el pago sea exitoso
       const orderResult = await createOrderFromPayment(result, params.clientTransactionId);
-      console.log('📦 Resultado de creación de orden:', orderResult);
+      console.log('[ORDER] Resultado de creación de orden:', orderResult);
       
     } else if (result && result.transactionStatus === 'Rejected') {
-      console.log('❌ Pago rechazado:', result.message);
+      console.log('[REJECTED] Pago rechazado:', result.message);
       paymentStatus.value = 'error';
       errorMessage.value = result.message || 'El pago fue rechazado';
     } else {
-      console.log('⚠️ Estado de pago desconocido:', result);
+      console.log('[UNKNOWN] Estado de pago desconocido:', result);
       paymentStatus.value = 'error';
       errorMessage.value = 'Error al confirmar el pago';
     }
   } catch (error) {
-    console.error('Error al procesar respuesta de pago:', error);
+    console.error('[ERROR] Error al procesar respuesta de pago:', error);
     paymentStatus.value = 'error';
     errorMessage.value = error instanceof Error ? error.message : 'Error desconocido';
   } finally {
@@ -425,7 +466,7 @@ onMounted(() => {
       <!-- Header -->
       <header class="confirmation-header">
         <div class="status-icon" :class="`status-icon--${statusColor}`">
-          {{ statusIcon }}
+          <i :class="statusIcon"></i>
         </div>
         <h1 class="status-title" :class="`status-title--${statusColor}`">
           {{ statusTitle }}
@@ -452,7 +493,9 @@ onMounted(() => {
           
           <!-- Order Creation Error -->
           <div v-else-if="ordersStore.hasError && !orderCreated" class="order-error">
-            <div class="error-icon">⚠️</div>
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
             <p class="error-text">
               Hubo un problema al crear tu orden, pero tu pago fue procesado correctamente.
               Nuestro equipo revisará tu transacción.
