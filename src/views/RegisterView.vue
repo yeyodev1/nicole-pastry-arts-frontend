@@ -190,9 +190,34 @@ const isFormValid = computed(() => {
          Object.keys(formErrors.value).length === 0
 })
 
+// Computed para mensaje de error específico
+const errorMessage = computed(() => {
+  if (!error) return ''
+  
+  // Manejo específico para error 409 (usuario ya existe)
+  if (error.message?.includes('already exists') || error.message?.includes('User already exists')) {
+    return 'Ya existe una cuenta con este email. ¿Quieres iniciar sesión en su lugar?'
+  }
+  
+  // Otros errores específicos
+  if (error.type === 'VALIDATION_ERROR') {
+    return 'Por favor verifica que todos los campos estén correctos'
+  }
+  
+  if (error.type === 'NETWORK_ERROR') {
+    return 'Error de conexión. Por favor intenta nuevamente'
+  }
+  
+  if (error.type === 'AUTHENTICATION_ERROR') {
+    return 'Error de autenticación. Por favor verifica tus datos'
+  }
+  
+  return error.message || 'Error al crear la cuenta. Por favor intenta nuevamente'
+})
+
 // Manejo del envío del formulario
 const handleSubmit = async () => {
-  if (!validateForm()) {
+  if (!validateForm() || isRegistering) {
     return
   }
 
@@ -214,6 +239,7 @@ const handleSubmit = async () => {
     await router.push(redirectTo.value)
   } catch (err) {
     console.error('Error en registro:', err)
+    // El error ya está manejado por el store, no necesitamos hacer nada más aquí
   }
 }
 
@@ -248,7 +274,13 @@ onMounted(() => {
           <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
-          <span>{{ error.message || 'Error al crear la cuenta' }}</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <!-- Enlace al login si el usuario ya existe -->
+        <div v-if="error.message?.includes('already exists') || error.message?.includes('User already exists')" class="error-action">
+          <button @click="goToLogin" class="error-link">
+            Ir al inicio de sesión
+          </button>
         </div>
       </div>
 
@@ -577,6 +609,33 @@ onMounted(() => {
       width: 16px;
       height: 16px;
       flex-shrink: 0;
+    }
+  }
+
+  .error-action {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #fcc;
+
+    .error-link {
+      background: none;
+      border: none;
+      color: #d4a574;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #b8935f;
+      }
+
+      &:focus {
+        outline: none;
+        color: #b8935f;
+      }
     }
   }
 }
