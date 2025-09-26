@@ -30,6 +30,11 @@ const router = createRouter({
       name: 'payment-confirmation',
       component: () => import('@/views/PaymentConfirmationView.vue'),
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/RegisterView.vue'),
+    },
   ],
 })
 
