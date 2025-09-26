@@ -13,6 +13,21 @@ const router = useRouter()
 // Estado local
 const isProcessingCheckout = ref(false)
 
+// Datos de envío del destinatario
+const shippingData = ref({
+  recipientName: '',
+  recipientPhone: '',
+  street: '',
+  city: '',
+  notes: ''
+})
+
+// Validar datos de envío
+const isShippingDataValid = computed(() => {
+  return shippingData.value.recipientName.trim() !== '' && 
+         shippingData.value.recipientPhone.trim() !== ''
+})
+
 // Formatear precio
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('es-EC', {
@@ -24,6 +39,13 @@ const formatPrice = (price: number): string => {
 // Navegar a productos
 const goToProducts = () => {
   router.push('/products')
+}
+
+// Generar número de orden único
+const generateOrderNumber = (): string => {
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  return `ORD-${timestamp}-${random}`
 }
 
 // Proceder al checkout con Payphone
@@ -42,20 +64,90 @@ const proceedToCheckout = async () => {
       return
     }
 
+    // Validar datos de envío
+    if (!isShippingDataValid.value) {
+      alert('Por favor completa los datos de envío (nombre y teléfono del destinatario)')
+      return
+    }
+
     isProcessingCheckout.value = true
 
-    // Procesar el pago directamente con Payphone
-      const payphoneData = {
-        productId: `CART-${Date.now()}`, // ID único para esta compra
-        productName: `Compra de ${cartStore.totalItems} productos`,
-        price: cartStore.totalPrice,
-        description: `Carrito con ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
-      }
-
-      console.log('💳 Iniciando pago con Payphone:', payphoneData)
+    // Preparar datos completos para la orden
+    const orderNumber = generateOrderNumber()
+    
+    const payphoneData = {
+      // Datos básicos del producto (mantenemos compatibilidad)
+      productId: cartStore.items[0].id,
+      productName: cartStore.items[0].name,
+      price: cartStore.totalPrice,
+      description: `Orden de ${cartStore.totalItems} producto(s) - ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`,
       
-      // Iniciar el pago con Payphone
-      await initiatePayment(payphoneData)
+      // Campos requeridos por el backend
+      orderNumber: orderNumber,
+      paymentMethod: 'payphone', // Valor válido del enum
+      
+      // Dirección de envío con datos del destinatario
+      shippingAddress: {
+        recipientName: shippingData.value.recipientName,
+        recipientPhone: shippingData.value.recipientPhone,
+        street: shippingData.value.street || undefined,
+        city: shippingData.value.city || undefined,
+        notes: shippingData.value.notes || undefined
+      },
+      
+      // Items con datos completos
+      items: cartStore.items.map(item => ({
+        productId: item.id, // ID del producto
+        productSku: item.id, // Usando el ID como SKU por ahora
+        productName: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        totalPrice: item.price * item.quantity,
+        notes: item.description
+      })),
+      
+      // Datos del cliente (básicos)
+      customer: {
+        firstName: shippingData.value.recipientName.split(' ')[0] || '',
+        lastName: shippingData.value.recipientName.split(' ').slice(1).join(' ') || '',
+        phone: shippingData.value.recipientPhone
+      },
+      
+      // Totales
+      subtotal: cartStore.totalPrice,
+      total: cartStore.totalPrice,
+      shippingCost: 0,
+      shippingMethod: 'delivery'
+    }
+
+    console.log('💳 Iniciando pago con Payphone:', payphoneData)
+    
+    // Guardar datos de payphone en localStorage para PaymentConfirmationView
+    localStorage.setItem('payphoneData', JSON.stringify(payphoneData))
+    
+    // También guardar datos del carrito y cliente por separado como backup
+    localStorage.setItem('cart', JSON.stringify({
+      items: cartStore.items,
+      subtotal: cartStore.totalPrice,
+      total: cartStore.totalPrice,
+      shippingCost: 0,
+      tax: cartStore.totalPrice * 0.12,
+      taxRate: 0.12,
+      discount: 0,
+      discountType: 'fixed'
+    }))
+    
+    localStorage.setItem('customerData', JSON.stringify({
+      email: authStore.user?.email || '',
+      firstName: authStore.user?.firstName || shippingData.value.recipientName.split(' ')[0] || '',
+      lastName: authStore.user?.lastName || shippingData.value.recipientName.split(' ').slice(1).join(' ') || '',
+      phone: authStore.user?.phone || shippingData.value.recipientPhone || ''
+    }))
+    
+    console.log('💾 Datos guardados en localStorage para PaymentConfirmationView')
+    
+    // Iniciar el pago con Payphone
+    await initiatePayment(payphoneData)
 
     // Si llegamos aquí, el pago se inició correctamente
     // El usuario será redirigido a Payphone
@@ -181,6 +273,90 @@ const decrementQuantity = (productId: string) => {
             >
               <i class="fas fa-trash"></i>
             </button>
+          </div>
+        </div>
+
+        <!-- Formulario de datos de envío -->
+        <div class="cart-view__shipping">
+          <div class="shipping-form">
+            <h3 class="shipping-form__title">
+              <i class="fas fa-shipping-fast"></i>
+              Datos de Envío
+            </h3>
+            
+            <div class="shipping-form__fields">
+              <div class="shipping-form__field">
+                <label for="recipientName" class="shipping-form__label">
+                  Nombre del destinatario *
+                </label>
+                <input
+                  id="recipientName"
+                  v-model="shippingData.recipientName"
+                  type="text"
+                  class="shipping-form__input"
+                  placeholder="Nombre completo del destinatario"
+                  required
+                >
+              </div>
+
+              <div class="shipping-form__field">
+                <label for="recipientPhone" class="shipping-form__label">
+                  Teléfono del destinatario *
+                </label>
+                <input
+                  id="recipientPhone"
+                  v-model="shippingData.recipientPhone"
+                  type="tel"
+                  class="shipping-form__input"
+                  placeholder="Ej: +593 99 123 4567"
+                  required
+                >
+              </div>
+
+              <div class="shipping-form__field">
+                <label for="street" class="shipping-form__label">
+                  Dirección (opcional)
+                </label>
+                <input
+                  id="street"
+                  v-model="shippingData.street"
+                  type="text"
+                  class="shipping-form__input"
+                  placeholder="Calle y número"
+                >
+              </div>
+
+              <div class="shipping-form__field">
+                <label for="city" class="shipping-form__label">
+                  Ciudad (opcional)
+                </label>
+                <input
+                  id="city"
+                  v-model="shippingData.city"
+                  type="text"
+                  class="shipping-form__input"
+                  placeholder="Ciudad"
+                >
+              </div>
+
+              <div class="shipping-form__field">
+                <label for="notes" class="shipping-form__label">
+                  Notas adicionales (opcional)
+                </label>
+                <textarea
+                  id="notes"
+                  v-model="shippingData.notes"
+                  class="shipping-form__textarea"
+                  placeholder="Instrucciones especiales para la entrega..."
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+
+            <div v-if="!isShippingDataValid" class="shipping-form__warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              Por favor completa los campos obligatorios (nombre y teléfono del destinatario)
+            </div>
           </div>
         </div>
 
@@ -357,6 +533,11 @@ const decrementQuantity = (productId: string) => {
     gap: 2rem;
 
     @media (min-width: 1024px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 1200px) {
       grid-template-columns: 2fr 1fr;
       gap: 3rem;
     }
@@ -369,8 +550,21 @@ const decrementQuantity = (productId: string) => {
     box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
   }
 
+  &__shipping {
+    order: 2;
+
+    @media (min-width: 1024px) {
+      order: 1;
+    }
+  }
+
   &__summary {
     align-self: start;
+    order: 3;
+
+    @media (min-width: 1024px) {
+      order: 2;
+    }
   }
 }
 
@@ -511,6 +705,110 @@ const decrementQuantity = (productId: string) => {
     &:hover {
       background-color: rgba($error, 0.1);
       color: $error;
+    }
+  }
+}
+
+// Formulario de datos de envío
+.shipping-form {
+  background-color: $white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
+  margin-bottom: 2rem;
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    i {
+      color: $purple-primary;
+    }
+  }
+
+  &__fields {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__label {
+    font-weight: 600;
+    color: $gray-700;
+    font-size: 0.95rem;
+  }
+
+  &__input,
+  &__textarea {
+    padding: 0.875rem 1rem;
+    border: 2px solid $gray-200;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: $white;
+
+    &:focus {
+      outline: none;
+      border-color: $purple-primary;
+      box-shadow: 0 0 0 3px rgba($purple-primary, 0.1);
+    }
+
+    &::placeholder {
+      color: $gray-400;
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+  }
+
+  &__warning {
+    background-color: rgba($warning, 0.1);
+    border: 1px solid rgba($warning, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    color: $warning;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Responsive para formulario de envío
+@media (max-width: 768px) {
+  .shipping-form {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+
+    &__title {
+      font-size: 1.3rem;
+    }
+
+    &__fields {
+      gap: 1.25rem;
+    }
+
+    &__input,
+    &__textarea {
+      padding: 0.75rem;
     }
   }
 }
