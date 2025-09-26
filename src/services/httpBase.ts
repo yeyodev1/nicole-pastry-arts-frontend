@@ -17,10 +17,10 @@ class APIBase {
       'Content-Type': 'application/json',
     }
 
-    const accessToken = localStorage.getItem('access_token')
-    if (accessToken) {
-      // TODO: create authorization token
-      // headers['Authorization'] = `Bearer ${accessToken}`
+    // Buscar token en ambos almacenamientos (localStorage y sessionStorage)
+    const authToken = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`
     }
 
     return headers
@@ -36,15 +36,27 @@ class APIBase {
         headers: headers ? headers : this.getHeaders(),
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        const errorDetails = {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // Error del servidor con respuesta
+          const errorDetails = {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            response: error.response,
+            code: error.code
+          }
+          throw errorDetails
+        } else if (error.request) {
+          // Error de red - no se recibió respuesta
+          throw {
+            status: 0,
+            message: 'Error de conexión. Verifica tu conexión a internet.',
+            code: 'NETWORK_ERROR'
+          }
         }
-        throw errorDetails
       }
 
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: 'Error desconocido', code: 'UNKNOWN_ERROR' }
     }
   }
 
@@ -71,13 +83,25 @@ class APIBase {
         headers: finalHeaders,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // Error del servidor con respuesta
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            response: error.response,
+            code: error.code
+          }
+        } else if (error.request) {
+          // Error de red - no se recibió respuesta
+          throw {
+            status: 0,
+            message: 'Error de conexión. Verifica tu conexión a internet.',
+            code: 'NETWORK_ERROR'
+          }
         }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: 'Error desconocido', code: 'UNKNOWN_ERROR' }
     }
   }
 

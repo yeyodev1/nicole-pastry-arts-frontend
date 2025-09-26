@@ -181,12 +181,26 @@ export class AuthService extends APIBase {
   /**
    * Obtiene el usuario almacenado
    */
-  private getStoredUser(): User | null {
+  getStoredUser(): User | null {
     try {
       const userStr = localStorage.getItem(this.USER_KEY) || sessionStorage.getItem(this.USER_KEY)
       return userStr ? JSON.parse(userStr) : null
     } catch {
       return null
+    }
+  }
+
+  /**
+   * Limpia todos los datos almacenados
+   */
+  clearStoredData(): void {
+    try {
+      localStorage.removeItem(this.TOKEN_KEY)
+      localStorage.removeItem(this.USER_KEY)
+      sessionStorage.removeItem(this.TOKEN_KEY)
+      sessionStorage.removeItem(this.USER_KEY)
+    } catch (error) {
+      console.warn('Error al limpiar datos almacenados:', error)
     }
   }
 
@@ -347,7 +361,38 @@ export class AuthService extends APIBase {
       return error
     }
 
-    // Manejar errores HTTP
+    // Manejar errores de red específicamente
+    if (error.code === 'NETWORK_ERROR' || error.status === 0) {
+      return this.createAuthError(
+        'NETWORK_ERROR',
+        'Error de conexión. Verifica tu conexión a internet.',
+      )
+    }
+
+    // Manejar errores HTTP por status
+    if (error.status) {
+      const status = error.status
+      const message = error.message || 'Error desconocido'
+
+      switch (status) {
+        case 400:
+          return this.createAuthError('VALIDATION_ERROR', message)
+        case 401:
+          return this.createAuthError('AUTHENTICATION_ERROR', message)
+        case 403:
+          return this.createAuthError('AUTHORIZATION_ERROR', message)
+        case 404:
+          return this.createAuthError('USER_NOT_FOUND', message)
+        case 409:
+          return this.createAuthError('VALIDATION_ERROR', message) // Conflict (usuario ya existe)
+        case 503:
+          return this.createAuthError('NETWORK_ERROR', 'Servicio temporalmente no disponible')
+        default:
+          return this.createAuthError('UNKNOWN_ERROR', message)
+      }
+    }
+
+    // Manejar errores con response (compatibilidad con versiones anteriores)
     if (error.response) {
       const status = error.response.status
       const message = error.response.data?.message || error.message
@@ -361,17 +406,11 @@ export class AuthService extends APIBase {
           return this.createAuthError('AUTHORIZATION_ERROR', message)
         case 404:
           return this.createAuthError('USER_NOT_FOUND', message)
+        case 409:
+          return this.createAuthError('VALIDATION_ERROR', message)
         default:
           return this.createAuthError('UNKNOWN_ERROR', message)
       }
-    }
-
-    // Manejar errores de red
-    if (error.code === 'NETWORK_ERROR' || !error.response) {
-      return this.createAuthError(
-        'NETWORK_ERROR',
-        'Error de conexión. Verifica tu conexión a internet.',
-      )
     }
 
     // Error desconocido
