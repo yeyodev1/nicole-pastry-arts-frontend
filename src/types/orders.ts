@@ -6,10 +6,14 @@ export interface OrderItem {
   readonly unitPrice: number
   readonly totalPrice: number
   readonly sku?: string
+  readonly productSku?: string // Campo requerido por el backend
+  readonly productId?: string // Campo requerido por el backend
   readonly notes?: string
 }
 
 export interface Address {
+  readonly recipientName: string // Campo requerido por el backend
+  readonly recipientPhone: string // Campo requerido por el backend
   readonly street?: string
   readonly city?: string
   readonly state?: string
@@ -53,6 +57,7 @@ export interface Order {
 
 // Tipos para crear una nueva orden
 export interface CreateOrderRequest {
+  readonly orderNumber: string // Campo requerido por el backend
   readonly customer: string
   readonly items: readonly OrderItem[]
   readonly subtotal: number
