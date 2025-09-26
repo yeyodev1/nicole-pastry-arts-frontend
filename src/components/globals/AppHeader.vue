@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+
+// Stores
+const authStore = useAuthStore()
 
 // Estado para el menú móvil
 const isMobileMenuOpen = ref(false)
@@ -28,12 +32,29 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
+// Computed para navegación dinámica
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
 // Navegación principal
-const navigationItems = [
-  { name: 'Productos', href: '/products', icon: 'fas fa-shopping-bag' },
-  { name: 'Carrito', href: '/cart', icon: 'fas fa-shopping-cart' },
-  { name: 'Usuario', href: '/login', icon: 'fas fa-user' }
-]
+const navigationItems = computed(() => {
+  const baseItems = [
+    { name: 'Productos', href: '/products', icon: 'fas fa-shopping-bag' },
+    { name: 'Carrito', href: '/cart', icon: 'fas fa-shopping-cart' }
+  ]
+
+  if (isAuthenticated.value) {
+    baseItems.push(
+      { name: 'Mis Órdenes', href: '/orders', icon: 'fas fa-receipt' },
+      { name: 'Perfil', href: '/profile', icon: 'fas fa-user' }
+    )
+  } else {
+    baseItems.push(
+      { name: 'Iniciar Sesión', href: '/login', icon: 'fas fa-user' }
+    )
+  }
+
+  return baseItems
+})
 </script>
 
 <template>
