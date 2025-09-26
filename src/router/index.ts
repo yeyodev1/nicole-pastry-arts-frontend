@@ -41,6 +41,11 @@ const router = createRouter({
       component: () => import('@/views/LoginView.vue'),
     },
     {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/EmailVerificationView.vue'),
+    },
+    {
       path: '/cart',
       name: 'cart',
       component: () => import('@/views/CartView.vue'),
