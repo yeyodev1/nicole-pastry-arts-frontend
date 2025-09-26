@@ -9,14 +9,18 @@ import ChefSection from '@/components/ChefSection.vue'
 
 // Inyectar el estado global de carga desde App.vue
 const isLoaded = inject<Ref<boolean>>('isAppLoaded')
+const showLoadingScreen = inject<Ref<boolean>>('showLoadingScreen')
 const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 </script>
 
 <template>
-  <!-- Loading Screen -->
-  <LoadingScreen :on-loading-complete="() => handleLoadingComplete?.()" />
+  <!-- Loading Screen - Solo se muestra cuando showLoadingScreen es true -->
+  <LoadingScreen 
+    v-if="showLoadingScreen" 
+    :on-loading-complete="() => handleLoadingComplete?.()" 
+  />
 
-  <div v-show="isLoaded" class="home">
+  <div v-show="!showLoadingScreen" class="home">
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero__container">
