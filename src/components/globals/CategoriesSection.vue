@@ -1087,14 +1087,14 @@ onMounted(() => {
 
     &--new {
       background: 
-        linear-gradient(135deg, #ff6b6b, #ee5a24),
+        linear-gradient(135deg, $error, $warning),
         radial-gradient(circle at center, rgba($white, 0.2), transparent);
       background-blend-mode: overlay;
     }
 
     &--fresh {
       background: 
-        linear-gradient(135deg, #00d2d3, #54a0ff),
+        linear-gradient(135deg, $success, $info),
         radial-gradient(circle at center, rgba($white, 0.2), transparent);
       background-blend-mode: overlay;
     }

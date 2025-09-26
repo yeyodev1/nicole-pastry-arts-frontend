@@ -539,7 +539,7 @@
     gap: 0.3rem;
 
     i {
-      color: #ffd700;
+      color: $warning;
       font-size: 1.2rem;
     }
   }
