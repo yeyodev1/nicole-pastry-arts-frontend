@@ -18,11 +18,109 @@ const formData = ref<LoginData>({
 const formErrors = ref<Record<string, string>>({})
 const showPassword = ref(false)
 const rememberMe = ref(false)
+const isNavigatingToRegister = ref(false)
+const notification = ref<{
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message: string
+  show: boolean
+}>({
+  type: 'error',
+  title: '',
+  message: '',
+  show: false
+})
 
 // Redirección después del login
 const redirectTo = computed(() => {
   return route.query.redirect as string || '/products'
 })
+
+// Función para mostrar notificaciones
+const showNotification = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+  notification.value = {
+    type,
+    title,
+    message,
+    show: true
+  }
+  
+  // Auto-ocultar después de 8 segundos para errores, 5 para otros
+  const timeout = type === 'error' ? 8000 : 5000
+  setTimeout(() => {
+    notification.value.show = false
+  }, timeout)
+}
+
+// Función para cerrar notificación manualmente
+const closeNotification = () => {
+  notification.value.show = false
+}
+
+// Función para procesar errores del servidor y mostrar mensajes amigables
+const processServerError = (errorResponse: any) => {
+  const message = errorResponse?.message || 'Error desconocido'
+  
+  // Casos específicos de errores del servidor
+  if (message.includes('Failed to send verification email')) {
+    if (message.includes('You can only send testing emails to your own email address')) {
+      showNotification(
+        'warning',
+        'Configuración de Email en Desarrollo',
+        'El sistema está en modo de prueba. Solo se pueden enviar emails de verificación a direcciones autorizadas. Contacta al administrador para activar tu cuenta.'
+      )
+    } else if (message.includes('verify a domain')) {
+      showNotification(
+        'warning',
+        'Configuración de Email Pendiente',
+        'El sistema de emails está en configuración. Tu cuenta se creará pero la verificación por email estará disponible pronto.'
+      )
+    } else {
+      showNotification(
+        'error',
+        'Error de Verificación',
+        'No se pudo enviar el email de verificación. Intenta nuevamente o contacta al soporte.'
+      )
+    }
+  } else if (message.includes('Invalid credentials') || message.includes('Unauthorized')) {
+    showNotification(
+      'error',
+      'Credenciales Incorrectas',
+      'El email o contraseña son incorrectos. Verifica tus datos e intenta nuevamente.'
+    )
+  } else if (message.includes('User not found')) {
+    showNotification(
+      'error',
+      'Usuario No Encontrado',
+      'No existe una cuenta con este email. ¿Quieres crear una cuenta nueva?'
+    )
+  } else if (message.includes('Account not verified') || message.includes('Please verify your email')) {
+    showNotification(
+      'warning',
+      'Cuenta No Verificada',
+      'Tu cuenta aún no ha sido verificada. Revisa tu email o contacta al soporte.'
+    )
+  } else if (message.includes('Too many attempts')) {
+    showNotification(
+      'warning',
+      'Demasiados Intentos',
+      'Has realizado muchos intentos de login. Espera unos minutos antes de intentar nuevamente.'
+    )
+  } else if (message.includes('Network') || message.includes('fetch')) {
+    showNotification(
+      'error',
+      'Error de Conexión',
+      'No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.'
+    )
+  } else {
+    // Error genérico pero más amigable
+    showNotification(
+      'error',
+      'Error al Iniciar Sesión',
+      'Ocurrió un problema inesperado. Por favor intenta nuevamente o contacta al soporte si el problema persiste.'
+    )
+  }
+}
 
 // Validaciones
 const validateForm = (): boolean => {
@@ -86,6 +184,14 @@ const handleSubmit = async () => {
 
   try {
     clearError()
+    closeNotification()
+    
+    // Mostrar feedback de inicio de proceso
+    showNotification(
+      'info',
+      'Iniciando Sesión',
+      'Verificando tus credenciales...'
+    )
     
     // Configurar remember me
     setRememberMe(rememberMe.value)
@@ -96,20 +202,55 @@ const handleSubmit = async () => {
       redirectTo: redirectTo.value
     })
 
-    // Redireccionar después del login exitoso
-    await router.push(redirectTo.value)
-  } catch (err) {
+    // Mostrar éxito antes de redireccionar
+    showNotification(
+      'success',
+      '¡Bienvenido!',
+      'Has iniciado sesión correctamente. Redirigiendo...'
+    )
+
+    // Redireccionar después del login exitoso con un pequeño delay
+    setTimeout(async () => {
+      await router.push(redirectTo.value)
+    }, 1500)
+    
+  } catch (err: any) {
     console.error('Error en login:', err)
+    processServerError(err)
   }
 }
 
 // Navegación al registro
-const goToRegister = () => {
-  const currentRedirect = route.query.redirect as string
-  const registerRoute = currentRedirect 
-    ? `/register?redirect=${encodeURIComponent(currentRedirect)}`
-    : '/register'
-  router.push(registerRoute)
+const goToRegister = async () => {
+  try {
+    isNavigatingToRegister.value = true
+    
+    // Mostrar feedback visual
+    showNotification(
+      'info',
+      'Redirigiendo',
+      'Te estamos llevando al formulario de registro...'
+    )
+    
+    const currentRedirect = route.query.redirect as string
+    const registerRoute = currentRedirect 
+      ? `/register?redirect=${encodeURIComponent(currentRedirect)}`
+      : '/register'
+    
+    // Pequeño delay para mostrar el loading
+    await new Promise(resolve => setTimeout(resolve, 800))
+    
+    await router.push(registerRoute)
+  } catch (error) {
+    console.error('Error al navegar al registro:', error)
+    showNotification(
+      'error',
+      'Error de Navegación',
+      'No se pudo acceder al formulario de registro. Intenta nuevamente.'
+    )
+  } finally {
+    isNavigatingToRegister.value = false
+  }
 }
 
 // Verificar si ya está autenticado al montar
@@ -128,15 +269,31 @@ onMounted(() => {
         <p class="form-subtitle">Accede a tu cuenta para continuar</p>
       </div>
 
-      <!-- Error general -->
-      <div v-if="error" class="error-banner">
-        <div class="error-content">
-          <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-          </svg>
-          <span>{{ error.message || 'Error al iniciar sesión' }}</span>
+      <!-- Notificación mejorada -->
+      <Transition name="notification" appear>
+        <div v-if="notification.show" class="notification" :class="`notification--${notification.type}`">
+          <div class="notification__content">
+            <div class="notification__icon">
+              <!-- Icono de éxito -->
+              <i v-if="notification.type === 'success'" class="fas fa-check-circle"></i>
+              <!-- Icono de error -->
+              <i v-else-if="notification.type === 'error'" class="fas fa-exclamation-circle"></i>
+              <!-- Icono de advertencia -->
+              <i v-else-if="notification.type === 'warning'" class="fas fa-exclamation-triangle"></i>
+              <!-- Icono de info -->
+              <i v-else class="fas fa-info-circle"></i>
+            </div>
+            <div class="notification__text">
+              <h4 class="notification__title">{{ notification.title }}</h4>
+              <p class="notification__message">{{ notification.message }}</p>
+            </div>
+            <button @click="closeNotification" class="notification__close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="notification__progress" :class="`notification__progress--${notification.type}`"></div>
         </div>
-      </div>
+      </Transition>
 
       <form 
         @submit.prevent="handleSubmit" 
@@ -160,12 +317,12 @@ onMounted(() => {
             @blur="validateField('email')"
             @input="clearError"
           />
-          <div v-if="formErrors.email" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.email }}
-          </div>
+          <Transition name="error-message">
+            <div v-if="formErrors.email" class="error-message">
+              <i class="fas fa-exclamation-circle error-icon"></i>
+              {{ formErrors.email }}
+            </div>
+          </Transition>
         </div>
 
         <!-- Contraseña -->
@@ -193,21 +350,16 @@ onMounted(() => {
               @click="showPassword = !showPassword"
               :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
             >
-              <svg v-if="showPassword" class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-              </svg>
-              <svg v-else class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
+              <i v-if="showPassword" class="fas fa-eye-slash toggle-icon"></i>
+              <i v-else class="fas fa-eye toggle-icon"></i>
             </button>
           </div>
-          <div v-if="formErrors.password" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.password }}
-          </div>
+          <Transition name="error-message">
+            <div v-if="formErrors.password" class="error-message">
+              <i class="fas fa-exclamation-circle error-icon"></i>
+              {{ formErrors.password }}
+            </div>
+          </Transition>
         </div>
 
         <!-- Remember Me -->
@@ -224,7 +376,7 @@ onMounted(() => {
           </label>
         </div>
 
-        <!-- Botón de envío -->
+        <!-- Botón de envío mejorado -->
         <button
           type="submit"
           class="login-button"
@@ -232,11 +384,13 @@ onMounted(() => {
           :disabled="!isFormValid || isLoggingIn"
         >
           <div class="button-content">
-            <div v-if="isLoggingIn" class="loading-spinner">
-              <div class="spinner"></div>
-            </div>
+            <Transition name="loading-spinner" mode="out-in">
+              <div v-if="isLoggingIn" class="loading-spinner">
+                <div class="spinner"></div>
+              </div>
+            </Transition>
             <span class="button-text">
-              {{ isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+              {{ isLoggingIn ? 'Verificando credenciales...' : 'Iniciar Sesión' }}
             </span>
           </div>
         </button>
@@ -252,8 +406,22 @@ onMounted(() => {
       <!-- Enlace al registro -->
       <div class="register-link">
         <p>¿No tienes una cuenta?</p>
-        <button @click="goToRegister" class="link">
-          Crear cuenta
+        <button 
+          @click="goToRegister" 
+          class="link register-button"
+          :class="{ 'loading': isNavigatingToRegister }"
+          :disabled="isNavigatingToRegister || isLoggingIn"
+        >
+          <div class="button-content">
+            <Transition name="loading-spinner" mode="out-in">
+              <div v-if="isNavigatingToRegister" class="loading-spinner">
+                <div class="spinner"></div>
+              </div>
+            </Transition>
+            <span class="button-text">
+              {{ isNavigatingToRegister ? 'Redirigiendo...' : 'Crear cuenta' }}
+            </span>
+          </div>
         </button>
       </div>
     </div>
@@ -575,12 +743,236 @@ onMounted(() => {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       color: #c19653;
       text-decoration: underline;
     }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .register-button {
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &.loading {
+      color: #c19653;
+      cursor: not-allowed;
+      
+      .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+    }
+
+    .button-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(212, 165, 116, 0.3);
+      border-top: 2px solid #d4a574;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .button-text {
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba(212, 165, 116, 0.1);
+      text-decoration: none;
+    }
+  }
+}
+
+// Estilos para las notificaciones
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 1000;
+  border-left: 4px solid;
+
+  &--success {
+    border-left-color: $success;
+  }
+
+  &--error {
+    border-left-color: $error;
+  }
+
+  &--warning {
+    border-left-color: $warning;
+  }
+
+  &--info {
+    border-left-color: $info;
+  }
+
+  &__content {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 20px;
+    }
+
+    .notification--success & i {
+      color: $success;
+    }
+
+    .notification--error & i {
+      color: $error;
+    }
+
+    .notification--warning & i {
+      color: $warning;
+    }
+
+    .notification--info & i {
+      color: $info;
+    }
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 16px;
+    color: $text-dark;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+  }
+
+  &__message {
+    font-size: 14px;
+    color: $text-light;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    i {
+      font-size: 14px;
+    }
+  }
+
+  &__progress {
+    height: 3px;
+    background: #f3f4f6;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: currentColor;
+      animation: progress 5s linear forwards;
+    }
+
+    &--success::after {
+      background: $success;
+    }
+
+    &--error::after {
+      background: $error;
+    }
+
+    &--warning::after {
+      background: $warning;
+    }
+
+    &--info::after {
+      background: $info;
+    }
+  }
+}
+
+// Animaciones para las notificaciones
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
   }
 }
 
@@ -593,6 +985,34 @@ onMounted(() => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+// Animaciones para mensajes de error
+.error-message-enter-active,
+.error-message-leave-active {
+  transition: all 0.3s ease;
+}
+
+.error-message-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.error-message-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+// Animaciones para el loading spinner
+.loading-spinner-enter-active,
+.loading-spinner-leave-active {
+  transition: all 0.2s ease;
+}
+
+.loading-spinner-enter-from,
+.loading-spinner-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
 }
 
 // Estilos para inputs deshabilitados durante loading
