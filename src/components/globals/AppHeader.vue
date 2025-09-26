@@ -30,10 +30,9 @@ onUnmounted(() => {
 
 // Navegación principal
 const navigationItems = [
-  { name: 'Inicio', href: '/' },
-  { name: 'Productos', href: '/products' },
-  { name: 'Sobre Nosotros', href: '/about' },
-  { name: 'Contacto', href: '/contacto' }
+  { name: 'Productos', href: '/products', icon: 'fas fa-shopping-bag' },
+  { name: 'Carrito', href: '/cart', icon: 'fas fa-shopping-cart' },
+  { name: 'Usuario', href: '/login', icon: 'fas fa-user' }
 ]
 </script>
 
@@ -66,8 +65,10 @@ const navigationItems = [
               :to="item.href" 
               class="app-header__nav-link"
               active-class="app-header__nav-link--active"
+              :title="item.name"
             >
-              {{ item.name }}
+              <i :class="item.icon"></i>
+              <span class="app-header__nav-text">{{ item.name }}</span>
             </router-link>
           </li>
         </ul>
@@ -103,7 +104,8 @@ const navigationItems = [
             active-class="app-header__nav-link--active"
             @click="closeMobileMenu"
           >
-            {{ item.name }}
+            <i :class="item.icon"></i>
+            <span class="app-header__nav-text">{{ item.name }}</span>
           </router-link>
         </li>
       </ul>
@@ -203,44 +205,50 @@ const navigationItems = [
   }
 
   &__nav-link {
-    display: block;
-    padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
     color: $text-dark;
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     transition: all 0.3s ease;
     position: relative;
+    border-radius: 8px;
 
     @media (min-width: 1024px) {
-      font-size: 1rem;
+      font-size: 0.85rem;
+      padding: 0.75rem;
     }
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background-color: $purple-primary;
-      transition: width 0.3s ease;
+    i {
+      font-size: 1.2rem;
+      margin-bottom: 0.1rem;
+
+      @media (min-width: 1024px) {
+        font-size: 1.4rem;
+      }
     }
 
     &:hover {
       color: $purple-primary;
-
-      &::after {
-        width: 100%;
-      }
+      background-color: rgba($purple-primary, 0.1);
     }
 
     &--active {
       color: $purple-primary;
+      background-color: rgba($purple-primary, 0.15);
+    }
+  }
 
-      &::after {
-        width: 100%;
-      }
+  &__nav-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    @media (min-width: 1024px) {
+      font-size: 0.8rem;
     }
   }
 
@@ -313,16 +321,21 @@ const navigationItems = [
     }
 
     .app-header__nav-link {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 1rem;
       padding: 1rem;
       font-size: 1.1rem;
       border-bottom: 1px solid $background-light;
+      border-radius: 0;
 
       &:last-child {
         border-bottom: none;
       }
 
-      &::after {
-        display: none;
+      i {
+        font-size: 1.3rem;
+        margin-bottom: 0;
       }
 
       &:hover,
