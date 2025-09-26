@@ -194,7 +194,7 @@ const openSanMarino = () => {
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-    background: linear-gradient(135deg, #25D366, #128C7E);
+    background: linear-gradient(135deg, $success, $success-dark);
     color: $white;
     border: none;
     padding: 0.875rem 1.5rem;
@@ -203,13 +203,13 @@ const openSanMarino = () => {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2);
+    box-shadow: 0 4px 15px rgba($success, 0.2);
     text-decoration: none;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.3);
-      background: linear-gradient(135deg, #128C7E, #25D366);
+      box-shadow: 0 8px 25px rgba($success, 0.3);
+      background: linear-gradient(135deg, $success-dark, $success);
     }
 
     &:active {
