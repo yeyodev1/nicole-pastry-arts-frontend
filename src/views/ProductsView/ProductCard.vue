@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Product } from '@/types/products'
 import PaymentButton from '@/components/PaymentButton.vue'
+import { useCartStore } from '@/stores/cart.store'
 
 const router = useRouter()
+const cartStore = useCartStore()
 
 const props = defineProps({
   product: {
@@ -13,10 +15,14 @@ const props = defineProps({
   },
 })
 
+// Estado local
+const isAddingToCart = ref(false)
+
 // Emits
 const emit = defineEmits<{
   paymentStarted: [productId: string];
   paymentError: [error: string];
+  productAddedToCart: [productId: string];
 }>()
 
 // Función para navegar al detalle del producto
@@ -50,6 +56,52 @@ const formattedPrice = computed(() => {
 const isAvailable = computed(() => {
   // Los productos siempre están disponibles según la política de Nicole Pastry Arts
   return props.product.active !== false
+})
+
+// Función para agregar al carrito
+const addToCart = async (event: Event) => {
+  event.stopPropagation() // Evitar navegación al detalle
+  
+  if (!isAvailable.value || isAddingToCart.value) return
+  
+  isAddingToCart.value = true
+  
+  try {
+    const cartItem = {
+      id: props.product.web_id,
+      name: props.product.title,
+      price: parseFloat(props.product.price) || 0,
+      image: primaryImage.value || undefined,
+      description: props.product.description || undefined
+    }
+    
+    cartStore.addItem(cartItem)
+    emit('productAddedToCart', props.product.web_id)
+    
+    // Pequeña pausa para mostrar feedback visual
+    await new Promise(resolve => setTimeout(resolve, 300))
+  } catch (error) {
+    console.error('Error adding to cart:', error)
+  } finally {
+    isAddingToCart.value = false
+  }
+}
+
+// Función para comprar ahora (agregar al carrito y navegar)
+const buyNow = async (event: Event) => {
+  event.stopPropagation() // Evitar navegación al detalle
+  
+  if (!isAvailable.value) return
+  
+  await addToCart(event)
+  
+  // Navegar al carrito después de agregar el producto
+  router.push({ name: 'cart' })
+}
+
+// Cantidad actual en el carrito
+const cartQuantity = computed(() => {
+  return cartStore.getItemQuantity(props.product.web_id)
 })
 </script>
 
@@ -86,17 +138,33 @@ const isAvailable = computed(() => {
       <div class="product-footer">
         <span class="product-price">{{ formattedPrice }}</span>
         
-        <PaymentButton
-          :product-id="product.web_id"
-          :product-name="product.title"
-          :price="parseFloat(product.price)"
-          :description="product.description"
-          variant="primary"
-          size="small"
-          @click.stop
-          @payment-started="(productId) => emit('paymentStarted', productId)"
-          @payment-error="(error) => emit('paymentError', error)"
-        />
+        <!-- Indicador de cantidad en carrito -->
+        <div v-if="cartQuantity > 0" class="cart-quantity-badge">
+          {{ cartQuantity }}
+        </div>
+      </div>
+      
+      <!-- Botones de acción -->
+      <div class="product-actions">
+        <button
+          class="btn btn--secondary add-to-cart-btn"
+          :class="{ 'btn--loading': isAddingToCart }"
+          :disabled="!isAvailable || isAddingToCart"
+          @click="addToCart"
+        >
+          <span v-if="!isAddingToCart">
+            {{ cartQuantity > 0 ? 'Añadir más' : 'Añadir' }}
+          </span>
+          <span v-else class="loading-spinner"></span>
+        </button>
+        
+        <button
+          class="btn btn--primary buy-now-btn"
+          :disabled="!isAvailable"
+          @click="buyNow"
+        >
+          Comprar Ahora
+        </button>
       </div>
     </div>
   </article>
@@ -242,6 +310,8 @@ const isAvailable = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
 }
 
 .product-price {
@@ -254,40 +324,108 @@ const isAvailable = computed(() => {
   }
 }
 
-.add-to-cart-btn {
-  @include interface-font(600);
+.cart-quantity-badge {
+  @include interface-font(700);
   background-color: $purple-primary;
   color: $white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  box-shadow: 0 2px 4px rgba($purple-primary, 0.3);
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.75rem;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.btn {
+  @include interface-font(600);
   border: none;
-  padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.9rem;
-  white-space: nowrap;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($purple-primary, 0.2);
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 1rem;
+    padding: 0.75rem 1.25rem;
+  }
+}
 
+.btn--primary {
+  background-color: $purple-primary;
+  color: $white;
+  flex: 1;
+  
   &:hover:not(:disabled) {
     background-color: $purple-hover;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba($purple-primary, 0.3);
   }
+}
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba($purple-primary, 0.2);
+.btn--secondary {
+  background-color: transparent;
+  color: $purple-primary;
+  border: 2px solid $purple-primary;
+  flex: 1;
+  
+  &:hover:not(:disabled) {
+    background-color: $purple-primary;
+    color: $white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($purple-primary, 0.2);
   }
+  
+  &.btn--loading {
+    color: transparent;
+  }
+}
 
-  &:disabled {
-    background-color: $gray-300;
-    color: $text-light;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid $purple-primary;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
 
-  @media (min-width: 768px) {
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
-  }
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 </style>
