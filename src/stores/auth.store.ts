@@ -145,20 +145,40 @@ export const useAuthStore = defineStore('auth', () => {
       setLoading(true)
       clearError()
 
-      const currentUser = await authService.getCurrentUser()
       const storedToken = authService.getStoredToken()
+      
+      if (!storedToken) {
+        status.value = 'unauthenticated'
+        return
+      }
+
+      // Intentar obtener el usuario actual
+      const currentUser = await authService.getCurrentUser()
 
       if (currentUser && storedToken) {
         user.value = currentUser
         token.value = storedToken
         status.value = 'authenticated'
       } else {
+        // Token inválido o usuario no encontrado
         status.value = 'unauthenticated'
+        await logout() // Limpiar datos inválidos
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn('Error al inicializar autenticación:', error)
-      status.value = 'unauthenticated'
-      await logout()
+      
+      // Si es un error de red, mantener el estado actual si hay token
+       if (error.type === 'NETWORK_ERROR' && authService.getStoredToken()) {
+         status.value = 'authenticated' // Asumir autenticado si hay token y es error de red
+         const storedUser = authService.getStoredUser()
+         if (storedUser) {
+           user.value = storedUser
+           token.value = authService.getStoredToken()
+         }
+       } else {
+         status.value = 'unauthenticated'
+         await logout()
+       }
     } finally {
       setLoading(false)
     }
@@ -174,6 +194,10 @@ export const useAuthStore = defineStore('auth', () => {
 
       const response = await authService.register(userData)
       
+      if (!response) {
+        throw new Error('Respuesta de registro inválida')
+      }
+      
       // Si autoLogin está habilitado, intentar hacer login automáticamente
       if (options.autoLogin && userData.email && userData.password) {
         await login(
@@ -188,6 +212,13 @@ export const useAuthStore = defineStore('auth', () => {
       }))
 
     } catch (error: any) {
+      console.error('Error en registro:', error)
+      
+      // Asegurar que el estado se limpia en caso de error
+      user.value = null
+      token.value = null
+      status.value = 'unauthenticated'
+      
       handleError(error)
       throw error
     } finally {
@@ -206,6 +237,10 @@ export const useAuthStore = defineStore('auth', () => {
       const shouldRemember = options.rememberMe ?? rememberMe.value
       const response = await authService.login(loginData, shouldRemember)
 
+      if (!response || !response.user || !response.token) {
+        throw new Error('Respuesta de login inválida')
+      }
+
       // Actualizar estado
       user.value = response.user
       token.value = response.token
@@ -218,6 +253,13 @@ export const useAuthStore = defineStore('auth', () => {
       }))
 
     } catch (error: any) {
+      console.error('Error en login:', error)
+      
+      // Asegurar que el estado se limpia en caso de error
+      user.value = null
+      token.value = null
+      status.value = 'unauthenticated'
+      
       handleError(error)
       throw error
     } finally {
@@ -261,25 +303,37 @@ export const useAuthStore = defineStore('auth', () => {
       setLoading(true)
       clearError()
 
-      await authService.logout()
-
-      // Limpiar estado
-      user.value = null
-      token.value = null
-      status.value = 'unauthenticated'
-      rememberMe.value = false
-
-      // Emitir evento personalizado
-      window.dispatchEvent(new CustomEvent('auth:logout'))
+      // Intentar logout en el servidor, pero no fallar si hay error de red
+      try {
+        await authService.logout()
+      } catch (error: any) {
+        console.warn('Error al cerrar sesión en el servidor:', error)
+        // Si es un error de red, continuar con el logout local
+        if (error.type !== 'NETWORK_ERROR') {
+          console.error('Error inesperado en logout:', error)
+        }
+      }
 
     } catch (error: any) {
-      console.warn('Error al cerrar sesión:', error)
-      // Limpiar estado incluso si hay error
+      console.warn('Error general en logout:', error)
+      // Continuar con el logout local incluso si falla
+    } finally {
+      // Siempre limpiar estado local, independientemente de errores
       user.value = null
       token.value = null
       status.value = 'unauthenticated'
       rememberMe.value = false
-    } finally {
+      
+      // Limpiar también el almacenamiento local
+      try {
+        authService.clearStoredData()
+      } catch (error) {
+        console.warn('Error al limpiar datos almacenados:', error)
+      }
+      
+      // Emitir evento personalizado
+      window.dispatchEvent(new CustomEvent('auth:logout'))
+      
       setLoading(false)
     }
   }
