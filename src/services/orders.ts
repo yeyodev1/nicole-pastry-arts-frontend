@@ -8,7 +8,7 @@ import type {
   OrdersResponse,
   CustomerOrdersResponse,
   OrderError,
-  PayphoneOrderData
+  PayphoneOrderData,
 } from '@/types/orders'
 import type { AxiosResponse } from 'axios'
 
@@ -20,7 +20,7 @@ class OrdersService extends APIBase {
   private readonly ENDPOINTS = {
     ORDERS: 'orders',
     ORDER_BY_ID: (id: string) => `orders/${id}`,
-    ORDERS_BY_CUSTOMER: (customerId: string) => `orders/customer/${customerId}`
+    ORDERS_BY_CUSTOMER: (customerId: string) => `orders/customer/${customerId}`,
   } as const
 
   /**
@@ -31,14 +31,15 @@ class OrdersService extends APIBase {
   async createOrder(orderData: CreateOrderRequest): Promise<OrderResponse> {
     try {
       this.validateCreateOrderData(orderData)
-      
+
       const response: AxiosResponse<OrderResponse> = await this.post<OrderResponse>(
         this.ENDPOINTS.ORDERS,
-        orderData
+        orderData,
       )
-      
+
       return response.data
     } catch (error) {
+      console.error('❌ [OrdersService] Error al crear orden:', error)
       throw this.handleServiceError(error, 'crear orden')
     }
   }
@@ -50,8 +51,16 @@ class OrdersService extends APIBase {
    */
   async createOrderFromPayphone(payphoneData: PayphoneOrderData): Promise<OrderResponse> {
     try {
+      // Generar orderNumber único
+      const generateOrderNumber = (): string => {
+        const timestamp = Date.now()
+        const randomSuffix = Math.random().toString(36).substring(2, 11).toUpperCase()
+        return `NPA-${timestamp}-${randomSuffix}`
+      }
+
       // Transformar datos de Payphone al formato de orden
       const orderData: CreateOrderRequest = {
+        orderNumber: generateOrderNumber(),
         customer: payphoneData.customer.email || '', // Necesitarás obtener el ID del cliente
         items: payphoneData.items,
         subtotal: payphoneData.amount,
@@ -59,7 +68,7 @@ class OrdersService extends APIBase {
         paymentMethod: 'payphone',
         paymentReference: payphoneData.transactionId,
         shippingAddress: payphoneData.shippingAddress,
-        notes: `Pago procesado con Payphone. Transaction ID: ${payphoneData.transactionId}`
+        notes: `Pago procesado con Payphone. Transaction ID: ${payphoneData.transactionId}`,
       }
 
       return await this.createOrder(orderData)
@@ -76,10 +85,12 @@ class OrdersService extends APIBase {
   async getAllOrders(params: OrdersQueryParams = {}): Promise<OrdersResponse> {
     try {
       const queryString = this.buildQueryString(params)
-      const endpoint = queryString ? `${this.ENDPOINTS.ORDERS}?${queryString}` : this.ENDPOINTS.ORDERS
-      
+      const endpoint = queryString
+        ? `${this.ENDPOINTS.ORDERS}?${queryString}`
+        : this.ENDPOINTS.ORDERS
+
       const response: AxiosResponse<OrdersResponse> = await this.get<OrdersResponse>(endpoint)
-      
+
       return response.data
     } catch (error) {
       throw this.handleServiceError(error, 'obtener órdenes')
@@ -94,11 +105,11 @@ class OrdersService extends APIBase {
   async getOrderById(id: string): Promise<OrderResponse> {
     try {
       this.validateId(id, 'ID de orden')
-      
+
       const response: AxiosResponse<OrderResponse> = await this.get<OrderResponse>(
-        this.ENDPOINTS.ORDER_BY_ID(id)
+        this.ENDPOINTS.ORDER_BY_ID(id),
       )
-      
+
       return response.data
     } catch (error) {
       throw this.handleServiceError(error, `obtener orden con ID: ${id}`)
@@ -114,12 +125,12 @@ class OrdersService extends APIBase {
   async updateOrder(id: string, updateData: UpdateOrderRequest): Promise<OrderResponse> {
     try {
       this.validateId(id, 'ID de orden')
-      
+
       const response: AxiosResponse<OrderResponse> = await this.put<OrderResponse>(
         this.ENDPOINTS.ORDER_BY_ID(id),
-        updateData
+        updateData,
       )
-      
+
       return response.data
     } catch (error) {
       throw this.handleServiceError(error, `actualizar orden con ID: ${id}`)
@@ -134,11 +145,11 @@ class OrdersService extends APIBase {
   async deleteOrder(id: string): Promise<{ message: string }> {
     try {
       this.validateId(id, 'ID de orden')
-      
+
       const response: AxiosResponse<{ message: string }> = await this.delete<{ message: string }>(
-        this.ENDPOINTS.ORDER_BY_ID(id)
+        this.ENDPOINTS.ORDER_BY_ID(id),
       )
-      
+
       return response.data
     } catch (error) {
       throw this.handleServiceError(error, `eliminar orden con ID: ${id}`)
@@ -152,19 +163,20 @@ class OrdersService extends APIBase {
    * @returns Promise con la respuesta de órdenes del cliente
    */
   async getOrdersByCustomer(
-    customerId: string, 
-    params: Omit<OrdersQueryParams, 'customer'> = {}
+    customerId: string,
+    params: Omit<OrdersQueryParams, 'customer'> = {},
   ): Promise<CustomerOrdersResponse> {
     try {
       this.validateId(customerId, 'ID de cliente')
-      
+
       const queryString = this.buildQueryString(params)
-      const endpoint = queryString 
-        ? `${this.ENDPOINTS.ORDERS_BY_CUSTOMER(customerId)}?${queryString}` 
+      const endpoint = queryString
+        ? `${this.ENDPOINTS.ORDERS_BY_CUSTOMER(customerId)}?${queryString}`
         : this.ENDPOINTS.ORDERS_BY_CUSTOMER(customerId)
-      
-      const response: AxiosResponse<CustomerOrdersResponse> = await this.get<CustomerOrdersResponse>(endpoint)
-      
+
+      const response: AxiosResponse<CustomerOrdersResponse> =
+        await this.get<CustomerOrdersResponse>(endpoint)
+
       return response.data
     } catch (error) {
       throw this.handleServiceError(error, `obtener órdenes del cliente con ID: ${customerId}`)
@@ -179,16 +191,16 @@ class OrdersService extends APIBase {
    * @returns Promise con la respuesta de la orden actualizada
    */
   async updatePaymentStatus(
-    id: string, 
+    id: string,
     paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded',
-    paymentReference?: string
+    paymentReference?: string,
   ): Promise<OrderResponse> {
     try {
       const updateData: UpdateOrderRequest = {
         paymentStatus,
-        ...(paymentReference && { paymentReference })
+        ...(paymentReference && { paymentReference }),
       }
-      
+
       return await this.updateOrder(id, updateData)
     } catch (error) {
       throw this.handleServiceError(error, `actualizar estado de pago de la orden con ID: ${id}`)
@@ -202,12 +214,12 @@ class OrdersService extends APIBase {
    * @returns Promise con la respuesta de la orden actualizada
    */
   async updateOrderStatus(
-    id: string, 
-    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+    id: string,
+    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled',
   ): Promise<OrderResponse> {
     try {
       const updateData: UpdateOrderRequest = { status }
-      
+
       return await this.updateOrder(id, updateData)
     } catch (error) {
       throw this.handleServiceError(error, `actualizar estado de la orden con ID: ${id}`)
@@ -223,13 +235,13 @@ class OrdersService extends APIBase {
    */
   private buildQueryString(params: OrdersQueryParams): string {
     const searchParams = new URLSearchParams()
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         searchParams.append(key, String(value))
       }
     })
-    
+
     return searchParams.toString()
   }
 
@@ -238,18 +250,23 @@ class OrdersService extends APIBase {
    * @param orderData - Datos de la orden a validar
    */
   private validateCreateOrderData(orderData: CreateOrderRequest): void {
+    // Validar orderNumber (requerido por el backend)
+    if (!orderData.orderNumber || orderData.orderNumber.trim().length === 0) {
+      throw new Error('El número de orden (orderNumber) es requerido')
+    }
+
     if (!orderData.customer) {
       throw new Error('El ID del cliente es requerido')
     }
-    
+
     if (!orderData.items || orderData.items.length === 0) {
       throw new Error('Los items de la orden son requeridos')
     }
-    
+
     if (orderData.total <= 0) {
       throw new Error('El total de la orden debe ser mayor a 0')
     }
-    
+
     // Validar que cada item tenga los campos requeridos
     orderData.items.forEach((item, index) => {
       if (!item.product) {
@@ -286,20 +303,20 @@ class OrdersService extends APIBase {
    */
   private handleServiceError(error: unknown, context: string): OrderError {
     console.error(`Error en OrdersService al ${context}:`, error)
-    
+
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as any
       return {
         status: axiosError.response?.status || 500,
         message: axiosError.response?.data?.message || `Error al ${context}`,
-        details: axiosError.response?.data
+        details: axiosError.response?.data,
       }
     }
-    
+
     return {
       status: 500,
       message: error instanceof Error ? error.message : `Error desconocido al ${context}`,
-      details: error
+      details: error,
     }
   }
 }
