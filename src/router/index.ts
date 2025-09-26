@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +70,14 @@ const router = createRouter({
       component: () => import('@/views/CartView.vue'),
     },
     {
+      path: '/orders',
+      name: 'orders',
+      component: () => import('@/views/OrdersView.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: '/contact',
       name: 'contact',
       component: () => import('@/views/ContactView.vue'),
@@ -84,6 +93,22 @@ const router = createRouter({
       component: () => import('@/views/NotFoundView.vue'),
     },
   ],
+})
+
+// Guard de navegación para rutas protegidas
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Verificar si la ruta requiere autenticación
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    // Redirigir al login si no está autenticado
+    next({
+      name: 'login',
+      query: { redirect: to.fullPath } // Guardar la ruta de destino para redirigir después del login
+    })
+  } else {
+    next()
+  }
 })
 
 export default router
