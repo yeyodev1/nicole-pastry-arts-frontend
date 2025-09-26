@@ -99,7 +99,10 @@ const handleSubmit = async () => {
       password: formData.value.password
     }
 
-    await handleLogin(loginData, { rememberMe: formData.value.rememberMe })
+    // Intentar login
+    const loginSuccess = await handleLogin(loginData, { rememberMe: formData.value.rememberMe })
+
+    console.log('loginSuccess: ', loginSuccess)
 
     // Redireccionar después del login exitoso
     await router.push(redirectTo.value)
@@ -427,7 +430,7 @@ onMounted(() => {
       opacity: 0;
       cursor: pointer;
 
-      &:checked + .checkbox-custom {
+      &:checked+.checkbox-custom {
         background: #d4a574;
         border-color: #d4a574;
 
@@ -437,7 +440,7 @@ onMounted(() => {
         }
       }
 
-      &:focus + .checkbox-custom {
+      &:focus+.checkbox-custom {
         box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
       }
     }
@@ -506,7 +509,7 @@ onMounted(() => {
     &.loading {
       background: linear-gradient(135deg, #d4a574 0%, #c19653 100%);
       cursor: not-allowed;
-      
+
       .button-content {
         display: flex;
         align-items: center;
@@ -567,7 +570,7 @@ onMounted(() => {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #e5e7eb;
-  
+
   p {
     color: #6c757d;
     font-size: 14px;
@@ -598,8 +601,13 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 // Estilos para inputs deshabilitados durante loading
