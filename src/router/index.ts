@@ -3,6 +3,24 @@ import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    // Si hay una posición guardada (por ejemplo, al usar el botón atrás del navegador)
+    if (savedPosition) {
+      return savedPosition
+    }
+    // Si la ruta tiene un hash (ancla), hacer scroll a ese elemento
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      }
+    }
+    // Por defecto, hacer scroll hacia arriba con animación suave
+    return {
+      top: 0,
+      behavior: 'smooth'
+    }
+  },
   routes: [
     {
       path: '/',
