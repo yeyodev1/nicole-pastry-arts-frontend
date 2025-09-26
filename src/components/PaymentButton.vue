@@ -48,6 +48,7 @@ const props = defineProps({
 
 // Emits
 const emit = defineEmits<{
+  click: [event: MouseEvent];
   paymentStarted: [productId: string];
   paymentError: [error: string];
 }>();
@@ -86,7 +87,10 @@ const buttonClasses = computed(() => {
 });
 
 // Métodos
-const handlePayment = async () => {
+const handlePayment = async (event: MouseEvent) => {
+  // Emitir el evento click para permitir el manejo externo (como .stop)
+  emit('click', event);
+  
   if (isDisabled.value) return;
 
   // Verificar autenticación antes de procesar el pago
