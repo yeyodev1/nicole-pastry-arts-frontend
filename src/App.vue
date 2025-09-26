@@ -1,31 +1,58 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
-import { RouterView } from 'vue-router'
+import { ref, provide, onMounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/globals/AppHeader.vue'
 import AppFooter from '@/components/globals/AppFooter.vue'
 
+const route = useRoute()
+
 // Estado global de carga
 const isAppLoaded = ref(false)
+const showLoadingScreen = ref(false)
 
 // Función para manejar cuando la carga global termine
 const handleGlobalLoadingComplete = () => {
   isAppLoaded.value = true
+  showLoadingScreen.value = false
 }
 
-// Proveer el estado y función a todos los componentes hijos
+// Función para mostrar la pantalla de carga (solo para HomeView)
+const showGlobalLoading = () => {
+  showLoadingScreen.value = true
+  isAppLoaded.value = false
+}
+
+// Al montar la aplicación, verificar si estamos en la página de inicio
+onMounted(() => {
+  // Si estamos en la página de inicio, mostrar la pantalla de carga
+  if (route.path === '/' || route.path === '/home') {
+    showGlobalLoading()
+  } else {
+    // Para todas las demás páginas, mostrar inmediatamente el header y footer
+    isAppLoaded.value = true
+    showLoadingScreen.value = false
+  }
+})
+
+// Proveer el estado y funciones a todos los componentes hijos
 provide('isAppLoaded', isAppLoaded)
+provide('showLoadingScreen', showLoadingScreen)
 provide('handleGlobalLoadingComplete', handleGlobalLoadingComplete)
+provide('showGlobalLoading', showGlobalLoading)
 </script>
 
 <template>
   <div id="app">
-    <AppHeader v-show="isAppLoaded" />
+    <!-- Header - Se muestra siempre excepto durante la pantalla de carga inicial -->
+    <AppHeader v-if="!showLoadingScreen" />
     
-    <main class="main-content" :class="{ 'main-content--loading': !isAppLoaded }">
+    <!-- Contenido principal -->
+    <main class="main-content">
       <RouterView />
     </main>
-
-    <AppFooter v-show="isAppLoaded" />
+    
+    <!-- Footer - Se muestra siempre excepto durante la pantalla de carga inicial -->
+    <AppFooter v-if="!showLoadingScreen" />
   </div>
 </template>
 
