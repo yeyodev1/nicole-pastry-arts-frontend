@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide, onMounted } from 'vue'
+import { ref, provide, onMounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/globals/AppHeader.vue'
 import AppFooter from '@/components/globals/AppFooter.vue'
@@ -22,16 +22,39 @@ const showGlobalLoading = () => {
   isAppLoaded.value = false
 }
 
-// Al montar la aplicación, verificar si estamos en la página de inicio
-onMounted(() => {
-  // Si estamos en la página de inicio, mostrar la pantalla de carga
-  if (route.path === '/' || route.path === '/home') {
+// Función para verificar si debe mostrar la pantalla de carga
+const shouldShowLoadingScreen = (path: string) => {
+  return path === '/' || path === '/home' || path === ''
+}
+
+// Función para inicializar el estado de carga basado en la ruta
+const initializeLoadingState = (path: string) => {
+  if (shouldShowLoadingScreen(path)) {
     showGlobalLoading()
   } else {
     // Para todas las demás páginas, mostrar inmediatamente el header y footer
     isAppLoaded.value = true
     showLoadingScreen.value = false
   }
+}
+
+// Watcher para cambios de ruta
+watch(() => route.path, (newPath) => {
+  // Solo reinicializar si no estamos ya en una pantalla de carga
+  if (!showLoadingScreen.value) {
+    initializeLoadingState(newPath)
+  }
+}, { immediate: false })
+
+// Al montar la aplicación, verificar si estamos en la página de inicio
+onMounted(() => {
+  // Obtener la ruta actual de manera más robusta
+  const currentPath = window.location.pathname
+  
+  // Pequeño delay para asegurar que el router esté completamente inicializado
+  setTimeout(() => {
+    initializeLoadingState(currentPath)
+  }, 10)
 })
 
 // Proveer el estado y funciones a todos los componentes hijos
