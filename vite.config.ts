@@ -18,6 +18,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['parcel-family-arrested-indicating.trycloudflare.com'],
+    allowedHosts: ['nicole-testing-frontend.bakano.ec'],
   },
 })
