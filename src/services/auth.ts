@@ -33,7 +33,7 @@ export class AuthService extends APIBase {
     try {
       this.validateRegisterData(userData)
 
-      const response = await this.post<RegisterResponse>('/auth/register', userData)
+      const response = await this.post<RegisterResponse>('auth/register', userData)
 
       if (!response.data) {
         throw this.createAuthError('UNKNOWN_ERROR', 'No se recibió respuesta del servidor')
@@ -52,7 +52,7 @@ export class AuthService extends APIBase {
     try {
       this.validateLoginData(loginData)
 
-      const response = await this.post<AuthResponse>('/auth/login', loginData)
+      const response = await this.post<AuthResponse>('auth/login', loginData)
 
       if (!response.data) {
         throw this.createAuthError('UNKNOWN_ERROR', 'No se recibió respuesta del servidor')
@@ -75,7 +75,7 @@ export class AuthService extends APIBase {
       this.validateEmailConfirmationData(confirmationData)
 
       const response = await this.post<EmailConfirmationResponse>(
-        '/auth/confirm-email',
+        'auth/confirm-email',
         confirmationData,
       )
 
@@ -129,7 +129,7 @@ export class AuthService extends APIBase {
       }
 
       // Si no hay usuario almacenado, obtenerlo del servidor
-      const response = await this.get<{ user: User }>('/auth/profile')
+      const response = await this.get<{ user: User }>('auth/profile')
 
       if (response.data?.user) {
         this.saveUser(response.data.user)
