@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useCartStore } from '@/stores/cart.store'
+import { useAuthStore } from '@/stores/auth.store'
+import { usePayphonePayment } from '@/composables/usePayphonePayment'
 import { useRouter } from 'vue-router'
 
 const cartStore = useCartStore()
+const authStore = useAuthStore()
+const { initiatePayment, isProcessing, hasError, error } = usePayphonePayment()
 const router = useRouter()
+
+// Estado local
+const isProcessingCheckout = ref(false)
 
 // Formatear precio
 const formatPrice = (price: number): string => {
@@ -19,11 +26,53 @@ const goToProducts = () => {
   router.push('/products')
 }
 
-// Proceder al checkout
-const proceedToCheckout = () => {
-  // Aquí se implementaría la lógica de checkout
-  console.log('Procediendo al checkout...')
+// Proceder al checkout con Payphone
+const proceedToCheckout = async () => {
+  try {
+    // Validar que el usuario esté autenticado
+    if (!authStore.isAuthenticated || !authStore.user?._id) {
+      alert('Debes iniciar sesión para proceder con el pago')
+      router.push('/login')
+      return
+    }
+
+    // Validar que el carrito no esté vacío
+    if (cartStore.isEmpty) {
+      alert('Tu carrito está vacío')
+      return
+    }
+
+    isProcessingCheckout.value = true
+
+    // Procesar el pago directamente con Payphone
+      const payphoneData = {
+        productId: `CART-${Date.now()}`, // ID único para esta compra
+        productName: `Compra de ${cartStore.totalItems} productos`,
+        price: cartStore.totalPrice,
+        description: `Carrito con ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
+      }
+
+      console.log('💳 Iniciando pago con Payphone:', payphoneData)
+      
+      // Iniciar el pago con Payphone
+      await initiatePayment(payphoneData)
+
+    // Si llegamos aquí, el pago se inició correctamente
+    // El usuario será redirigido a Payphone
+    
+  } catch (err) {
+    console.error('❌ Error en checkout:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+    alert(`Error al procesar el pago: ${errorMessage}`)
+  } finally {
+    isProcessingCheckout.value = false
+  }
 }
+
+// Estado de carga combinado
+const isLoadingCheckout = computed(() => 
+  isProcessingCheckout.value || isProcessing.value
+)
 
 // Incrementar cantidad
 const incrementQuantity = (productId: string) => {
@@ -158,9 +207,12 @@ const decrementQuantity = (productId: string) => {
             <button 
               @click="proceedToCheckout"
               class="cart-summary__checkout"
+              :disabled="isLoadingCheckout"
+              :class="{ 'cart-summary__checkout--loading': isLoadingCheckout }"
             >
-              <i class="fas fa-credit-card"></i>
-              Proceder al Pago
+              <i v-if="!isLoadingCheckout" class="fas fa-credit-card"></i>
+              <i v-else class="fas fa-spinner fa-spin"></i>
+              {{ isLoadingCheckout ? 'Procesando...' : 'Proceder al Pago' }}
             </button>
 
             <button 
@@ -523,9 +575,23 @@ const decrementQuantity = (productId: string) => {
     justify-content: center;
     gap: 0.5rem;
 
-    &:hover {
+    &:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    &--loading {
+      background: linear-gradient(135deg, $purple-light, $purple-primary);
+      
+      i {
+        animation: spin 1s linear infinite;
+      }
     }
   }
 
@@ -574,6 +640,16 @@ const decrementQuantity = (productId: string) => {
       color: $error;
       border-color: $error;
     }
+  }
+}
+
+// Animaciones
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
