@@ -1007,7 +1007,7 @@ onMounted(() => {
       gap: 0.25rem;
 
       i {
-        color: #ffd700;
+        color: $warning;
         font-size: 0.9rem;
       }
     }
@@ -1121,7 +1121,7 @@ onMounted(() => {
   gap: 0.25rem;
 
   i {
-    color: #ffd700;
+    color: $warning;
     font-size: 0.9rem;
   }
 }
