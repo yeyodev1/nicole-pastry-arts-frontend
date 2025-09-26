@@ -83,14 +83,99 @@ const isFormValid = computed(() => {
     Object.keys(formErrors.value).length === 0
 })
 
+// Computed para manejar mensajes de error específicos
+const errorMessage = computed(() => {
+  if (!error) return null
+  
+  const errorMsg = error.message || ''
+  
+  // Error específico de email no verificado
+  if (errorMsg.includes('verify your email') || errorMsg.includes('email before logging')) {
+    return {
+      type: 'email_verification',
+      title: 'Email no verificado',
+      message: 'Necesitas verificar tu email antes de poder iniciar sesión.',
+      action: 'Reenviar email de verificación'
+    }
+  }
+  
+  // Error de credenciales incorrectas
+  if (error.type === 'AUTHENTICATION_ERROR' || errorMsg.includes('Invalid credentials')) {
+    return {
+      type: 'credentials',
+      title: 'Credenciales incorrectas',
+      message: 'El email o la contraseña son incorrectos. Por favor, verifica tus datos.',
+      action: null
+    }
+  }
+  
+  // Error de red
+  if (error.type === 'NETWORK_ERROR') {
+    return {
+      type: 'network',
+      title: 'Error de conexión',
+      message: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+      action: null
+    }
+  }
+  
+  // Error genérico
+  return {
+    type: 'generic',
+    title: 'Error',
+    message: errorMsg || 'Ha ocurrido un error inesperado. Por favor, intenta nuevamente.',
+    action: null
+  }
+})
+
+// Estado para el reenvío de email
+const isResendingEmail = ref(false)
+
+// Función para reenviar email de verificación
+const handleResendVerification = async () => {
+  if (!formData.value.email || isResendingEmail.value) return
+  
+  try {
+    isResendingEmail.value = true
+    clearError()
+    
+    // Aquí llamarías al endpoint para reenviar el email
+    // Por ahora, simularemos el éxito
+    console.log('📧 Reenviando email de verificación a:', formData.value.email)
+    
+    // Simular delay de la API
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Mostrar mensaje de éxito (podrías usar un toast o similar)
+    alert(`Email de verificación enviado a ${formData.value.email}. Revisa tu bandeja de entrada.`)
+    
+  } catch (err) {
+    console.error('❌ Error al reenviar email:', err)
+    alert('Error al reenviar el email. Por favor, intenta nuevamente.')
+  } finally {
+    isResendingEmail.value = false
+  }
+}
+
 // Manejo del envío del formulario
 const handleSubmit = async () => {
+  console.log('🔄 handleSubmit iniciado')
+  console.log('📝 Datos del formulario:', formData.value)
+  console.log('✅ isFormValid:', isFormValid.value)
+  console.log('🔄 isLoggingIn antes:', isLoggingIn)
+
   if (!validateForm()) {
+    console.log('❌ Validación del formulario falló')
+    return
+  }
+
+  if (isLoggingIn) {
+    console.log('⏳ Ya está en proceso de login, evitando doble envío')
     return
   }
 
   try {
-    // Limpiar errores previos solo al inicio del intento de login
+    console.log('🧹 Limpiando errores previos')
     clearError()
 
     // Extraer solo los datos necesarios para el login
@@ -99,16 +184,23 @@ const handleSubmit = async () => {
       password: formData.value.password
     }
 
-    // Intentar login
-    const loginSuccess = await handleLogin(loginData, { rememberMe: formData.value.rememberMe })
+    console.log('📤 Enviando datos de login:', loginData)
+    console.log('🔄 isLoggingIn durante envío:', isLoggingIn)
 
-    console.log('loginSuccess: ', loginSuccess)
+    // Intentar login
+    await handleLogin(loginData, { rememberMe: formData.value.rememberMe })
+
+    console.log('✅ Login completado exitosamente')
+    console.log('🔄 isLoggingIn después del login:', isLoggingIn)
+    console.log('👤 Usuario autenticado:', isAuthenticated)
 
     // Redireccionar después del login exitoso
+    console.log('🔀 Redirigiendo a:', redirectTo.value)
     await router.push(redirectTo.value)
   } catch (err) {
-    // No limpiar el error aquí, ya que el store maneja el error automáticamente
-    console.error('Error en login:', err)
+    console.error('❌ Error en login:', err)
+    console.log('🔄 isLoggingIn después del error:', isLoggingIn)
+    console.log('⚠️ Error del store:', error)
     // El error ya está disponible en la variable `error` del composable
   }
 }
@@ -138,13 +230,31 @@ onMounted(() => {
         <p class="form-subtitle">Bienvenido de vuelta a Nicole Pastry Arts</p>
       </div>
 
-      <!-- Error general -->
-      <div v-if="error" class="error-banner">
+      <!-- Error mejorado -->
+      <div v-if="errorMessage" class="error-banner" :class="`error-${errorMessage.type}`">
         <div class="error-content">
           <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
-          <span>{{ error.message || 'Error al iniciar sesión' }}</span>
+          <div class="error-text">
+            <div class="error-title">{{ errorMessage.title }}</div>
+            <div class="error-message">{{ errorMessage.message }}</div>
+          </div>
+        </div>
+        
+        <!-- Acción específica para email no verificado -->
+        <div v-if="errorMessage.action && errorMessage.type === 'email_verification'" class="error-actions">
+          <button 
+            @click="handleResendVerification"
+            :disabled="isResendingEmail"
+            class="error-action-btn"
+            type="button"
+          >
+            <div v-if="isResendingEmail" class="loading-spinner-small">
+              <div class="spinner-small"></div>
+            </div>
+            <span>{{ isResendingEmail ? 'Enviando...' : errorMessage.action }}</span>
+          </button>
         </div>
       </div>
 
@@ -322,20 +432,106 @@ onMounted(() => {
   background: #fee;
   border: 1px solid #fcc;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   margin-bottom: 24px;
 
   .error-content {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-start;
+    gap: 12px;
     color: #dc3545;
-    font-size: 14px;
 
     .error-icon {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .error-text {
+      flex: 1;
+
+      .error-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .error-message {
+        font-size: 13px;
+        line-height: 1.4;
+        opacity: 0.9;
+      }
+    }
+  }
+
+  .error-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #fcc;
+
+    .error-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: #c82333;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .loading-spinner-small {
+        .spinner-small {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+      }
+    }
+  }
+
+  // Variantes de color para diferentes tipos de error
+  &.error-email_verification {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    
+    .error-content {
+      color: #856404;
+    }
+
+    .error-actions .error-action-btn {
+      background: #fd7e14;
+      
+      &:hover:not(:disabled) {
+        background: #e8690b;
+      }
+    }
+  }
+
+  &.error-network {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+    
+    .error-content {
+      color: #0c5460;
     }
   }
 }
