@@ -213,7 +213,7 @@ const decrementQuantity = (productId: string) => {
   &__title {
     font-size: 2.5rem;
     font-weight: 700;
-    color: $purple-600;
+    color: $purple-primary;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -245,12 +245,12 @@ const decrementQuantity = (productId: string) => {
     padding: 4rem 2rem;
     background-color: $white;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba($purple-600, 0.1);
+    box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
   }
 
   &__empty-icon {
     font-size: 4rem;
-    color: $purple-300;
+    color: $purple-light;
     margin-bottom: 2rem;
 
     @media (min-width: 768px) {
@@ -279,7 +279,7 @@ const decrementQuantity = (productId: string) => {
   }
 
   &__empty-button {
-    background: linear-gradient(135deg, $purple-600, $purple-500);
+    background: linear-gradient(135deg, $purple-primary, $purple-light);
     color: $white;
     border: none;
     padding: 1rem 2rem;
@@ -294,7 +294,7 @@ const decrementQuantity = (productId: string) => {
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba($purple-600, 0.3);
+      box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
     }
   }
 
@@ -314,7 +314,7 @@ const decrementQuantity = (productId: string) => {
     background-color: $white;
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 4px 20px rgba($purple-600, 0.1);
+    box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
   }
 
   &__summary {
@@ -385,7 +385,7 @@ const decrementQuantity = (productId: string) => {
   &__price {
     font-size: 1rem;
     font-weight: 600;
-    color: $purple-600;
+    color: $purple-primary;
 
     @media (min-width: 768px) {
       font-size: 1.1rem;
@@ -406,7 +406,7 @@ const decrementQuantity = (productId: string) => {
     height: 32px;
     border: none;
     background-color: $white;
-    color: $purple-600;
+    color: $purple-primary;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
@@ -415,7 +415,7 @@ const decrementQuantity = (productId: string) => {
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-      background-color: $purple-600;
+      background-color: $purple-primary;
       color: $white;
     }
 
@@ -457,8 +457,8 @@ const decrementQuantity = (productId: string) => {
     transition: all 0.2s ease;
 
     &:hover {
-      background-color: rgba($red-500, 0.1);
-      color: $red-500;
+      background-color: rgba($error, 0.1);
+      color: $error;
     }
   }
 }
@@ -468,7 +468,7 @@ const decrementQuantity = (productId: string) => {
   background-color: $white;
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 4px 20px rgba($purple-600, 0.1);
+  box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
   position: sticky;
   top: 100px;
 
@@ -488,7 +488,7 @@ const decrementQuantity = (productId: string) => {
     border-bottom: 1px solid $gray-200;
 
     &--total {
-      border-bottom: 2px solid $purple-600;
+      border-bottom: 2px solid $purple-primary;
       margin-top: 1rem;
       padding-top: 1rem;
       font-size: 1.2rem;
@@ -508,7 +508,7 @@ const decrementQuantity = (productId: string) => {
 
   &__checkout {
     width: 100%;
-    background: linear-gradient(135deg, $purple-600, $purple-500);
+    background: linear-gradient(135deg, $purple-primary, $purple-light);
     color: $white;
     border: none;
     padding: 1rem;
@@ -525,15 +525,15 @@ const decrementQuantity = (productId: string) => {
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba($purple-600, 0.3);
+      box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
     }
   }
 
   &__continue {
     width: 100%;
     background-color: transparent;
-    color: $purple-600;
-    border: 2px solid $purple-600;
+    color: $purple-primary;
+    border: 2px solid $purple-primary;
     padding: 0.75rem;
     border-radius: 12px;
     font-size: 1rem;
@@ -547,7 +547,7 @@ const decrementQuantity = (productId: string) => {
     gap: 0.5rem;
 
     &:hover {
-      background-color: $purple-600;
+      background-color: $purple-primary;
       color: $white;
     }
   }
@@ -570,9 +570,9 @@ const decrementQuantity = (productId: string) => {
     gap: 0.5rem;
 
     &:hover {
-      background-color: rgba($red-500, 0.1);
-      color: $red-500;
-      border-color: $red-500;
+      background-color: rgba($error, 0.1);
+      color: $error;
+      border-color: $error;
     }
   }
 }
