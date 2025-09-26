@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { usePayphonePayment } from '@/composables/usePayphonePayment';
+import { useAuth } from '@/composables/useAuth';
 
 // Props del componente
 const props = defineProps({
@@ -50,7 +52,9 @@ const emit = defineEmits<{
   paymentError: [error: string];
 }>();
 
-// Composable de pagos
+// Router y composables
+const router = useRouter();
+const { isAuthenticated } = useAuth();
 const { initiatePayment, isProcessing, hasError, error, canPay } = usePayphonePayment();
 
 // Estados computados
@@ -84,6 +88,17 @@ const buttonClasses = computed(() => {
 // Métodos
 const handlePayment = async () => {
   if (isDisabled.value) return;
+
+  // Verificar autenticación antes de procesar el pago
+  if (!isAuthenticated) {
+    // Redirigir a la página de registro con la URL actual como parámetro de redirección
+    const currentPath = router.currentRoute.value.fullPath;
+    router.push({
+      name: 'register',
+      query: { redirect: currentPath }
+    });
+    return;
+  }
 
   try {
     emit('paymentStarted', props.productId);
