@@ -550,9 +550,11 @@ watch(isAuthenticated, (newValue) => {
       align-items: center;
       justify-content: center;
       gap: 1rem;
+      color: white;
 
       i {
         font-size: 2rem;
+        color: white;
       }
     }
 
@@ -560,6 +562,7 @@ watch(isAuthenticated, (newValue) => {
       font-size: 1.1rem;
       opacity: 0.9;
       margin: 0;
+      color: white;
     }
   }
 
