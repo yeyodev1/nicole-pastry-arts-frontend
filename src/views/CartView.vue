@@ -625,6 +625,21 @@ const decrementQuantity = (productId: string) => {
     color: $gray-600;
     margin-bottom: 0.5rem;
     line-height: 1.4;
+
+    // Estilos para contenido HTML anidado
+    :deep(p) {
+      margin: 0 0 0.25rem 0;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    // Asegurar que el texto se mantenga legible
+    :deep(strong), :deep(b) {
+      font-weight: 600;
+      color: $gray-700;
+    }
   }
 
   &__price {
