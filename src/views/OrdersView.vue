@@ -523,7 +523,7 @@ watch(isAuthenticated, (newValue) => {
 
 // ===== HEADER =====
 .orders-header {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
   padding: 2rem 0;
 
@@ -591,22 +591,26 @@ watch(isAuthenticated, (newValue) => {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.5rem;
+      color: #2c3e50;
 
       &--warning {
-        background: rgba(255, 193, 7, 0.3);
+        background: #e0a800;
+        color: white;
       }
 
       &--success {
-        background: rgba(40, 167, 69, 0.3);
+        background: #1e7e34;
+        color: white;
       }
 
       &--primary {
-        background: rgba(0, 123, 255, 0.3);
+        background: #138496;
+        color: white;
       }
     }
 
@@ -669,7 +673,7 @@ watch(isAuthenticated, (newValue) => {
 
         &:focus {
           outline: none;
-          border-color: var(--primary-color);
+          border-color: #2c3e50;
         }
       }
     }
@@ -702,7 +706,7 @@ watch(isAuthenticated, (newValue) => {
 
       &:focus {
         outline: none;
-        border-color: var(--primary-color);
+        border-color: #2c3e50;
       }
     }
   }
@@ -755,7 +759,7 @@ watch(isAuthenticated, (newValue) => {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: var(--primary-color);
+    background: #2c3e50;
     color: white;
     border: none;
     border-radius: 8px;
@@ -764,7 +768,7 @@ watch(isAuthenticated, (newValue) => {
     transition: background-color 0.3s ease;
 
     &:hover {
-      background: var(--primary-dark);
+      background: #1a252f;
     }
   }
 }
@@ -800,7 +804,7 @@ watch(isAuthenticated, (newValue) => {
       align-items: center;
       gap: 0.5rem;
       font-weight: 600;
-      color: var(--primary-color);
+      color: #2c3e50;
 
       i {
         font-size: 1.2rem;
@@ -929,7 +933,7 @@ watch(isAuthenticated, (newValue) => {
       .total-amount {
         font-size: 1.2rem;
         font-weight: 700;
-        color: var(--primary-color);
+        color: #2c3e50;
       }
     }
 
@@ -938,7 +942,7 @@ watch(isAuthenticated, (newValue) => {
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
-      background: var(--primary-color);
+      background: #2c3e50;
       color: white;
       border: none;
       border-radius: 6px;
@@ -946,7 +950,7 @@ watch(isAuthenticated, (newValue) => {
       transition: background-color 0.3s ease;
 
       &:hover {
-        background: var(--primary-dark);
+        background: #1a252f;
       }
     }
   }
@@ -962,7 +966,7 @@ watch(isAuthenticated, (newValue) => {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    background: var(--primary-color);
+    background: #2c3e50;
     color: white;
     border: none;
     border-radius: 8px;
@@ -970,7 +974,7 @@ watch(isAuthenticated, (newValue) => {
     transition: background-color 0.3s ease;
 
     &:hover:not(:disabled) {
-      background: var(--primary-dark);
+      background: #1a252f;
     }
 
     &:disabled {
@@ -1017,7 +1021,7 @@ watch(isAuthenticated, (newValue) => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--primary-color);
+    color: #2c3e50;
   }
 
   .modal-close {
@@ -1117,7 +1121,7 @@ watch(isAuthenticated, (newValue) => {
 
     .item-total-price {
       font-weight: 600;
-      color: var(--primary-color);
+      color: #2c3e50;
     }
   }
 }
