@@ -326,7 +326,40 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
       paymentMethod: 'payphone',
       paymentReference: paymentResult.transactionId,
       
-      // Dirección de envío con recipientName y recipientPhone requeridos
+      // Información de facturación (requerida)
+      billingInfo: {
+        cedula: orderSource.customer?.cedula || '9999999999',
+        fullName: orderSource.customer?.name || 'Cliente Payphone',
+        phone: orderSource.customer?.phone || '0999999999',
+        email: orderSource.customer?.email || '',
+        address: {
+          street: shippingAddress.street || '',
+          city: shippingAddress.city || 'Guayaquil',
+          state: shippingAddress.state || 'Guayas',
+          zipCode: shippingAddress.zipCode || '090101',
+          country: shippingAddress.country || 'Ecuador'
+        }
+      },
+      
+      // Dirección de entrega (requerida)
+      deliveryAddress: {
+        street: shippingAddress.street || '',
+        city: shippingAddress.city || 'Guayaquil',
+        state: shippingAddress.state || 'Guayas',
+        zipCode: shippingAddress.zipCode || '090101',
+        country: shippingAddress.country || 'Ecuador',
+        recipientName: shippingAddress.recipientName || orderSource.customer?.name || 'Cliente Payphone',
+        recipientPhone: shippingAddress.recipientPhone || orderSource.customer?.phone || '0999999999',
+        latitude: undefined,
+        longitude: undefined,
+        googleMapsLink: '',
+        locationNotes: ''
+      },
+      
+      // Zona de entrega (requerida)
+      deliveryZone: 'samanes_suburbio',
+      
+      // Dirección de envío con recipientName y recipientPhone requeridos (para compatibilidad)
       shippingAddress: shippingAddress,
       shippingMethod: orderSource.shippingMethod || 'delivery',
       shippingCost: orderSource.shippingCost || 0,
