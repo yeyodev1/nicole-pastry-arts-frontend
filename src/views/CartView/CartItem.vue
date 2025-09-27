@@ -194,7 +194,7 @@ const handleRemove = () => {
     // Estilos para contenido HTML
     :deep(p) {
       margin: 0 0 0.5rem 0;
-      
+
       &:last-child {
         margin-bottom: 0;
       }
