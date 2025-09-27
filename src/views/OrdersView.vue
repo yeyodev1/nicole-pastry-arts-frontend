@@ -443,7 +443,7 @@ watch(isAuthenticated, (newValue) => {
             <div class="items-list">
               <div
                 v-for="item in selectedOrder.items"
-                :key="item.product"
+                :key="item.productId"
                 class="item-row"
               >
                 <div class="item-info">
