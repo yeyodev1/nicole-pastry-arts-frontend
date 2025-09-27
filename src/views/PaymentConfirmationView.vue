@@ -248,14 +248,13 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
     
     // Transformar items al formato correcto para el backend
     const transformedItems = (orderSource.items || []).map((item: any) => ({
-      product: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
+      productId: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
       productName: item.productName || item.name || 'Producto sin nombre',
+      productSku: item.productSku || item.sku || `SKU-${item.productId || item.id || 'UNKNOWN'}`,
       quantity: item.quantity || 1,
       unitPrice: item.unitPrice || item.price || 0,
       totalPrice: item.totalPrice || (item.price * item.quantity) || 0,
-      productSku: item.productSku || item.sku || `SKU-${item.productId || item.id || 'UNKNOWN'}`,
-      productId: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
-      notes: item.notes || item.description || ''
+      productImage: item.productImage || item.image
     }));
     
     console.log('[ITEMS] Items transformados:', transformedItems);
