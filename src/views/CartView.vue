@@ -222,56 +222,62 @@ const decrementQuantity = (productId: string) => {
             :key="item.id"
             class="cart-item"
           >
-            <!-- Imagen del producto -->
-            <div class="cart-item__image">
-              <img 
-                :src="item.image || '/placeholder-product.jpg'" 
-                :alt="item.name"
-                class="cart-item__img"
-              >
-            </div>
-
-            <!-- Información del producto -->
-            <div class="cart-item__info">
-              <h3 class="cart-item__name">{{ item.name }}</h3>
-              <div class="cart-item__description" v-if="item.description" v-html="item.description">
+            <!-- Header: Imagen + Info + Remove (Mobile First) -->
+            <div class="cart-item__header">
+              <!-- Imagen del producto -->
+              <div class="cart-item__image">
+                <img 
+                  :src="item.image || '/placeholder-product.jpg'" 
+                  :alt="item.name"
+                  class="cart-item__img"
+                >
               </div>
-              <div class="cart-item__price">
-                {{ formatPrice(item.price) }}
-              </div>
-            </div>
 
-            <!-- Controles de cantidad -->
-            <div class="cart-item__quantity">
+              <!-- Información del producto -->
+              <div class="cart-item__info">
+                <h3 class="cart-item__name">{{ item.name }}</h3>
+                <div class="cart-item__description" v-if="item.description" v-html="item.description">
+                </div>
+                <div class="cart-item__price">
+                  {{ formatPrice(item.price) }}
+                </div>
+              </div>
+
+              <!-- Botón eliminar -->
               <button 
-                @click="decrementQuantity(item.id)"
-                class="cart-item__quantity-btn cart-item__quantity-btn--minus"
-                :disabled="item.quantity <= 1"
+                @click="cartStore.removeItem(item.id)"
+                class="cart-item__remove"
+                title="Eliminar producto"
               >
-                <i class="fas fa-minus"></i>
-              </button>
-              <span class="cart-item__quantity-value">{{ item.quantity }}</span>
-              <button 
-                @click="incrementQuantity(item.id)"
-                class="cart-item__quantity-btn cart-item__quantity-btn--plus"
-              >
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-trash"></i>
               </button>
             </div>
 
-            <!-- Subtotal -->
-            <div class="cart-item__subtotal">
-              {{ formatPrice(item.price * item.quantity) }}
-            </div>
+            <!-- Footer: Cantidad + Subtotal (Mobile First) -->
+            <div class="cart-item__footer">
+              <!-- Controles de cantidad -->
+              <div class="cart-item__quantity">
+                <button 
+                  @click="decrementQuantity(item.id)"
+                  class="cart-item__quantity-btn cart-item__quantity-btn--minus"
+                  :disabled="item.quantity <= 1"
+                >
+                  <i class="fas fa-minus"></i>
+                </button>
+                <span class="cart-item__quantity-value">{{ item.quantity }}</span>
+                <button 
+                  @click="incrementQuantity(item.id)"
+                  class="cart-item__quantity-btn cart-item__quantity-btn--plus"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
 
-            <!-- Botón eliminar -->
-            <button 
-              @click="cartStore.removeItem(item.id)"
-              class="cart-item__remove"
-              title="Eliminar producto"
-            >
-              <i class="fas fa-trash"></i>
-            </button>
+              <!-- Subtotal -->
+              <div class="cart-item__subtotal">
+                {{ formatPrice(item.price * item.quantity) }}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -415,13 +421,19 @@ const decrementQuantity = (productId: string) => {
 <style lang="scss" scoped>
 .cart-view {
   min-height: calc(100vh - 160px);
-  padding: 2rem 0;
-  background-color: $gray-50;
+  // Mobile First: Más padding vertical para respirar mejor
+  padding: 1.5rem 0 3rem;
+  background-color: $background-light;
+
+  @media (min-width: 768px) {
+    padding: 2rem 0;
+  }
 
   &__container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1rem;
+    // Mobile First: Padding más generoso en mobile
+    padding: 0 1.25rem;
 
     @media (min-width: 768px) {
       padding: 0 2rem;
@@ -434,104 +446,171 @@ const decrementQuantity = (productId: string) => {
 
   &__header {
     text-align: center;
-    margin-bottom: 3rem;
+    // Mobile First: Menos margen en mobile para aprovechar espacio
+    margin-bottom: 2rem;
+
+    @media (min-width: 768px) {
+      margin-bottom: 3rem;
+    }
   }
 
   &__title {
-    font-size: 2.5rem;
+    // Mobile First: Tamaño más moderado en mobile
+    font-size: 2rem;
     font-weight: 700;
-    color: $purple-primary;
-    margin-bottom: 0.5rem;
+    color: $NICOLE-PRIMARY;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    line-height: 1.2;
 
     @media (min-width: 768px) {
+      font-size: 2.5rem;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    @media (min-width: 1024px) {
       font-size: 3rem;
     }
 
     i {
-      font-size: 2rem;
+      // Mobile First: Icono proporcionado al texto
+      font-size: 1.75rem;
 
       @media (min-width: 768px) {
+        font-size: 2rem;
+      }
+
+      @media (min-width: 1024px) {
         font-size: 2.5rem;
       }
     }
   }
 
   &__subtitle {
-    font-size: 1.1rem;
-    color: $gray-600;
+    font-size: 1rem;
+    color: $text-light;
     margin: 0;
+    
+    @media (min-width: 768px) {
+      font-size: 1.1rem;
+    }
   }
 
-  // Carrito vacío
+  // Carrito vacío - Mobile First
   &__empty {
     text-align: center;
-    padding: 4rem 2rem;
+    // Mobile First: Padding más cómodo en mobile
+    padding: 3rem 1.5rem;
     background-color: $white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
+    margin: 0 0.5rem;
+
+    @media (min-width: 768px) {
+      padding: 4rem 2rem;
+      margin: 0;
+      border-radius: 16px;
+    }
   }
 
   &__empty-icon {
-    font-size: 4rem;
+    // Mobile First: Tamaño más moderado en mobile
+    font-size: 3.5rem;
     color: $purple-light;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 
     @media (min-width: 768px) {
+      font-size: 4rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 1024px) {
       font-size: 5rem;
     }
   }
 
   &__empty-title {
-    font-size: 1.8rem;
+    // Mobile First: Tamaño más legible en mobile
+    font-size: 1.5rem;
     font-weight: 600;
-    color: $gray-900;
+    color: $text-dark;
     margin-bottom: 1rem;
+    line-height: 1.3;
 
     @media (min-width: 768px) {
+      font-size: 1.8rem;
+    }
+
+    @media (min-width: 1024px) {
       font-size: 2.2rem;
     }
   }
 
   &__empty-description {
-    font-size: 1.1rem;
-    color: $gray-600;
+    font-size: 1rem;
+    color: $text-light;
     margin-bottom: 2rem;
-    max-width: 400px;
+    max-width: 320px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.5;
+
+    @media (min-width: 768px) {
+      font-size: 1.1rem;
+      max-width: 400px;
+    }
   }
 
   &__empty-button {
-    background: linear-gradient(135deg, $purple-primary, $purple-light);
+    background: linear-gradient(135deg, $NICOLE-PRIMARY, $purple-light);
     color: $white;
     border: none;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    font-size: 1.1rem;
+    // Mobile First: Botón más grande y táctil en mobile
+    padding: 1.125rem 2.5rem;
+    border-radius: 16px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    min-height: 52px;
+
+    @media (min-width: 768px) {
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      gap: 0.5rem;
+    }
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
+      box-shadow: 0 8px 25px rgba($NICOLE-PRIMARY, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
-  // Contenido del carrito
+  // Contenido del carrito - Mobile First
   &__content {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    // Mobile First: Gap más generoso en mobile
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+      gap: 2rem;
+    }
 
     @media (min-width: 1024px) {
+      display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 2rem;
     }
@@ -544,9 +623,16 @@ const decrementQuantity = (productId: string) => {
 
   &__items {
     background-color: $white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
+    border-radius: 20px;
+    // Mobile First: Padding más cómodo en mobile
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
+    order: 1;
+
+    @media (min-width: 768px) {
+      padding: 2rem;
+      border-radius: 16px;
+    }
   }
 
   &__shipping {
@@ -567,34 +653,51 @@ const decrementQuantity = (productId: string) => {
   }
 }
 
-// Item del carrito
+// Item del carrito - Mobile First
 .cart-item {
-  display: grid;
-  grid-template-columns: 80px 1fr auto auto auto;
+  // Mobile First: Layout vertical más espacioso
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  align-items: center;
   padding: 1.5rem 0;
-  border-bottom: 1px solid $gray-200;
+  border-bottom: 1px solid $border-light;
 
   @media (min-width: 768px) {
+    display: grid;
     grid-template-columns: 100px 1fr auto auto auto;
     gap: 1.5rem;
+    align-items: center;
+    flex-direction: unset;
   }
 
   &:last-child {
     border-bottom: none;
   }
 
+  // Mobile First: Header del producto (imagen + info + remove)
+  &__header {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+
+    @media (min-width: 768px) {
+      display: contents; // Elimina el wrapper en desktop
+    }
+  }
+
   &__image {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
+    // Mobile First: Imagen más grande y prominente
+    width: 90px;
+    height: 90px;
+    border-radius: 16px;
     overflow: hidden;
-    background-color: $gray-50;
+    background-color: $background-light;
+    flex-shrink: 0;
 
     @media (min-width: 768px) {
       width: 100px;
       height: 100px;
+      border-radius: 12px;
     }
   }
 
@@ -605,26 +708,34 @@ const decrementQuantity = (productId: string) => {
   }
 
   &__info {
+    flex: 1;
     min-width: 0;
   }
 
   &__name {
-    font-size: 1.1rem;
+    // Mobile First: Título más prominente
+    font-size: 1.125rem;
     font-weight: 600;
-    color: $gray-900;
-    margin-bottom: 0.25rem;
+    color: $text-dark;
+    margin-bottom: 0.5rem;
     line-height: 1.3;
 
     @media (min-width: 768px) {
       font-size: 1.2rem;
+      margin-bottom: 0.25rem;
     }
   }
 
   &__description {
-    font-size: 0.9rem;
-    color: $gray-600;
-    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: $text-light;
+    margin-bottom: 0.75rem;
     line-height: 1.4;
+
+    @media (min-width: 768px) {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
 
     // Estilos para contenido HTML anidado
     :deep(p) {
@@ -638,45 +749,118 @@ const decrementQuantity = (productId: string) => {
     // Asegurar que el texto se mantenga legible
     :deep(strong), :deep(b) {
       font-weight: 600;
-      color: $gray-700;
+      color: $text-dark;
     }
   }
 
   &__price {
-    font-size: 1rem;
-    font-weight: 600;
-    color: $purple-primary;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $NICOLE-PRIMARY;
 
     @media (min-width: 768px) {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    @media (min-width: 1024px) {
       font-size: 1.1rem;
+    }
+  }
+
+  // Mobile First: Botón remove en el header
+  &__remove {
+    // Mobile First: Botón más grande y táctil
+    width: 44px;
+    height: 44px;
+    border: none;
+    background-color: rgba($error, 0.1);
+    color: $error;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    @media (min-width: 768px) {
+      width: 40px;
+      height: 40px;
+      background-color: transparent;
+      color: $gray-600;
+      border-radius: 8px;
+    }
+
+    &:hover {
+      background-color: rgba($error, 0.15);
+      color: $error;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  // Mobile First: Footer del producto (cantidad + subtotal)
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+
+    @media (min-width: 768px) {
+      display: contents; // Elimina el wrapper en desktop
+      padding-top: 0;
     }
   }
 
   &__quantity {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background-color: $gray-50;
-    border-radius: 8px;
-    padding: 0.25rem;
+    gap: 0.75rem;
+    background-color: $background-light;
+    border-radius: 12px;
+    padding: 0.5rem;
+
+    @media (min-width: 768px) {
+      gap: 0.5rem;
+      border-radius: 8px;
+      padding: 0.25rem;
+    }
   }
 
   &__quantity-btn {
-    width: 32px;
-    height: 32px;
+    // Mobile First: Botones más grandes y táctiles
+    width: 40px;
+    height: 40px;
     border: none;
     background-color: $white;
-    color: $purple-primary;
-    border-radius: 6px;
+    color: $NICOLE-PRIMARY;
+    border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    font-size: 0.875rem;
+
+    @media (min-width: 768px) {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }
 
     &:hover:not(:disabled) {
-      background-color: $purple-primary;
+      background-color: $NICOLE-PRIMARY;
       color: $white;
+      transform: scale(1.05);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
     }
 
     &:disabled {
@@ -686,122 +870,185 @@ const decrementQuantity = (productId: string) => {
   }
 
   &__quantity-value {
-    min-width: 2rem;
+    min-width: 2.5rem;
     text-align: center;
-    font-weight: 600;
-    color: $gray-900;
-  }
-
-  &__subtotal {
-    font-size: 1.1rem;
     font-weight: 700;
-    color: $gray-900;
-    text-align: right;
+    color: $text-dark;
+    font-size: 1rem;
 
     @media (min-width: 768px) {
-      font-size: 1.2rem;
+      min-width: 2rem;
+      font-weight: 600;
     }
   }
 
-  &__remove {
-    width: 40px;
-    height: 40px;
-    border: none;
-    background-color: transparent;
-    color: $gray-600;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+  &__subtotal {
+    // Mobile First: Subtotal más prominente
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $text-dark;
+    text-align: right;
 
-    &:hover {
-      background-color: rgba($error, 0.1);
-      color: $error;
+    @media (min-width: 768px) {
+      font-size: 1.1rem;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 1.2rem;
     }
   }
 }
 
-// Formulario de datos de envío
+// Formulario de datos de envío - Mobile First
 .shipping-form {
   background-color: $white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
-  margin-bottom: 2rem;
+  border-radius: 20px;
+  // Mobile First: Padding más cómodo en mobile
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
+  margin-bottom: 1.5rem;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+  }
 
   &__title {
-    font-size: 1.5rem;
+    // Mobile First: Título más moderado en mobile
+    font-size: 1.25rem;
     font-weight: 700;
-    color: $gray-900;
-    margin-bottom: 1.5rem;
+    color: $text-dark;
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    line-height: 1.3;
+
+    @media (min-width: 768px) {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
 
     i {
-      color: $purple-primary;
+      color: $NICOLE-PRIMARY;
+      font-size: 1.125rem;
+
+      @media (min-width: 768px) {
+        font-size: 1.25rem;
+      }
     }
   }
 
   &__fields {
     display: grid;
-    gap: 1.5rem;
+    // Mobile First: Gap más generoso en mobile
+    gap: 1.25rem;
+
+    @media (min-width: 768px) {
+      gap: 1.5rem;
+    }
   }
 
   &__field {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+
+    @media (min-width: 768px) {
+      gap: 0.5rem;
+    }
   }
 
   &__label {
     font-weight: 600;
-    color: $gray-700;
-    font-size: 0.95rem;
+    color: $text-dark;
+    font-size: 1rem;
+    line-height: 1.4;
+
+    @media (min-width: 768px) {
+      font-size: 0.95rem;
+    }
   }
 
   &__input,
   &__textarea {
-    padding: 0.875rem 1rem;
-    border: 2px solid $gray-200;
-    border-radius: 8px;
+    // Mobile First: Inputs más grandes y táctiles
+    padding: 1rem 1.125rem;
+    border: 2px solid $border-light;
+    border-radius: 12px;
     font-size: 1rem;
     transition: all 0.2s ease;
     background-color: $white;
+    min-height: 52px;
+
+    @media (min-width: 768px) {
+      padding: 0.875rem 1rem;
+      border-radius: 8px;
+      min-height: auto;
+    }
 
     &:focus {
       outline: none;
-      border-color: $purple-primary;
-      box-shadow: 0 0 0 3px rgba($purple-primary, 0.1);
+      border-color: $NICOLE-PRIMARY;
+      box-shadow: 0 0 0 3px rgba($NICOLE-PRIMARY, 0.1);
     }
 
     &::placeholder {
-      color: $gray-400;
+      color: $text-light;
+    }
+
+    // Estados de validación visual
+    &:valid {
+      border-color: $success;
+    }
+
+    &:invalid:not(:placeholder-shown) {
+      border-color: $error;
     }
   }
 
   &__textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 100px;
     font-family: inherit;
+    line-height: 1.5;
+
+    @media (min-width: 768px) {
+      min-height: 80px;
+    }
   }
 
   &__warning {
     background-color: rgba($warning, 0.1);
     border: 1px solid rgba($warning, 0.3);
-    border-radius: 8px;
-    padding: 1rem;
+    border-radius: 12px;
+    // Mobile First: Padding más generoso
+    padding: 1.125rem;
     color: $warning;
     font-weight: 500;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 0.75rem;
     margin-top: 1rem;
+    line-height: 1.4;
+
+    @media (min-width: 768px) {
+      padding: 1rem;
+      border-radius: 8px;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
     i {
-      font-size: 1.1rem;
+      font-size: 1.125rem;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+
+      @media (min-width: 768px) {
+        font-size: 1.1rem;
+        margin-top: 0;
+      }
     }
   }
 }
@@ -827,69 +1074,117 @@ const decrementQuantity = (productId: string) => {
   }
 }
 
-// Resumen del carrito
+// Resumen del carrito - Mobile First
 .cart-summary {
   background-color: $white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba($purple-primary, 0.1);
+  border-radius: 20px;
+  // Mobile First: Padding más cómodo en mobile
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
   position: sticky;
   top: 100px;
 
+  @media (min-width: 768px) {
+    padding: 2rem;
+    border-radius: 16px;
+  }
+
   &__title {
-    font-size: 1.5rem;
+    // Mobile First: Título más moderado en mobile
+    font-size: 1.25rem;
     font-weight: 700;
-    color: $gray-900;
-    margin-bottom: 1.5rem;
+    color: $text-dark;
+    margin-bottom: 1.25rem;
     text-align: center;
+
+    @media (min-width: 768px) {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
   }
 
   &__line {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid $gray-200;
+    // Mobile First: Padding más generoso
+    padding: 1rem 0;
+    border-bottom: 1px solid $border-light;
+
+    @media (min-width: 768px) {
+      padding: 0.75rem 0;
+    }
 
     &--total {
-      border-bottom: 2px solid $purple-primary;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      font-size: 1.2rem;
+      border-bottom: none;
+      padding-top: 1.25rem;
+      margin-top: 0.75rem;
+      border-top: 2px solid $NICOLE-PRIMARY;
+      font-size: 1.125rem;
       font-weight: 700;
+
+      @media (min-width: 768px) {
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+      }
     }
   }
 
   &__label {
-    color: $gray-600;
+    color: $text-light;
     font-weight: 500;
+    font-size: 1rem;
+
+    @media (min-width: 768px) {
+      font-size: 0.95rem;
+    }
   }
 
   &__value {
-    color: $gray-900;
     font-weight: 600;
+    color: $text-dark;
+    font-size: 1rem;
+
+    @media (min-width: 768px) {
+      font-size: 0.95rem;
+    }
   }
 
   &__checkout {
     width: 100%;
-    background: linear-gradient(135deg, $purple-primary, $purple-light);
+    background: linear-gradient(135deg, $NICOLE-PRIMARY, $purple-light);
     color: $white;
     border: none;
-    padding: 1rem;
-    border-radius: 12px;
-    font-size: 1.1rem;
+    // Mobile First: Botón más grande y táctil
+    padding: 1.25rem 2rem;
+    border-radius: 16px;
+    font-size: 1.125rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    min-height: 56px;
+
+    @media (min-width: 768px) {
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      margin-top: 2rem;
+      gap: 0.5rem;
+    }
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba($purple-primary, 0.3);
+      box-shadow: 0 8px 25px rgba($NICOLE-PRIMARY, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     &:disabled {
@@ -899,7 +1194,7 @@ const decrementQuantity = (productId: string) => {
     }
 
     &--loading {
-      background: linear-gradient(135deg, $purple-light, $purple-primary);
+      background: linear-gradient(135deg, $purple-light, $NICOLE-PRIMARY);
       
       i {
         animation: spin 1s linear infinite;
@@ -910,10 +1205,11 @@ const decrementQuantity = (productId: string) => {
   &__continue {
     width: 100%;
     background-color: transparent;
-    color: $purple-primary;
-    border: 2px solid $purple-primary;
-    padding: 0.75rem;
-    border-radius: 12px;
+    color: $NICOLE-PRIMARY;
+    border: 2px solid $NICOLE-PRIMARY;
+    // Mobile First: Botón más grande y táctil
+    padding: 1rem 2rem;
+    border-radius: 16px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -922,11 +1218,22 @@ const decrementQuantity = (productId: string) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    min-height: 52px;
+
+    @media (min-width: 768px) {
+      padding: 0.75rem;
+      border-radius: 12px;
+      gap: 0.5rem;
+    }
 
     &:hover {
-      background-color: $purple-primary;
+      background-color: $NICOLE-PRIMARY;
       color: $white;
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
@@ -935,9 +1242,10 @@ const decrementQuantity = (productId: string) => {
     background-color: transparent;
     color: $gray-600;
     border: 1px solid $gray-200;
-    padding: 0.75rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
+    // Mobile First: Botón más grande y táctil
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -945,12 +1253,24 @@ const decrementQuantity = (productId: string) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    min-height: 52px;
+
+    @media (min-width: 768px) {
+      padding: 0.75rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      gap: 0.5rem;
+    }
 
     &:hover {
       background-color: rgba($error, 0.1);
       color: $error;
       border-color: $error;
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }
