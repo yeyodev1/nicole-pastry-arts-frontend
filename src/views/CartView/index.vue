@@ -3,24 +3,17 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { usePayphonePayment } from '@/composables/usePayphonePayment'
 import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
 import CartHeader from './CartHeader.vue'
 import CartItem from './CartItem.vue'
 import ShippingForm from './ShippingForm.vue'
 import CartSummary from './CartSummary.vue'
 
-// Declarar tipos globales para Payphone
-declare global {
-  interface Window {
-    PayphoneButton?: {
-      init: (config: any) => void
-    }
-  }
-}
-
 // Stores
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const { initiatePayment, isProcessing, hasError, error } = usePayphonePayment()
 const router = useRouter()
 
 // Definir tipo FormData
@@ -31,7 +24,12 @@ interface FormData {
 }
 
 // Estado local
-const isLoadingCheckout = ref(false)
+const isProcessingCheckout = ref(false)
+
+// Estado de carga combinado
+const isLoadingCheckout = computed(() => 
+  isProcessingCheckout.value || isProcessing.value
+)
 const formData = ref<FormData>({
   billingInfo: {
     cedula: '',
@@ -126,116 +124,70 @@ const generateOrderNumber = (): string => {
   return `NPA-${timestamp}-${random}`
 }
 
-// Proceder al checkout
+// Proceder al checkout con Payphone (usando el patrón funcional que ya funciona)
 const proceedToCheckout = async () => {
   try {
-    isLoadingCheckout.value = true
-
-    // Verificar autenticación
-    if (!authStore.isAuthenticated) {
+    console.log('🛒 Iniciando proceso de checkout...')
+    
+    // Validar que el usuario esté autenticado
+    if (!authStore.isAuthenticated || !authStore.user?._id) {
+      console.log('❌ Usuario no autenticado, redirigiendo a login')
+      alert('Debes iniciar sesión para proceder con el pago')
       router.push('/login')
       return
     }
 
-    // Verificar que hay items en el carrito
-    if (cartStore.items.length === 0) {
+    // Validar que el carrito no esté vacío
+    if (cartStore.isEmpty) {
+      console.log('❌ Carrito vacío')
       alert('Tu carrito está vacío')
       return
     }
 
     // Verificar datos de envío y facturación
     if (!isFormDataValid.value) {
+      console.log('❌ Datos de formulario incompletos')
       alert('Por favor completa todos los datos obligatorios de facturación y entrega')
       return
     }
 
-    // Preparar datos para Payphone
-    const orderNumber = generateOrderNumber()
-    const amount = cartStore.totalPrice
-    const tax = 0
-    const service = 0
-    const tip = 0
-    const currency = 'USD'
+    console.log('✅ Validaciones pasadas, preparando datos de pago...')
+    
+    isProcessingCheckout.value = true
 
-    // Preparar datos del pedido
-    const orderData = {
-      orderNumber,
-      amount,
-      tax,
-      service,
-      tip,
-      currency,
-      items: cartStore.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        description: item.description
-      })),
-      customer: {
-        name: formData.value.billingInfo.fullName,
-        email: formData.value.billingInfo.email || '',
-        phone: formData.value.billingInfo.phone
-      },
-      billing: formData.value.billingInfo,
-      delivery: formData.value.deliveryAddress,
-      deliveryZone: formData.value.deliveryZone,
-      // Mantener compatibilidad con formato anterior
-      shipping: {
-        recipientName: formData.value.deliveryAddress.recipientName,
-        recipientPhone: formData.value.deliveryAddress.recipientPhone,
-        street: formData.value.deliveryAddress.street,
-        city: formData.value.deliveryAddress.city,
-        notes: formData.value.deliveryAddress.locationNotes || ''
-      },
-      createdAt: new Date().toISOString()
+    // Guardar datos del formulario en localStorage para recuperar después del pago
+    console.log('💾 Guardando datos del formulario en localStorage...')
+    localStorage.setItem('formData', JSON.stringify(formData.value))
+    localStorage.setItem('cartItems', JSON.stringify(cartStore.items))
+    
+    // Preparar datos para Payphone usando el mismo formato que el componente funcional
+    const payphoneData = {
+      productId: `CART-${Date.now()}`, // ID único para esta compra
+      productName: `Compra de ${cartStore.totalItems} productos`,
+      price: cartStore.totalPrice,
+      description: `Carrito con ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
     }
 
-    // Guardar datos en localStorage para recuperar después del pago
-    localStorage.setItem('pendingOrder', JSON.stringify(orderData))
-    localStorage.setItem('cartData', JSON.stringify(cartStore.items))
-    localStorage.setItem('customerData', JSON.stringify(orderData.customer))
+    console.log('💳 Iniciando pago con Payphone:', payphoneData)
+    console.log('📊 Detalles del carrito:', {
+      totalItems: cartStore.totalItems,
+      totalPrice: cartStore.totalPrice,
+      items: cartStore.items.map(item => ({ name: item.name, quantity: item.quantity, price: item.price }))
+    })
+    
+    // Iniciar el pago con Payphone usando el composable
+    await initiatePayment(payphoneData)
 
-    // Configurar Payphone
-    const payphoneConfig = {
-      token: import.meta.env.VITE_PAYPHONE_TOKEN,
-      amount,
-      amountWithoutTax: amount,
-      tax,
-      service,
-      tip,
-      currency,
-      reference: orderNumber,
-      clientTransactionId: `${orderNumber}-${Date.now()}`,
-      // URLs de respuesta
-      responseUrl: `${window.location.origin}/payment-response`,
-      cancelUrl: `${window.location.origin}/cart`,
-      // Datos del cliente
-      clientName: orderData.customer.name,
-      clientEmail: orderData.customer.email,
-      clientPhone: orderData.customer.phone,
-      // Metadatos adicionales
-      metadata: {
-        orderNumber,
-        shippingData: orderData.shipping,
-        items: orderData.items
-      }
-    }
-
-    // Inicializar Payphone
-    if (window.PayphoneButton) {
-      window.PayphoneButton.init(payphoneConfig)
-    } else {
-      console.error('Payphone no está disponible')
-      alert('Error al inicializar el sistema de pagos. Por favor intenta de nuevo.')
-    }
-
-  } catch (error) {
-    console.error('Error en checkout:', error)
-    alert('Ocurrió un error al procesar tu pedido. Por favor intenta de nuevo.')
+    console.log('✅ Pago iniciado correctamente, el usuario será redirigido a Payphone')
+    
+  } catch (err) {
+    console.error('❌ Error en checkout:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+    console.error('📝 Detalles del error:', errorMessage)
+    alert(`Error al procesar el pago: ${errorMessage}`)
   } finally {
-    isLoadingCheckout.value = false
+    isProcessingCheckout.value = false
+    console.log('🔄 Proceso de checkout finalizado')
   }
 }
 
