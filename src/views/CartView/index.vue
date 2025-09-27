@@ -4,7 +4,11 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePayphonePayment } from '@/composables/usePayphonePayment'
+import { useModal } from '@/composables/useModal'
+import Modal from '@/components/Modal.vue'
 import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
+
+// Stores
 import CartHeader from './CartHeader.vue'
 import CartItem from './CartItem.vue'
 import ShippingForm from './ShippingForm.vue'
@@ -13,7 +17,10 @@ import CartSummary from './CartSummary.vue'
 // Stores
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+
+// Composables
 const { initiatePayment, isProcessing, hasError, error } = usePayphonePayment()
+const { modalState, showError, showWarning, alert: showAlert } = useModal()
 const router = useRouter()
 
 // Definir tipo FormData
@@ -131,20 +138,26 @@ const proceedToCheckout = async () => {
 
     // Validar que el usuario esté autenticado
     if (!authStore.isAuthenticated || !authStore.user?._id) {
-      alert('Debes iniciar sesión para proceder con el pago')
+      showError('Debes iniciar sesión para proceder con el pago', {
+        title: 'Autenticación requerida'
+      })
       router.push('/login')
       return
     }
 
     if (cartStore.isEmpty) {
       console.log('❌ Carrito vacío')
-      alert('Tu carrito está vacío')
+      showWarning('Tu carrito está vacío', {
+        title: 'Carrito vacío'
+      })
       return
     }
 
     if (!isFormDataValid.value) {
       console.log('❌ Datos de formulario incompletos')
-      alert('Por favor completa todos los datos obligatorios de facturación y entrega')
+      showWarning('Por favor completa todos los datos obligatorios de facturación y entrega', {
+        title: 'Datos incompletos'
+      })
       return
     }
 
@@ -181,7 +194,9 @@ const proceedToCheckout = async () => {
     console.error('❌ Error en checkout:', err)
     const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
     console.error('📝 Detalles del error:', errorMessage)
-    alert(`Error al procesar el pago: ${errorMessage}`)
+    showError(`Error al procesar el pago: ${errorMessage}`, {
+      title: 'Error en el pago'
+    })
   } finally {
     isProcessingCheckout.value = false
     console.log('🔄 Proceso de checkout finalizado')
@@ -260,6 +275,36 @@ watch(formData, saveFormData, { deep: true })
       </div>
     </div>
   </div>
+
+  <!-- Modal -->
+  <Modal
+    :is-open="modalState.isOpen"
+    :title="modalState.title"
+    :type="modalState.type"
+    :show-close-button="modalState.showCloseButton"
+    :persistent="modalState.persistent"
+    @close="modalState.isOpen = false"
+    @confirm="modalState.isOpen = false"
+  >
+    {{ modalState.message }}
+    
+    <template v-if="modalState.showConfirm || modalState.showCancel" #footer>
+      <button
+        v-if="modalState.showCancel"
+        class="btn btn--secondary"
+        @click="modalState.isOpen = false"
+      >
+        {{ modalState.cancelText }}
+      </button>
+      <button
+        v-if="modalState.showConfirm"
+        class="btn btn--primary"
+        @click="modalState.isOpen = false"
+      >
+        {{ modalState.confirmText }}
+      </button>
+    </template>
+  </Modal>
 </template>
 
 <style lang="scss" scoped>
