@@ -352,7 +352,7 @@ export const useOrdersStore = defineStore('orders', () => {
    */
   const updateOrderStatus = async (
     id: string,
-    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
   ): Promise<Order | null> => {
     try {
       isUpdating.value = true
