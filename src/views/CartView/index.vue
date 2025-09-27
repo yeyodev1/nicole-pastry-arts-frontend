@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart.store'
 import { useAuthStore } from '@/stores/auth.store'
+import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
 import CartHeader from './CartHeader.vue'
 import CartItem from './CartItem.vue'
 import ShippingForm from './ShippingForm.vue'
@@ -22,14 +23,43 @@ const cartStore = useCartStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Definir tipo FormData
+interface FormData {
+  billingInfo: BillingInfo
+  deliveryAddress: DeliveryAddress
+  deliveryZone: DeliveryZone
+}
+
 // Estado local
 const isLoadingCheckout = ref(false)
-const shippingData = ref({
-  recipientName: '',
-  recipientPhone: '',
-  street: '',
-  city: '',
-  notes: ''
+const formData = ref<FormData>({
+  billingInfo: {
+    cedula: '',
+    fullName: '',
+    phone: '',
+    email: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'Ecuador'
+    }
+  },
+  deliveryAddress: {
+    street: '',
+    city: 'Guayaquil',
+    state: 'Guayas',
+    zipCode: '090101',
+    country: 'Ecuador',
+    recipientName: '',
+    recipientPhone: '',
+    latitude: undefined,
+    longitude: undefined,
+    googleMapsLink: '',
+    locationNotes: ''
+  },
+  deliveryZone: 'samanes_suburbio'
 })
 
 // Referencias a componentes
@@ -39,10 +69,17 @@ const shippingFormRef = ref<InstanceType<typeof ShippingForm> | null>(null)
 const isEmpty = computed(() => cartStore.items.length === 0)
 const totalItems = computed(() => cartStore.totalItems)
 
-// Validar datos de envío
-const isShippingDataValid = computed(() => {
-  return shippingData.value.recipientName.trim() !== '' && 
-         shippingData.value.recipientPhone.trim() !== ''
+// Validar datos de envío y facturación
+const isFormDataValid = computed(() => {
+  const billing = formData.value.billingInfo
+  const delivery = formData.value.deliveryAddress
+  
+  return billing.cedula.trim() !== '' && 
+         billing.fullName.trim() !== '' && 
+         billing.phone.trim() !== '' &&
+         delivery.recipientName.trim() !== '' && 
+         delivery.recipientPhone.trim() !== '' &&
+         delivery.street.trim() !== ''
 })
 
 // Formatear precio
@@ -106,9 +143,9 @@ const proceedToCheckout = async () => {
       return
     }
 
-    // Verificar datos de envío
-    if (!isShippingDataValid.value) {
-      alert('Por favor completa los datos de envío obligatorios')
+    // Verificar datos de envío y facturación
+    if (!isFormDataValid.value) {
+      alert('Por favor completa todos los datos obligatorios de facturación y entrega')
       return
     }
 
@@ -137,16 +174,20 @@ const proceedToCheckout = async () => {
         description: item.description
       })),
       customer: {
-        name: `${authStore.user?.firstName || ''} ${authStore.user?.lastName || ''}`.trim() || '',
-        email: authStore.user?.email || '',
-        phone: authStore.user?.phone || ''
+        name: formData.value.billingInfo.fullName,
+        email: formData.value.billingInfo.email || '',
+        phone: formData.value.billingInfo.phone
       },
+      billing: formData.value.billingInfo,
+      delivery: formData.value.deliveryAddress,
+      deliveryZone: formData.value.deliveryZone,
+      // Mantener compatibilidad con formato anterior
       shipping: {
-        recipientName: shippingData.value.recipientName,
-        recipientPhone: shippingData.value.recipientPhone,
-        street: shippingData.value.street,
-        city: shippingData.value.city,
-        notes: shippingData.value.notes
+        recipientName: formData.value.deliveryAddress.recipientName,
+        recipientPhone: formData.value.deliveryAddress.recipientPhone,
+        street: formData.value.deliveryAddress.street,
+        city: formData.value.deliveryAddress.city,
+        notes: formData.value.deliveryAddress.locationNotes || ''
       },
       createdAt: new Date().toISOString()
     }
@@ -199,30 +240,30 @@ const proceedToCheckout = async () => {
 }
 
 // Actualizar datos de envío
-const updateShippingData = (data: any) => {
-  shippingData.value = data
+const updateFormData = (data: FormData) => {
+  formData.value = data
 }
 
 // Lifecycle
 onMounted(() => {
   // Cargar datos de envío guardados si existen
-  const savedShippingData = localStorage.getItem('shippingData')
-  if (savedShippingData) {
+  const savedFormData = localStorage.getItem('formData')
+  if (savedFormData) {
     try {
-      shippingData.value = JSON.parse(savedShippingData)
+      formData.value = JSON.parse(savedFormData)
     } catch (error) {
-      console.error('Error al cargar datos de envío:', error)
+      console.error('Error al cargar datos del formulario:', error)
     }
   }
 })
 
 // Guardar datos de envío cuando cambien
-const saveShippingData = () => {
-  localStorage.setItem('shippingData', JSON.stringify(shippingData.value))
+const saveFormData = () => {
+  localStorage.setItem('formData', JSON.stringify(formData.value))
 }
 
 // Watch para guardar automáticamente
-watch(shippingData, saveShippingData, { deep: true })
+watch(formData, saveFormData, { deep: true })
 </script>
 
 <template>
@@ -252,15 +293,15 @@ watch(shippingData, saveShippingData, { deep: true })
         <!-- Formulario de envío -->
         <ShippingForm
           ref="shippingFormRef"
-          :shipping-data="shippingData"
-          @update:shipping-data="updateShippingData"
+          :form-data="formData"
+          @update:form-data="updateFormData"
         />
 
         <!-- Resumen del carrito -->
         <div class="cart-view__summary">
           <CartSummary
             :cart-total="cartStore.totalPrice"
-            :is-shipping-valid="isShippingDataValid"
+            :is-shipping-valid="isFormDataValid"
             :is-loading="isLoadingCheckout"
             @proceed-checkout="proceedToCheckout"
             @continue-shopping="goToProducts"
