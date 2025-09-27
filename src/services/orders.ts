@@ -9,6 +9,9 @@ import type {
   CustomerOrdersResponse,
   OrderError,
   PayphoneOrderData,
+  BillingInfo,
+  DeliveryAddress,
+  DeliveryZone,
 } from '@/types/orders'
 import type { AxiosResponse } from 'axios'
 
@@ -67,8 +70,32 @@ class OrdersService extends APIBase {
         total: payphoneData.amount,
         paymentMethod: 'payphone',
         paymentReference: payphoneData.transactionId,
-        shippingAddress: payphoneData.shippingAddress,
+        // Billing info requerido - usar datos del cliente de Payphone
+        billingInfo: {
+          cedula: '9999999999', // Placeholder - debe ser proporcionado por el usuario
+          fullName: `${payphoneData.customer.firstName || ''} ${payphoneData.customer.lastName || ''}`.trim(),
+          phone: payphoneData.customer.phone || '',
+          email: payphoneData.customer.email,
+        },
+        // Delivery address requerido - usar shippingAddress si está disponible
+        deliveryAddress: {
+          street: payphoneData.shippingAddress?.street || '',
+          city: payphoneData.shippingAddress?.city || 'Guayaquil',
+          state: payphoneData.shippingAddress?.state || 'Guayas',
+          zipCode: payphoneData.shippingAddress?.zipCode || '090101',
+          country: payphoneData.shippingAddress?.country || 'Ecuador',
+          recipientName: payphoneData.shippingAddress?.recipientName || `${payphoneData.customer.firstName || ''} ${payphoneData.customer.lastName || ''}`.trim(),
+          recipientPhone: payphoneData.shippingAddress?.recipientPhone || payphoneData.customer.phone || '',
+          googleMapsLink: payphoneData.shippingAddress?.googleMapsLink,
+          locationNotes: payphoneData.shippingAddress?.notes,
+        },
+        // Delivery zone por defecto
+        deliveryZone: 'samanes_suburbio', // Zona por defecto - debe ser seleccionada por el usuario
+        shippingMethod: 'delivery',
+        shippingCost: 6.00, // Costo por defecto para samanes_suburbio
         notes: `Pago procesado con Payphone. Transaction ID: ${payphoneData.transactionId}`,
+        // Legacy fields para compatibilidad
+        shippingAddress: payphoneData.shippingAddress,
       }
 
       return await this.createOrder(orderData)
@@ -215,7 +242,7 @@ class OrdersService extends APIBase {
    */
   async updateOrderStatus(
     id: string,
-    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled',
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
   ): Promise<OrderResponse> {
     try {
       const updateData: UpdateOrderRequest = { status }
@@ -250,11 +277,6 @@ class OrdersService extends APIBase {
    * @param orderData - Datos de la orden a validar
    */
   private validateCreateOrderData(orderData: CreateOrderRequest): void {
-    // Validar orderNumber (requerido por el backend)
-    if (!orderData.orderNumber || orderData.orderNumber.trim().length === 0) {
-      throw new Error('El número de orden (orderNumber) es requerido')
-    }
-
     if (!orderData.customer) {
       throw new Error('El ID del cliente es requerido')
     }
@@ -267,13 +289,49 @@ class OrdersService extends APIBase {
       throw new Error('El total de la orden debe ser mayor a 0')
     }
 
+    // Validar billingInfo obligatorio
+    if (!orderData.billingInfo) {
+      throw new Error('La información de facturación es requerida')
+    }
+    if (!orderData.billingInfo.cedula) {
+      throw new Error('La cédula es requerida en la información de facturación')
+    }
+    if (!orderData.billingInfo.fullName) {
+      throw new Error('El nombre completo es requerido en la información de facturación')
+    }
+    if (!orderData.billingInfo.phone) {
+      throw new Error('El teléfono es requerido en la información de facturación')
+    }
+
+    // Validar deliveryAddress obligatorio
+    if (!orderData.deliveryAddress) {
+      throw new Error('La dirección de entrega es requerida')
+    }
+    if (!orderData.deliveryAddress.street) {
+      throw new Error('La calle es requerida en la dirección de entrega')
+    }
+    if (!orderData.deliveryAddress.recipientName) {
+      throw new Error('El nombre del destinatario es requerido')
+    }
+    if (!orderData.deliveryAddress.recipientPhone) {
+      throw new Error('El teléfono del destinatario es requerido')
+    }
+
+    // Validar deliveryZone obligatorio
+    if (!orderData.deliveryZone) {
+      throw new Error('La zona de entrega es requerida')
+    }
+
     // Validar que cada item tenga los campos requeridos
     orderData.items.forEach((item, index) => {
-      if (!item.product) {
-        throw new Error(`El producto es requerido para el item ${index + 1}`)
+      if (!item.productId) {
+        throw new Error(`El ID del producto es requerido para el item ${index + 1}`)
       }
       if (!item.productName) {
         throw new Error(`El nombre del producto es requerido para el item ${index + 1}`)
+      }
+      if (!item.productSku) {
+        throw new Error(`El SKU del producto es requerido para el item ${index + 1}`)
       }
       if (item.quantity <= 0) {
         throw new Error(`La cantidad debe ser mayor a 0 para el item ${index + 1}`)
