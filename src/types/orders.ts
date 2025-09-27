@@ -1,16 +1,48 @@
-// Order Types - Basados en el modelo del backend
+ // Order Types - Basados en el modelo del backend actualizado
 export interface OrderItem {
-  readonly product: string // ObjectId del producto
+  readonly productId: string // Mercately product web_id
   readonly productName: string
+  readonly productSku: string // Campo requerido por el backend
   readonly quantity: number
   readonly unitPrice: number
   readonly totalPrice: number
-  readonly sku?: string
-  readonly productSku?: string // Campo requerido por el backend
-  readonly productId?: string // Campo requerido por el backend
-  readonly notes?: string
+  readonly productImage?: string
 }
 
+// Billing Information Interface
+export interface BillingInfo {
+  readonly cedula: string // Ecuador national ID (mandatory)
+  readonly fullName: string
+  readonly phone: string // Mandatory phone number
+  readonly email?: string
+  readonly address?: {
+    readonly street?: string
+    readonly city?: string
+    readonly state?: string
+    readonly zipCode?: string
+    readonly country?: string
+  }
+}
+
+// Delivery Zones Type
+export type DeliveryZone = 'samanes_suburbio' | 'norte_sur_esteros' | 'sambo' | 'via_costa' | 'aurora'
+
+// Delivery Address Interface
+export interface DeliveryAddress {
+  readonly street: string
+  readonly city: string
+  readonly state: string
+  readonly zipCode: string
+  readonly country: string
+  readonly recipientName: string
+  readonly recipientPhone: string
+  readonly latitude?: number
+  readonly longitude?: number
+  readonly googleMapsLink?: string
+  readonly locationNotes?: string
+}
+
+// Legacy Address Interface (for backward compatibility)
 export interface Address {
   readonly recipientName: string // Campo requerido por el backend
   readonly recipientPhone: string // Campo requerido por el backend
@@ -27,6 +59,7 @@ export interface Address {
 
 export interface Order {
   readonly _id: string
+  readonly orderNumber: string // Unique order identifier
   readonly customer: string // ObjectId del cliente
   readonly items: readonly OrderItem[]
   readonly subtotal: number
@@ -36,18 +69,25 @@ export interface Order {
   readonly discountType: 'fixed' | 'percentage'
   readonly discountCode?: string
   readonly total: number
-  readonly status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
-  readonly paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
-  readonly paymentMethod: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone'
+  readonly status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
+  readonly paymentMethod: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly paymentReference?: string
-  readonly shippingAddress?: Address
-  readonly billingAddress?: Address
-  readonly shippingMethod: 'pickup' | 'delivery'
+  // Mandatory billing information
+  readonly billingInfo: BillingInfo
+  // Delivery information (separate from billing)
+  readonly deliveryAddress: DeliveryAddress
+  // Delivery zone and method
+  readonly deliveryZone: DeliveryZone // Mandatory delivery zone selection
+  readonly shippingMethod: 'pickup' | 'delivery' | 'shipping'
   readonly shippingCost: number
   readonly estimatedDeliveryDate?: string
   readonly actualDeliveryDate?: string
   readonly notes?: string
-  readonly internalNotes?: string
+  readonly internalNotes?: string // Only visible to staff/admin
+  // Legacy fields for backward compatibility
+  readonly shippingAddress?: Address
+  readonly billingAddress?: Address
   readonly mercatelyOrderId?: string
   readonly createdBy: string // ObjectId del usuario que creó la orden
   readonly updatedBy?: string // ObjectId del usuario que actualizó la orden
@@ -57,7 +97,7 @@ export interface Order {
 
 // Tipos para crear una nueva orden
 export interface CreateOrderRequest {
-  readonly orderNumber: string // Campo requerido por el backend
+  readonly orderNumber?: string // Auto-generated if not provided
   readonly customer: string
   readonly items: readonly OrderItem[]
   readonly subtotal: number
@@ -67,16 +107,23 @@ export interface CreateOrderRequest {
   readonly discountType?: 'fixed' | 'percentage'
   readonly discountCode?: string
   readonly total: number
-  readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone'
+  readonly paymentMethod: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly paymentReference?: string
-  readonly shippingAddress?: Address
-  readonly billingAddress?: Address
-  readonly shippingMethod?: 'pickup' | 'delivery'
-  readonly shippingCost?: number
+  // Mandatory billing information
+  readonly billingInfo: BillingInfo
+  // Delivery information (separate from billing)
+  readonly deliveryAddress: DeliveryAddress
+  // Delivery zone and method
+  readonly deliveryZone: DeliveryZone // Mandatory delivery zone selection
+  readonly shippingMethod: 'pickup' | 'delivery' | 'shipping'
+  readonly shippingCost: number
   readonly estimatedDeliveryDate?: string
   readonly notes?: string
   readonly internalNotes?: string
   readonly mercatelyOrderId?: string
+  // Legacy fields for backward compatibility
+  readonly shippingAddress?: Address
+  readonly billingAddress?: Address
 }
 
 // Tipos para actualizar una orden
@@ -89,19 +136,23 @@ export interface UpdateOrderRequest {
   readonly discountType?: 'fixed' | 'percentage'
   readonly discountCode?: string
   readonly total?: number
-  readonly status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
-  readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
-  readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone'
+  readonly status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
+  readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly paymentReference?: string
-  readonly shippingAddress?: Address
-  readonly billingAddress?: Address
-  readonly shippingMethod?: 'pickup' | 'delivery'
+  readonly billingInfo?: BillingInfo
+  readonly deliveryAddress?: DeliveryAddress
+  readonly deliveryZone?: DeliveryZone
+  readonly shippingMethod?: 'pickup' | 'delivery' | 'shipping'
   readonly shippingCost?: number
   readonly estimatedDeliveryDate?: string
   readonly actualDeliveryDate?: string
   readonly notes?: string
   readonly internalNotes?: string
   readonly mercatelyOrderId?: string
+  // Legacy fields for backward compatibility
+  readonly shippingAddress?: Address
+  readonly billingAddress?: Address
 }
 
 // Tipos para consultas y filtros
@@ -109,9 +160,11 @@ export interface OrdersQueryParams {
   readonly page?: number
   readonly limit?: number
   readonly customer?: string
-  readonly status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
-  readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
-  readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone'
+  readonly status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
+  readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
+  readonly deliveryZone?: DeliveryZone
+  readonly shippingMethod?: 'pickup' | 'delivery' | 'shipping'
   readonly startDate?: string
   readonly endDate?: string
 }
