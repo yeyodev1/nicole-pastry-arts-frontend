@@ -73,13 +73,13 @@ const totalItems = computed(() => cartStore.totalItems)
 const isFormDataValid = computed(() => {
   const billing = formData.value.billingInfo
   const delivery = formData.value.deliveryAddress
-  
-  return billing.cedula.trim() !== '' && 
-         billing.fullName.trim() !== '' && 
-         billing.phone.trim() !== '' &&
-         delivery.recipientName.trim() !== '' && 
-         delivery.recipientPhone.trim() !== '' &&
-         delivery.street.trim() !== ''
+
+  return billing.cedula.trim() !== '' &&
+    billing.fullName.trim() !== '' &&
+    billing.phone.trim() !== '' &&
+    delivery.recipientName.trim() !== '' &&
+    delivery.recipientPhone.trim() !== '' &&
+    delivery.street.trim() !== ''
 })
 
 // Formatear precio

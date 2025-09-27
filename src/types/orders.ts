@@ -1,4 +1,4 @@
- // Order Types - Basados en el modelo del backend actualizado
+// Order Types - Basados en el modelo del backend actualizado
 export interface OrderItem {
   readonly productId: string // Mercately product web_id
   readonly productName: string
@@ -25,7 +25,12 @@ export interface BillingInfo {
 }
 
 // Delivery Zones Type
-export type DeliveryZone = 'samanes_suburbio' | 'norte_sur_esteros' | 'sambo' | 'via_costa' | 'aurora'
+export type DeliveryZone =
+  | 'samanes_suburbio'
+  | 'norte_sur_esteros'
+  | 'sambo'
+  | 'via_costa'
+  | 'aurora'
 
 // Delivery Address Interface
 export interface DeliveryAddress {
@@ -69,7 +74,14 @@ export interface Order {
   readonly discountType: 'fixed' | 'percentage'
   readonly discountCode?: string
   readonly total: number
-  readonly status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly status:
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'cancelled'
+    | 'refunded'
   readonly paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
   readonly paymentMethod: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly paymentReference?: string
@@ -136,7 +148,14 @@ export interface UpdateOrderRequest {
   readonly discountType?: 'fixed' | 'percentage'
   readonly discountCode?: string
   readonly total?: number
-  readonly status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly status?:
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'cancelled'
+    | 'refunded'
   readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
   readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly paymentReference?: string
@@ -160,7 +179,14 @@ export interface OrdersQueryParams {
   readonly page?: number
   readonly limit?: number
   readonly customer?: string
-  readonly status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+  readonly status?:
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'cancelled'
+    | 'refunded'
   readonly paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
   readonly paymentMethod?: 'cash' | 'card' | 'transfer' | 'mercately' | 'payphone' | 'other'
   readonly deliveryZone?: DeliveryZone
