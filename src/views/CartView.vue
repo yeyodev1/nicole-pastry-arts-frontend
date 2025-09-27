@@ -234,9 +234,8 @@ const decrementQuantity = (productId: string) => {
             <!-- Información del producto -->
             <div class="cart-item__info">
               <h3 class="cart-item__name">{{ item.name }}</h3>
-              <p class="cart-item__description" v-if="item.description">
-                {{ item.description }}
-              </p>
+              <div class="cart-item__description" v-if="item.description" v-html="item.description">
+              </div>
               <div class="cart-item__price">
                 {{ formatPrice(item.price) }}
               </div>
