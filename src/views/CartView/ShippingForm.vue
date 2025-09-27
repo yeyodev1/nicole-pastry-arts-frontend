@@ -1,148 +1,357 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
+
+interface FormData {
+  billingInfo: BillingInfo
+  deliveryAddress: DeliveryAddress
+  deliveryZone: DeliveryZone
+}
 
 const props = defineProps({
-  shippingData: {
-    type: Object,
+  formData: {
+    type: Object as () => FormData,
     required: true,
   },
 })
 
 const emit = defineEmits<{
-  'update:shippingData': [data: any]
+  'update:formData': [data: FormData]
 }>()
 
-// Validar datos de envío
-const isShippingDataValid = computed(() => {
-  return props.shippingData.recipientName.trim() !== '' && 
-         props.shippingData.recipientPhone.trim() !== ''
+// Zonas de entrega disponibles
+const deliveryZones = [
+  { value: 'samanes_suburbio' as DeliveryZone, label: 'Samanes - Suburbio', price: 3.00 },
+  { value: 'norte_sur_esteros' as DeliveryZone, label: 'Norte - Sur - Esteros', price: 4.00 },
+  { value: 'sambo' as DeliveryZone, label: 'Samborondón', price: 5.00 },
+  { value: 'via_costa' as DeliveryZone, label: 'Vía a la Costa', price: 6.00 },
+  { value: 'aurora' as DeliveryZone, label: 'Aurora', price: 7.00 },
+] as const
+
+// Estado para mostrar/ocultar el campo de Google Maps
+const showGoogleMapsField = ref(false)
+
+// Validaciones
+const isBillingInfoValid = computed(() => {
+  const billing = props.formData.billingInfo
+  return billing.cedula.trim() !== '' && 
+         billing.fullName.trim() !== '' && 
+         billing.phone.trim() !== '' &&
+         (billing.email ? billing.email.trim() !== '' : true)
 })
 
-// Actualizar datos de envío
-const updateShippingData = (field: string, value: string) => {
-  emit('update:shippingData', {
-    ...props.shippingData,
+const isDeliveryAddressValid = computed(() => {
+  const delivery = props.formData.deliveryAddress
+  return delivery.recipientName.trim() !== '' && 
+         delivery.recipientPhone.trim() !== '' &&
+         delivery.street.trim() !== ''
+})
+
+const isFormValid = computed(() => {
+  return isBillingInfoValid.value && 
+         isDeliveryAddressValid.value && 
+         props.formData.deliveryZone !== null
+})
+
+// Función para actualizar datos
+const updateFormData = (section: keyof FormData, field: string, value: any) => {
+  const currentSection = props.formData[section] as Record<string, any>
+  const updatedSection = {
+    ...currentSection,
     [field]: value
+  }
+  
+  emit('update:formData', {
+    ...props.formData,
+    [section]: updatedSection
+  } as FormData)
+}
+
+// Función específica para actualizar la dirección de facturación
+const updateBillingAddress = (field: string, value: string) => {
+  const currentAddress = props.formData.billingInfo.address || {}
+  const updatedBillingInfo = {
+    ...props.formData.billingInfo,
+    address: {
+      ...currentAddress,
+      [field]: value
+    }
+  }
+  
+  emit('update:formData', {
+    ...props.formData,
+    billingInfo: updatedBillingInfo
   })
 }
 
+// Función para actualizar zona de entrega
+const updateDeliveryZone = (zone: DeliveryZone) => {
+  emit('update:formData', {
+    ...props.formData,
+    deliveryZone: zone
+  })
+}
+
+// Obtener precio de la zona seleccionada
+const selectedZonePrice = computed(() => {
+  const zone = deliveryZones.find(z => z.value === props.formData.deliveryZone)
+  return zone ? zone.price : 0
+})
+
 // Exponer la validación para el componente padre
 defineExpose({
-  isValid: isShippingDataValid
+  isValid: isFormValid,
+  selectedZonePrice
 })
 </script>
 
 <template>
   <div class="shipping-form">
-    <h3 class="shipping-form__title">
-      <i class="fas fa-shipping-fast"></i>
-      Datos de Envío
-    </h3>
-    
-    <div class="shipping-form__fields">
-      <div class="shipping-form__field">
-        <label for="recipientName" class="shipping-form__label">
-          Nombre del destinatario *
-        </label>
-        <input
-          id="recipientName"
-          :value="shippingData.recipientName"
-          @input="updateShippingData('recipientName', ($event.target as HTMLInputElement).value)"
-          type="text"
-          class="shipping-form__input"
-          placeholder="Nombre completo del destinatario"
-          required
-        >
+    <!-- Información de Facturación -->
+    <section class="shipping-form__section">
+      <h3 class="shipping-form__title">
+        <i class="fas fa-file-invoice"></i>
+        Información de Facturación
+      </h3>
+      
+      <div class="shipping-form__fields">
+        <div class="shipping-form__field">
+          <label for="cedula" class="shipping-form__label">
+            Cédula *
+          </label>
+          <input
+            id="cedula"
+            :value="formData.billingInfo.cedula"
+            @input="updateFormData('billingInfo', 'cedula', ($event.target as HTMLInputElement).value)"
+            type="text"
+            class="shipping-form__input"
+            placeholder="Ej: 0123456789"
+            maxlength="10"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field">
+          <label for="fullName" class="shipping-form__label">
+            Nombre completo *
+          </label>
+          <input
+            id="fullName"
+            :value="formData.billingInfo.fullName"
+            @input="updateFormData('billingInfo', 'fullName', ($event.target as HTMLInputElement).value)"
+            type="text"
+            class="shipping-form__input"
+            placeholder="Nombre y apellidos completos"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field">
+          <label for="phone" class="shipping-form__label">
+            Teléfono *
+          </label>
+          <input
+            id="phone"
+            :value="formData.billingInfo.phone"
+            @input="updateFormData('billingInfo', 'phone', ($event.target as HTMLInputElement).value)"
+            type="tel"
+            class="shipping-form__input"
+            placeholder="Ej: +593 99 123 4567"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field">
+          <label for="email" class="shipping-form__label">
+            Email *
+          </label>
+          <input
+            id="email"
+            :value="formData.billingInfo.email"
+            @input="updateFormData('billingInfo', 'email', ($event.target as HTMLInputElement).value)"
+            type="email"
+            class="shipping-form__input"
+            placeholder="correo@ejemplo.com"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field shipping-form__field--full">
+          <label for="billingStreet" class="shipping-form__label">
+            Dirección de facturación (opcional)
+          </label>
+          <input
+            id="billingStreet"
+            :value="formData.billingInfo.address?.street || ''"
+            @input="updateBillingAddress('street', ($event.target as HTMLInputElement).value)"
+            type="text"
+            class="shipping-form__input"
+            placeholder="Calle, número, sector"
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Zona de Entrega -->
+    <section class="shipping-form__section">
+      <h3 class="shipping-form__title">
+        <i class="fas fa-map-marker-alt"></i>
+        Zona de Entrega
+      </h3>
+      
+      <div class="shipping-form__zone-warning">
+        <i class="fas fa-info-circle"></i>
+        <span>Solo realizamos entregas dentro de Guayaquil y Durán</span>
       </div>
 
-      <div class="shipping-form__field">
-        <label for="recipientPhone" class="shipping-form__label">
-          Teléfono del destinatario *
-        </label>
-        <input
-          id="recipientPhone"
-          :value="shippingData.recipientPhone"
-          @input="updateShippingData('recipientPhone', ($event.target as HTMLInputElement).value)"
-          type="tel"
-          class="shipping-form__input"
-          placeholder="Ej: +593 99 123 4567"
-          required
+      <div class="shipping-form__zones">
+        <div 
+          v-for="zone in deliveryZones" 
+          :key="zone.value"
+          class="shipping-form__zone"
+          :class="{ 'shipping-form__zone--selected': formData.deliveryZone === zone.value }"
+          @click="updateDeliveryZone(zone.value)"
         >
+          <div class="shipping-form__zone-info">
+            <span class="shipping-form__zone-name">{{ zone.label }}</span>
+            <span class="shipping-form__zone-price">${{ zone.price.toFixed(2) }}</span>
+          </div>
+          <i class="fas fa-check shipping-form__zone-check"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dirección de Entrega -->
+    <section class="shipping-form__section">
+      <h3 class="shipping-form__title">
+        <i class="fas fa-shipping-fast"></i>
+        Dirección de Entrega
+      </h3>
+      
+      <div class="shipping-form__fields">
+        <div class="shipping-form__field">
+          <label for="recipientName" class="shipping-form__label">
+            Nombre del destinatario *
+          </label>
+          <input
+            id="recipientName"
+            :value="formData.deliveryAddress.recipientName"
+            @input="updateFormData('deliveryAddress', 'recipientName', ($event.target as HTMLInputElement).value)"
+            type="text"
+            class="shipping-form__input"
+            placeholder="Nombre completo del destinatario"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field">
+          <label for="recipientPhone" class="shipping-form__label">
+            Teléfono del destinatario *
+          </label>
+          <input
+            id="recipientPhone"
+            :value="formData.deliveryAddress.recipientPhone"
+            @input="updateFormData('deliveryAddress', 'recipientPhone', ($event.target as HTMLInputElement).value)"
+            type="tel"
+            class="shipping-form__input"
+            placeholder="Ej: +593 99 123 4567"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field shipping-form__field--full">
+          <label for="deliveryStreet" class="shipping-form__label">
+            Dirección completa *
+          </label>
+          <input
+            id="deliveryStreet"
+            :value="formData.deliveryAddress.street"
+            @input="updateFormData('deliveryAddress', 'street', ($event.target as HTMLInputElement).value)"
+            type="text"
+            class="shipping-form__input"
+            placeholder="Calle, número, referencias"
+            required
+          >
+        </div>
+
+        <div class="shipping-form__field shipping-form__field--full">
+          <label for="locationNotes" class="shipping-form__label">
+            Referencias adicionales (opcional)
+          </label>
+          <textarea
+            id="locationNotes"
+            :value="formData.deliveryAddress.locationNotes"
+            @input="updateFormData('deliveryAddress', 'locationNotes', ($event.target as HTMLTextAreaElement).value)"
+            class="shipping-form__textarea"
+            placeholder="Instrucciones especiales, puntos de referencia, etc."
+            rows="3"
+          ></textarea>
+        </div>
       </div>
 
-      <div class="shipping-form__field">
-        <label for="street" class="shipping-form__label">
-          Dirección (opcional)
-        </label>
-        <input
-          id="street"
-          :value="shippingData.street"
-          @input="updateShippingData('street', ($event.target as HTMLInputElement).value)"
-          type="text"
-          class="shipping-form__input"
-          placeholder="Calle y número"
+      <!-- Botón para mostrar campo de Google Maps -->
+      <div class="shipping-form__maps-section">
+        <button 
+          type="button"
+          class="shipping-form__maps-toggle"
+          @click="showGoogleMapsField = !showGoogleMapsField"
         >
-      </div>
+          <i class="fas fa-map"></i>
+          {{ showGoogleMapsField ? 'Ocultar' : 'Agregar' }} ubicación de Google Maps
+        </button>
 
-      <div class="shipping-form__field">
-        <label for="city" class="shipping-form__label">
-          Ciudad (opcional)
-        </label>
-        <input
-          id="city"
-          :value="shippingData.city"
-          @input="updateShippingData('city', ($event.target as HTMLInputElement).value)"
-          type="text"
-          class="shipping-form__input"
-          placeholder="Ciudad"
-        >
+        <div v-if="showGoogleMapsField" class="shipping-form__maps-field">
+          <label for="googleMapsLink" class="shipping-form__label">
+            Link de Google Maps (opcional)
+          </label>
+          <input
+            id="googleMapsLink"
+            :value="formData.deliveryAddress.googleMapsLink"
+            @input="updateFormData('deliveryAddress', 'googleMapsLink', ($event.target as HTMLInputElement).value)"
+            type="url"
+            class="shipping-form__input"
+            placeholder="https://maps.google.com/..."
+          >
+          <div class="shipping-form__maps-help">
+            <i class="fas fa-lightbulb"></i>
+            <span>No te preocupes si no lo colocas, pronto un colaborador se contactará contigo para cuadrar exactamente la entrega</span>
+          </div>
+        </div>
       </div>
-
-      <div class="shipping-form__field">
-        <label for="notes" class="shipping-form__label">
-          Notas adicionales (opcional)
-        </label>
-        <textarea
-          id="notes"
-          :value="shippingData.notes"
-          @input="updateShippingData('notes', ($event.target as HTMLTextAreaElement).value)"
-          class="shipping-form__textarea"
-          placeholder="Instrucciones especiales para la entrega"
-          rows="3"
-        ></textarea>
-      </div>
-    </div>
+    </section>
 
     <!-- Mensaje de validación -->
-    <div v-if="!isShippingDataValid" class="shipping-form__warning">
+    <div v-if="!isFormValid" class="shipping-form__warning">
       <i class="fas fa-exclamation-triangle"></i>
-      <span>Por favor completa los campos obligatorios (nombre y teléfono del destinatario)</span>
+      <span>Por favor completa todos los campos obligatorios</span>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-// Formulario de envío - Mobile First
 .shipping-form {
-  background-color: $white;
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
-  border: 1px solid $border-light;
-  margin-bottom: 2rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 
-  @media (min-width: 768px) {
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2.5rem;
-  }
-
-  @media (min-width: 1024px) {
+  &__section {
+    background-color: $white;
+    border-radius: 20px;
     padding: 1.5rem;
-    max-width: 100%;
+    box-shadow: 0 8px 32px rgba($NICOLE-PRIMARY, 0.08);
+    border: 1px solid $border-light;
+    margin-bottom: 2rem;
+
+    @media (min-width: 768px) {
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1.5rem;
+      max-width: 100%;
+    }
   }
 
   &__title {
@@ -193,13 +402,6 @@ defineExpose({
       gap: 1rem;
       grid-template-columns: repeat(2, 1fr);
     }
-
-    // Campos que ocupan toda la fila en desktop
-    .shipping-form__field:nth-child(5) {
-      @media (min-width: 768px) {
-        grid-column: 1 / -1;
-      }
-    }
   }
 
   &__field {
@@ -207,7 +409,7 @@ defineExpose({
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
-    min-width: 0; // Permite que los elementos se contraigan
+    min-width: 0;
 
     @media (min-width: 768px) {
       gap: 0.75rem;
@@ -215,6 +417,12 @@ defineExpose({
 
     @media (min-width: 1024px) {
       gap: 0.5rem;
+    }
+
+    &--full {
+      @media (min-width: 768px) {
+        grid-column: 1 / -1;
+      }
     }
   }
 
@@ -287,15 +495,264 @@ defineExpose({
     }
   }
 
+  &__zone-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: rgba($info, 0.1);
+    border: 1px solid rgba($info, 0.3);
+    border-radius: 12px;
+    color: darken($info, 20%);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+    }
+
+    i {
+      color: $info;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  &__zones {
+    display: grid;
+    gap: 1rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 1024px) {
+      gap: 1rem;
+    }
+  }
+
+  &__zone {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 2px solid $border-light;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: $white;
+
+    @media (min-width: 768px) {
+      padding: 1.25rem;
+      border-radius: 16px;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1rem;
+      border-radius: 12px;
+    }
+
+    &:hover {
+      border-color: rgba($NICOLE-PRIMARY, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba($NICOLE-PRIMARY, 0.1);
+    }
+
+    &--selected {
+      border-color: $NICOLE-PRIMARY;
+      background-color: rgba($NICOLE-PRIMARY, 0.05);
+
+      .shipping-form__zone-check {
+        opacity: 1;
+        color: $NICOLE-PRIMARY;
+      }
+    }
+  }
+
+  &__zone-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__zone-name {
+    font-weight: 500;
+    color: $text-dark;
+    font-size: 0.95rem;
+
+    @media (min-width: 768px) {
+      font-size: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 0.95rem;
+    }
+  }
+
+  &__zone-price {
+    font-weight: 600;
+    color: $NICOLE-PRIMARY;
+    font-size: 1rem;
+
+    @media (min-width: 768px) {
+      font-size: 1.125rem;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 1rem;
+    }
+  }
+
+  &__zone-check {
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 1.125rem;
+
+    @media (min-width: 768px) {
+      font-size: 1.25rem;
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 1.125rem;
+    }
+  }
+
+  &__maps-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $border-light;
+
+    @media (min-width: 768px) {
+      margin-top: 2rem;
+      padding-top: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+    }
+  }
+
+  &__maps-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background-color: transparent;
+    border: 2px solid $NICOLE-PRIMARY;
+    border-radius: 12px;
+    color: $NICOLE-PRIMARY;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+
+    @media (min-width: 768px) {
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+      font-size: 1rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0.875rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+
+    &:hover {
+      background-color: $NICOLE-PRIMARY;
+      color: $white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba($NICOLE-PRIMARY, 0.2);
+    }
+
+    i {
+      font-size: 1rem;
+
+      @media (min-width: 768px) {
+        font-size: 1.125rem;
+      }
+
+      @media (min-width: 1024px) {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  &__maps-field {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    @media (min-width: 768px) {
+      margin-top: 1.25rem;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 1024px) {
+      margin-top: 1rem;
+      gap: 0.5rem;
+    }
+  }
+
+  &__maps-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: rgba($success, 0.1);
+    border: 1px solid rgba($success, 0.3);
+    border-radius: 12px;
+    color: darken($success, 20%);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+    }
+
+    i {
+      color: $success;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    span {
+      line-height: 1.4;
+    }
+  }
+
   &__warning {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
-    background-color: rgba($warning, 0.1);
-    border: 1px solid rgba($warning, 0.3);
+    background-color: rgba($error, 0.1);
+    border: 1px solid rgba($error, 0.3);
     border-radius: 12px;
-    color: darken($warning, 20%);
+    color: darken($error, 20%);
     font-size: 0.875rem;
     margin-top: 1.5rem;
     width: 100%;
@@ -316,7 +773,7 @@ defineExpose({
     }
 
     i {
-      color: $warning;
+      color: $error;
       font-size: 1rem;
       flex-shrink: 0;
 
