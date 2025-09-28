@@ -198,97 +198,151 @@ const saveGuestUserInfo = (customerData: any, orderId: string) => {
 
 const createOrderFromPayment = async (paymentResult: any, transactionId: string) => {
   try {
-    console.log('[ORDER] Iniciando creación de orden desde pago');
-    console.log('[PAYMENT] Payment Result:', paymentResult);
-    console.log('[TRANSACTION] Transaction ID:', transactionId);
+    console.log('🚀 [ORDER] ===== INICIANDO CREACIÓN DE ORDEN DESDE PAGO =====');
+    console.log('🕐 [ORDER] Timestamp:', new Date().toISOString());
+    console.log('💰 [PAYMENT] Payment Result recibido:', paymentResult);
+    console.log('🔗 [TRANSACTION] Transaction ID:', transactionId);
     
-    // Obtener datos del carrito y del pago desde localStorage
+    // Obtener datos preservados del carrito desde localStorage
+    console.log('🔍 [STORAGE] Buscando datos preservados en localStorage...');
+    
     const payphoneDataStr = localStorage.getItem('payphoneData');
     const cartDataStr = localStorage.getItem('cart');
     const customerDataStr = localStorage.getItem('customerData');
+    const formDataStr = localStorage.getItem('formData');
+    const cartItemsStr = localStorage.getItem('cartItems');
     
-    console.log('[PAYPHONE] Payphone Data encontrado:', !!payphoneDataStr);
-    console.log('[CART] Cart Data encontrado:', !!cartDataStr);
-    console.log('[CUSTOMER] Customer Data encontrado:', !!customerDataStr);
+    console.log('📦 [STORAGE] Estado de datos en localStorage:', {
+      payphoneData: !!payphoneDataStr,
+      cartData: !!cartDataStr,
+      customerData: !!customerDataStr,
+      formData: !!formDataStr,
+      cartItems: !!cartItemsStr
+    });
     
     let payphoneData: any = null;
     let cartData: any = null;
     let customerData: any = null;
+    let formData: any = null;
+    let cartItems: any = null;
     
-    // Parsear datos guardados
-    if (payphoneDataStr) {
-      payphoneData = JSON.parse(payphoneDataStr);
-      console.log('[PAYPHONE] Payphone Data parseado:', payphoneData);
+    // Parsear datos guardados con manejo de errores robusto
+    console.log('🔄 [PARSING] Parseando datos guardados...');
+    
+    try {
+      if (payphoneDataStr) {
+        payphoneData = JSON.parse(payphoneDataStr);
+        console.log('✅ [PAYPHONE] Payphone Data parseado:', payphoneData);
+      }
+    } catch (parseError) {
+      console.error('❌ [PAYPHONE] Error parseando payphoneData:', parseError);
     }
     
-    if (cartDataStr) {
-      cartData = JSON.parse(cartDataStr);
-      console.log('[CART] Cart Data parseado:', cartData);
+    try {
+      if (cartDataStr) {
+        cartData = JSON.parse(cartDataStr);
+        console.log('✅ [CART] Cart Data parseado - Items:', cartData.items?.length || 0);
+        console.log('💰 [CART] Total del carrito:', cartData.total);
+        console.log('📋 [CART] Order Number:', cartData.orderNumber);
+      }
+    } catch (parseError) {
+      console.error('❌ [CART] Error parseando cartData:', parseError);
     }
     
-    if (customerDataStr) {
-      customerData = JSON.parse(customerDataStr);
-      console.log('[CUSTOMER] Customer Data parseado:', customerData);
+    try {
+      if (customerDataStr) {
+        customerData = JSON.parse(customerDataStr);
+        console.log('✅ [CUSTOMER] Customer Data parseado:', customerData.email);
+      }
+    } catch (parseError) {
+      console.error('❌ [CUSTOMER] Error parseando customerData:', parseError);
     }
     
-    // Si no hay datos de payphone, usar datos del carrito como fallback
-    if (!payphoneData && !cartData) {
-      console.error('[ERROR] No se encontraron datos del carrito ni de payphone');
-      throw new Error('No se encontraron datos para crear la orden');
+    try {
+      if (formDataStr) {
+        formData = JSON.parse(formDataStr);
+        console.log('✅ [FORM] Form Data parseado - Zona de entrega:', formData.deliveryZone);
+      }
+    } catch (parseError) {
+      console.error('❌ [FORM] Error parseando formData:', parseError);
     }
     
-    // Usar datos de payphone si están disponibles, sino usar datos del carrito
-    const orderSource = payphoneData || cartData;
+    try {
+      if (cartItemsStr) {
+        cartItems = JSON.parse(cartItemsStr);
+        console.log('✅ [ITEMS] Cart Items parseado - Cantidad:', cartItems.length);
+      }
+    } catch (parseError) {
+      console.error('❌ [ITEMS] Error parseando cartItems:', parseError);
+    }
     
-    // Crear datos profesionales del cliente
+    // Verificar que tenemos datos del carrito (prioritario)
+    if (!cartData) {
+      console.error('❌ [ERROR] No se encontraron datos del carrito en localStorage');
+      console.log('🔍 [FALLBACK] Intentando reconstruir desde datos alternativos...');
+      
+      if (!customerData || !cartItems) {
+        const errorMsg = 'No se encontraron datos suficientes del carrito. El usuario debe completar el proceso desde el carrito.';
+        console.error('❌ [ERROR]', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      console.log('⚠️ [FALLBACK] Reconstruyendo datos del carrito desde fuentes alternativas...');
+      // Aquí podrías reconstruir cartData desde cartItems y formData si es necesario
+    }
+    
+    console.log('📋 [SOURCE] Usando datos preservados del carrito como fuente principal');
+    
+    // Priorizar datos del carrito preservado, con fallbacks inteligentes
+    console.log('🔧 [BUILD] Construyendo orden con datos preservados...');
+    
+    const orderSource = cartData;
+    
+    // Crear datos profesionales del cliente usando los datos reales del carrito
     const professionalCustomerData = createProfessionalCustomerData(
-      customerData || orderSource.customer || { email: 'guest@example.com' }
+      customerData || orderSource.customer || orderSource.billingInfo
     );
-    console.log('[CUSTOMER] Datos profesionales del cliente:', professionalCustomerData);
+    console.log('👤 [CUSTOMER] Datos profesionales del cliente:', professionalCustomerData);
+    
+    // Usar los items reales del carrito con fallback a cartItems
+    let items = orderSource.items || cartItems || [];
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      const errorMsg = 'No se encontraron items en el carrito';
+      console.error('❌ [ERROR]', errorMsg);
+      throw new Error(errorMsg);
+    }
     
     // Transformar items al formato correcto para el backend
-    const transformedItems = (orderSource.items || []).map((item: any) => ({
-      productId: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
-      productName: item.productName || item.name || 'Producto sin nombre',
-      productSku: item.productSku || item.sku || `SKU-${item.productId || item.id || 'UNKNOWN'}`,
-      quantity: item.quantity || 1,
-      unitPrice: item.unitPrice || item.price || 0,
-      totalPrice: item.totalPrice || (item.price * item.quantity) || 0,
-      productImage: item.productImage || item.image
-    }));
+    const transformedItems = items.map((item: any, index: number) => {
+      console.log(`🔄 [ITEM ${index + 1}] Transformando item:`, item);
+      
+      const transformedItem = {
+        productId: item.productId || item.product || item.id || '507f1f77bcf86cd799439011',
+        productName: item.productName || item.name || 'Producto sin nombre',
+        productSku: item.productSku || item.sku || `SKU-${item.productId || item.id || 'UNKNOWN'}`,
+        quantity: item.quantity || 1,
+        unitPrice: item.unitPrice || item.price || 0,
+        totalPrice: item.totalPrice || (item.price * item.quantity) || 0,
+        productImage: item.productImage || item.image
+      };
+      
+      console.log(`✅ [ITEM ${index + 1}] Item transformado:`, transformedItem);
+      return transformedItem;
+    });
     
-    console.log('[ITEMS] Items transformados:', transformedItems);
+    console.log('📦 [ITEMS] Todos los items transformados:', transformedItems);
     
-    // Preparar dirección de envío con datos del destinatario (campos obligatorios)
-    const getRecipientName = (): string => {
-      return orderSource.shippingAddress?.recipientName?.trim() ||
-             orderSource.customer?.firstName?.trim() ||
-             customerData?.name?.trim() ||
-             customerData?.firstName?.trim() ||
-             'Cliente';
-    };
+    // Usar la dirección de entrega real del carrito con fallback a formData
+    const deliveryAddress = orderSource.deliveryAddress || orderSource.shippingAddress || formData?.deliveryAddress || {};
     
-    const getRecipientPhone = (): string => {
-      return orderSource.shippingAddress?.recipientPhone?.trim() ||
-             orderSource.customer?.phone?.trim() ||
-             customerData?.phone?.trim() ||
-             '0999999999'; // Teléfono por defecto válido
-    };
+    console.log('🏠 [DELIVERY] Dirección de entrega del carrito:', deliveryAddress);
     
-    const shippingAddress: Address = {
-      recipientName: getRecipientName(),
-      recipientPhone: getRecipientPhone(),
-      street: orderSource.shippingAddress?.street || 'Dirección no especificada',
-      city: orderSource.shippingAddress?.city || 'Quito',
-      state: orderSource.shippingAddress?.state || 'Pichincha',
-      zipCode: orderSource.shippingAddress?.zipCode || '170101',
-      country: orderSource.shippingAddress?.country || 'Ecuador',
-      notes: orderSource.shippingAddress?.notes || ''
-    };
+    // Usar la información de facturación real del carrito con fallback a formData
+    const billingInfo = orderSource.billingInfo || orderSource.customer || formData?.billingInfo || {};
     
-    console.log('[ADDRESS] Dirección de envío preparada:', shippingAddress);
+    console.log('💳 [BILLING] Información de facturación del carrito:', billingInfo);
     
-    // Generar orderNumber único y válido
+    // Generar orderNumber único si no existe
     const generateOrderNumber = (): string => {
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 11).toUpperCase();
@@ -299,9 +353,25 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
       ? orderSource.orderNumber.trim() 
       : generateOrderNumber();
     
-    console.log('[ORDER_NUMBER] Order Number generado/usado:', finalOrderNumber);
+    console.log('🔢 [ORDER_NUMBER] Order Number generado/usado:', finalOrderNumber);
     
-    // Preparar datos de la orden con todos los campos requeridos
+    // Usar el total real del pago
+    const totalAmount = parseFloat(paymentResult.amount) || orderSource.total || 0;
+    if (totalAmount <= 0) {
+      const errorMsg = `Total inválido: ${totalAmount}`;
+      console.error('❌ [ERROR]', errorMsg);
+      throw new Error(errorMsg);
+    }
+    
+    // Usar los totales reales del carrito
+    const subtotal = orderSource.subtotal || Math.round((totalAmount / 1.12) * 100) / 100;
+    const tax = orderSource.tax || Math.round((totalAmount - subtotal) * 100) / 100;
+    
+    console.log('💰 [TOTALS] Totales del carrito:', { totalAmount, subtotal, tax });
+    
+    // Preparar datos de la orden usando los datos preservados del carrito
+    console.log('🏗️ [BUILD] Construyendo orden final con datos preservados...');
+    
     const orderData: CreateOrderRequest = {
       // Campo requerido: orderNumber
       orderNumber: finalOrderNumber,
@@ -309,84 +379,130 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
       // Datos del cliente
       customer: professionalCustomerData.id,
       
-      // Items con productSku y productId requeridos
+      // Items reales del carrito
       items: transformedItems,
       
-      // Totales
-      subtotal: orderSource.subtotal || 0,
-      tax: orderSource.tax || (orderSource.subtotal * 0.12) || 0,
+      // Totales reales del carrito
+      subtotal: subtotal,
+      tax: tax,
       taxRate: orderSource.taxRate || 0.12,
       discount: orderSource.discount || 0,
       discountType: orderSource.discountType || 'fixed',
       discountCode: orderSource.discountCode,
-      total: parseFloat(paymentResult.amount) || orderSource.total || 0,
+      total: totalAmount,
       
       // Método de pago (payphone es válido según el enum)
       paymentMethod: 'payphone',
       paymentReference: paymentResult.transactionId,
       
-      // Información de facturación (requerida)
+      // Información de facturación REAL del ShippingForm con fallbacks a formData
       billingInfo: {
-        cedula: orderSource.customer?.cedula || '9999999999',
-        fullName: orderSource.customer?.name || 'Cliente Payphone',
-        phone: orderSource.customer?.phone || '0999999999',
-        email: orderSource.customer?.email || '',
+        cedula: billingInfo.cedula || formData?.billingInfo?.cedula || '9999999999',
+        fullName: billingInfo.fullName || billingInfo.name || formData?.billingInfo?.fullName || professionalCustomerData.name || 'Cliente',
+        phone: billingInfo.phone || formData?.billingInfo?.phone || professionalCustomerData.phone || '0999999999',
+        email: billingInfo.email || formData?.billingInfo?.email || professionalCustomerData.email || `order-${transactionId}@guest.com`,
         address: {
-          street: shippingAddress.street || '',
-          city: shippingAddress.city || 'Guayaquil',
-          state: shippingAddress.state || 'Guayas',
-          zipCode: shippingAddress.zipCode || '090101',
-          country: shippingAddress.country || 'Ecuador'
+          street: billingInfo.address?.street || formData?.billingInfo?.address?.street || deliveryAddress.street || '',
+          city: billingInfo.address?.city || formData?.billingInfo?.address?.city || deliveryAddress.city || 'Guayaquil',
+          state: billingInfo.address?.state || formData?.billingInfo?.address?.state || deliveryAddress.state || 'Guayas',
+          zipCode: billingInfo.address?.zipCode || formData?.billingInfo?.address?.zipCode || deliveryAddress.zipCode || '090101',
+          country: billingInfo.address?.country || formData?.billingInfo?.address?.country || deliveryAddress.country || 'Ecuador'
         }
       },
       
-      // Dirección de entrega (requerida)
+      // Dirección de entrega REAL del ShippingForm con fallbacks a formData
       deliveryAddress: {
-        street: shippingAddress.street || '',
-        city: shippingAddress.city || 'Guayaquil',
-        state: shippingAddress.state || 'Guayas',
-        zipCode: shippingAddress.zipCode || '090101',
-        country: shippingAddress.country || 'Ecuador',
-        recipientName: shippingAddress.recipientName || orderSource.customer?.name || 'Cliente Payphone',
-        recipientPhone: shippingAddress.recipientPhone || orderSource.customer?.phone || '0999999999',
-        latitude: undefined,
-        longitude: undefined,
-        googleMapsLink: '',
-        locationNotes: ''
+        street: deliveryAddress.street || formData?.deliveryAddress?.street || '',
+        city: deliveryAddress.city || formData?.deliveryAddress?.city || 'Guayaquil',
+        state: deliveryAddress.state || formData?.deliveryAddress?.state || 'Guayas',
+        zipCode: deliveryAddress.zipCode || formData?.deliveryAddress?.zipCode || '090101',
+        country: deliveryAddress.country || formData?.deliveryAddress?.country || 'Ecuador',
+        recipientName: deliveryAddress.recipientName || formData?.deliveryAddress?.recipientName || billingInfo.fullName || billingInfo.name || 'Cliente',
+        recipientPhone: deliveryAddress.recipientPhone || formData?.deliveryAddress?.recipientPhone || billingInfo.phone || '0999999999',
+        latitude: deliveryAddress.latitude || formData?.deliveryAddress?.latitude,
+        longitude: deliveryAddress.longitude || formData?.deliveryAddress?.longitude,
+        googleMapsLink: deliveryAddress.googleMapsLink || formData?.deliveryAddress?.googleMapsLink || '',
+        locationNotes: deliveryAddress.locationNotes || formData?.deliveryAddress?.locationNotes || ''
       },
       
-      // Zona de entrega (requerida)
-      deliveryZone: 'samanes_suburbio',
+      // Zona de entrega REAL del ShippingForm con fallback a formData
+      deliveryZone: orderSource.deliveryZone || formData?.deliveryZone || 'samanes_suburbio',
       
-      // Dirección de envío con recipientName y recipientPhone requeridos (para compatibilidad)
-      shippingAddress: shippingAddress,
+      // Dirección de envío (para compatibilidad) con fallbacks a formData
+      shippingAddress: {
+        recipientName: deliveryAddress.recipientName || formData?.deliveryAddress?.recipientName || billingInfo.fullName || billingInfo.name || 'Cliente',
+        recipientPhone: deliveryAddress.recipientPhone || formData?.deliveryAddress?.recipientPhone || billingInfo.phone || '0999999999',
+        street: deliveryAddress.street || formData?.deliveryAddress?.street || '',
+        city: deliveryAddress.city || formData?.deliveryAddress?.city || 'Guayaquil',
+        state: deliveryAddress.state || formData?.deliveryAddress?.state || 'Guayas',
+        zipCode: deliveryAddress.zipCode || formData?.deliveryAddress?.zipCode || '090101',
+        country: deliveryAddress.country || formData?.deliveryAddress?.country || 'Ecuador',
+        notes: deliveryAddress.locationNotes || formData?.deliveryAddress?.locationNotes || ''
+      },
       shippingMethod: orderSource.shippingMethod || 'delivery',
       shippingCost: orderSource.shippingCost || 0,
       
       // Notas
-      notes: `Pago procesado con Payphone. Transaction ID: ${paymentResult.transactionId}, Client Transaction ID: ${transactionId}`
+      notes: `Pago procesado con Payphone. Transaction ID: ${paymentResult.transactionId}, Client Transaction ID: ${transactionId}.`
     };
-
-    console.log('[ORDER] Order Data preparado:', orderData);
-    console.log('[DEBUG] Verificando orderNumber específicamente:', {
+    
+    console.log('✅ [ORDER] Orden final construida con datos preservados:', {
       orderNumber: orderData.orderNumber,
-      type: typeof orderData.orderNumber,
-      length: orderData.orderNumber?.length,
-      isEmpty: !orderData.orderNumber,
-      isString: typeof orderData.orderNumber === 'string'
+      customer: orderData.customer,
+      itemsCount: orderData.items.length,
+      subtotal: orderData.subtotal,
+      tax: orderData.tax,
+      total: orderData.total,
+      deliveryZone: orderData.deliveryZone,
+      billingName: orderData.billingInfo.fullName,
+      deliveryRecipient: orderData.deliveryAddress.recipientName,
+      paymentReference: orderData.paymentReference
     });
-    console.log('[DEBUG] JSON que se enviará:', JSON.stringify(orderData, null, 2));
-    console.log('[STORE] Llamando a ordersStore.createOrder...');
+
+    console.log('📋 [ORDER] Order Data preparado con datos reales del carrito:', orderData);
+    console.log('🔍 [DEBUG] Verificando datos críticos:', {
+      orderNumber: orderData.orderNumber,
+      customer: orderData.customer,
+      itemsCount: orderData.items?.length,
+      total: orderData.total,
+      billingInfoComplete: !!(orderData.billingInfo?.cedula && orderData.billingInfo?.fullName && orderData.billingInfo?.phone),
+      deliveryAddressComplete: !!(orderData.deliveryAddress?.recipientName && orderData.deliveryAddress?.recipientPhone && orderData.deliveryAddress?.street),
+      deliveryZone: orderData.deliveryZone
+    });
+    
+    // Validar datos críticos antes de enviar
+    console.log('🔍 [VALIDATION] Validando datos antes de enviar...');
+    if (!orderData.orderNumber) {
+      throw new Error('orderNumber es requerido');
+    }
+    if (!orderData.customer) {
+      throw new Error('customer es requerido');
+    }
+    if (!orderData.items || orderData.items.length === 0) {
+      throw new Error('items son requeridos');
+    }
+    if (orderData.total <= 0) {
+      throw new Error('total debe ser mayor a 0');
+    }
+    
+    console.log('✅ [VALIDATION] Validación básica completada');
+    console.log('📤 [STORE] Llamando a ordersStore.createOrder...');
     
     // Crear la orden usando el store
     const createdOrder = await ordersStore.createOrder(orderData);
     
-    console.log('[STORE] Respuesta del store:', createdOrder);
-    console.log('[ERROR] Error del store:', ordersStore.error);
-    console.log('[LOADING] Loading del store:', ordersStore.isLoading);
+    console.log('📥 [STORE] Respuesta del store:', createdOrder);
+    console.log('❌ [ERROR] Error del store:', ordersStore.error);
+    console.log('⏳ [LOADING] Loading del store:', ordersStore.isLoading);
+    console.log('🔍 [STORE_STATE] Estado completo del store:', {
+      isLoading: ordersStore.isLoading,
+      hasError: ordersStore.hasError,
+      error: ordersStore.error,
+      orders: ordersStore.orders?.length || 0
+    });
     
     if (createdOrder) {
-      console.log('[SUCCESS] Orden creada exitosamente:', createdOrder);
+      console.log('🎉 [SUCCESS] Orden creada exitosamente:', createdOrder);
       orderCreated.value = true;
       createdOrderId.value = createdOrder._id;
       
@@ -394,27 +510,51 @@ const createOrderFromPayment = async (paymentResult: any, transactionId: string)
       saveGuestUserInfo(professionalCustomerData, createdOrder._id);
       
       // Limpiar datos del carrito después de crear la orden exitosamente
-      localStorage.removeItem('cart');
-      sessionStorage.removeItem('cart');
-      localStorage.removeItem('customerData');
-      sessionStorage.removeItem('customerData');
-      localStorage.removeItem('payphoneData');
+      // NOTA: Solo limpiar si no fueron datos de fallback que acabamos de crear
+      if (payphoneDataStr || cartDataStr) {
+        localStorage.removeItem('cart');
+        sessionStorage.removeItem('cart');
+        localStorage.removeItem('customerData');
+        sessionStorage.removeItem('customerData');
+        localStorage.removeItem('payphoneData');
+        localStorage.removeItem('formData');
+        localStorage.removeItem('cartItems');
+        console.log('🧹 [CLEANUP] Datos del carrito y formularios limpiados');
+      } else {
+        console.log('🔒 [CLEANUP] Datos de fallback mantenidos para referencia');
+      }
       
-      console.log('[CLEANUP] Datos del carrito limpiados');
       return createdOrder;
     } else {
-      console.warn('[WARNING] No se pudo crear la orden - respuesta vacía del store');
-      console.log('[DEBUG] Estado del store:', {
+      console.warn('⚠️ [WARNING] No se pudo crear la orden - respuesta vacía del store');
+      console.log('🔍 [DEBUG] Estado detallado del store:', {
         isLoading: ordersStore.isLoading,
         hasError: ordersStore.hasError,
-        error: ordersStore.error
+        error: ordersStore.error,
+        isCreating: ordersStore.isCreating || 'no disponible'
       });
+      
+      // Si hay un error específico, lanzarlo
+      if (ordersStore.hasError && ordersStore.error) {
+        throw new Error(`Error del store: ${ordersStore.error}`);
+      }
+      
+      throw new Error('No se recibió respuesta del servidor al crear la orden');
     }
     
-    return null;
   } catch (error) {
-    console.error('[ERROR] Error al crear la orden:', error);
-    console.error('[STACK] Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    console.error('💥 [ERROR] Error crítico al crear la orden:', error);
+    console.error('📚 [STACK] Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    console.error('🔍 [ERROR_TYPE] Tipo de error:', typeof error);
+    console.error('📝 [ERROR_MESSAGE] Mensaje:', error instanceof Error ? error.message : String(error));
+    
+    // Actualizar el estado de error en el componente
+    if (error instanceof Error) {
+      errorMessage.value = `Error al crear la orden: ${error.message}`;
+    } else {
+      errorMessage.value = 'Error desconocido al crear la orden';
+    }
+    
     return null;
   }
 };
