@@ -65,7 +65,7 @@ const formData = ref<FormData>({
     googleMapsLink: '',
     locationNotes: ''
   },
-  deliveryZone: 'samanes_suburbio'
+  deliveryZone: ''
 })
 
 // Referencias a componentes
@@ -74,6 +74,16 @@ const shippingFormRef = ref<InstanceType<typeof ShippingForm> | null>(null)
 // Computed properties
 const isEmpty = computed(() => cartStore.items.length === 0)
 const totalItems = computed(() => cartStore.totalItems)
+
+// Obtener precio de envío desde ShippingForm
+const shippingCost = computed(() => {
+  return shippingFormRef.value?.selectedZonePrice || 0
+})
+
+// Obtener nombre de la zona de envío desde ShippingForm
+const selectedZoneName = computed(() => {
+  return shippingFormRef.value?.selectedZoneName || ''
+})
 
 // Validaciones individuales
 const isBillingInfoValid = computed(() => {
@@ -444,6 +454,8 @@ watch(formData, saveFormData, { deep: true })
         <div class="cart-view__summary">
           <CartSummary
             :cart-total="cartStore.totalPrice"
+            :shipping-cost="shippingCost"
+            :zone-name="selectedZoneName"
             :is-shipping-valid="isFormDataValid"
             :is-loading="isLoadingCheckout"
             :cedula-error="cedulaValidationError"
