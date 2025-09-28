@@ -89,7 +89,7 @@ const isDeliveryAddressValid = computed(() => {
 const isFormValid = computed(() => {
   return isBillingInfoValid.value && 
          isDeliveryAddressValid.value && 
-         props.formData.deliveryZone !== null &&
+         props.formData.deliveryZone !== '' &&
          props.formData.deliveryDateWithMargin !== undefined &&
          props.formData.deliveryDateWithMargin !== ''
 })
@@ -147,10 +147,17 @@ const selectedZonePrice = computed(() => {
   return zone ? zone.price : 0
 })
 
+// Obtener nombre de la zona seleccionada
+const selectedZoneName = computed(() => {
+  const zone = deliveryZones.find(z => z.value === props.formData.deliveryZone)
+  return zone ? zone.label : ''
+})
+
 // Exponer la validación para el componente padre
 defineExpose({
   isValid: isFormValid,
-  selectedZonePrice
+  selectedZonePrice,
+  selectedZoneName
 })
 </script>
 
