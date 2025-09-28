@@ -215,20 +215,19 @@ const proceedToCheckout = async () => {
     
     console.log('🔢 [ORDER] Order Number generado:', orderNumber)
 
-    // Calcular totales correctamente según validación del backend
+    // Calcular totales correctamente - SIN IMPUESTO
     // subtotal = suma de todos los item.totalPrice
-    // tax = subtotal × taxRate  
-    // total = subtotal + tax + shippingCost - discount
+    // total = subtotal + shippingCost - discount (SIN TAX)
     
     const subtotal = cartStore.items.reduce((sum, item) => {
       return sum + (item.price * item.quantity)
     }, 0)
     
-    const taxRate = 0.12
-    const tax = Math.round((subtotal * taxRate) * 100) / 100
-    const shippingCost = 0 // Por ahora sin costo de envío
+    const taxRate = 0 // Sin impuesto
+    const tax = 0 // Sin impuesto
+    const actualShippingCost = shippingCost.value // Usar el costo de envío calculado
     const discount = 0 // Por ahora sin descuento
-    const total = Math.round((subtotal + tax + shippingCost - discount) * 100) / 100
+    const total = Math.round((subtotal + actualShippingCost - discount) * 100) / 100
 
     console.log('💰 [TOTALS] Cálculo de totales corregido:', {
       itemsCount: cartStore.items.length,
@@ -236,7 +235,7 @@ const proceedToCheckout = async () => {
       subtotal: subtotal,
       tax: tax,
       taxRate: taxRate,
-      shippingCost: shippingCost,
+      shippingCost: actualShippingCost,
       discount: discount,
       total: total,
       cartStoreTotal: cartStore.totalPrice // Para comparación
@@ -318,7 +317,7 @@ const proceedToCheckout = async () => {
       
       // Método y costo de envío
       shippingMethod: 'delivery',
-      shippingCost: shippingCost,
+      shippingCost: actualShippingCost,
       
       // Notas adicionales
       notes: `Orden creada desde carrito. Items: ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
@@ -366,6 +365,32 @@ const proceedToCheckout = async () => {
       customerEmail: authStore.user.email,
       deliveryZone: formData.value.deliveryZone
     })
+
+    // 🔍 DEBUG: Log detallado de la carga útil completa
+    console.log('🔍 [DEBUG] ===== CARGA ÚTIL COMPLETA PARA DEBUGGEO =====')
+    console.log('📦 [DEBUG] completeCartData (datos completos del carrito):', JSON.stringify(completeCartData, null, 2))
+    console.log('💳 [DEBUG] payphoneData (datos para Payphone):', JSON.stringify(payphoneData, null, 2))
+    console.log('👤 [DEBUG] authStore.user (usuario autenticado):', JSON.stringify(authStore.user, null, 2))
+    console.log('📋 [DEBUG] formData.value (datos del formulario):', JSON.stringify(formData.value, null, 2))
+    console.log('🛒 [DEBUG] cartStore.items (items del carrito):', JSON.stringify(cartStore.items, null, 2))
+    console.log('💰 [DEBUG] Cálculos de precio detallados:', {
+      subtotal: subtotal,
+      tax: tax,
+      taxRate: taxRate,
+      actualShippingCost: actualShippingCost,
+      discount: discount,
+      total: total,
+      cartStoreTotalPrice: cartStore.totalPrice,
+      shippingCostFromRef: shippingCost.value,
+      selectedZoneNameFromRef: selectedZoneName.value
+    })
+    console.log('✅ [DEBUG] Validaciones del formulario:', {
+      isBillingInfoValid: isBillingInfoValid.value,
+      isDeliveryAddressValid: isDeliveryAddressValid.value,
+      isFormDataValid: isFormDataValid.value,
+      cedulaValidationError: cedulaValidationError.value
+    })
+    console.log('🔍 [DEBUG] ===== FIN DE CARGA ÚTIL PARA DEBUGGEO =====')
 
     // Iniciar el pago con Payphone
     await initiatePayment(payphoneData)
