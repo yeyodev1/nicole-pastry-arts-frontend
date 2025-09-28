@@ -74,17 +74,27 @@ const shippingFormRef = ref<InstanceType<typeof ShippingForm> | null>(null)
 const isEmpty = computed(() => cartStore.items.length === 0)
 const totalItems = computed(() => cartStore.totalItems)
 
+// Validaciones individuales
+const isBillingInfoValid = computed(() => {
+  const billing = formData.value.billingInfo
+  return billing.cedula.trim() !== '' && 
+         billing.fullName.trim() !== '' && 
+         billing.phone.trim() !== '' &&
+         (billing.email ? billing.email.trim() !== '' : true)
+})
+
+const isDeliveryAddressValid = computed(() => {
+  const delivery = formData.value.deliveryAddress
+  return delivery.recipientName.trim() !== '' && 
+         delivery.recipientPhone.trim() !== '' &&
+         delivery.street.trim() !== ''
+})
+
 // Validar datos de envío y facturación
 const isFormDataValid = computed(() => {
-  const billing = formData.value.billingInfo
-  const delivery = formData.value.deliveryAddress
-
-  return billing.cedula.trim() !== '' &&
-    billing.fullName.trim() !== '' &&
-    billing.phone.trim() !== '' &&
-    delivery.recipientName.trim() !== '' &&
-    delivery.recipientPhone.trim() !== '' &&
-    delivery.street.trim() !== ''
+  return isBillingInfoValid.value && 
+         isDeliveryAddressValid.value && 
+         formData.value.deliveryZone !== null
 })
 
 // Formatear precio
@@ -134,72 +144,227 @@ const generateOrderNumber = (): string => {
 
 const proceedToCheckout = async () => {
   try {
-    console.log('🛒 Iniciando proceso de checkout...')
+    console.log('🚀 [CHECKOUT] ===== INICIANDO PROCESO DE CHECKOUT =====')
+    console.log('🕐 [CHECKOUT] Timestamp:', new Date().toISOString())
 
     // Validar que el usuario esté autenticado
     if (!authStore.isAuthenticated || !authStore.user?._id) {
+      console.log('❌ [AUTH] Usuario no autenticado')
       showError('Debes iniciar sesión para proceder con el pago', {
         title: 'Autenticación requerida'
       })
       router.push('/login')
       return
     }
+    console.log('✅ [AUTH] Usuario autenticado:', authStore.user.email)
 
     if (cartStore.isEmpty) {
-      console.log('❌ Carrito vacío')
+      console.log('❌ [CART] Carrito vacío')
       showWarning('Tu carrito está vacío', {
         title: 'Carrito vacío'
       })
       return
     }
+    console.log('✅ [CART] Carrito contiene', cartStore.totalItems, 'productos')
 
     if (!isFormDataValid.value) {
-      console.log('❌ Datos de formulario incompletos')
+      console.log('❌ [FORM] Datos de formulario incompletos')
+      console.log('📋 [FORM] Estado de validación:', {
+        billingValid: isBillingInfoValid.value,
+        deliveryValid: isDeliveryAddressValid.value,
+        formValid: isFormDataValid.value
+      })
       showWarning('Por favor completa todos los datos obligatorios de facturación y entrega', {
         title: 'Datos incompletos'
       })
       return
     }
+    console.log('✅ [FORM] Datos de formulario válidos')
 
-    console.log('✅ Validaciones pasadas, preparando datos de pago...')
-
+    console.log('🔄 [CHECKOUT] Preparando datos de pago...')
     isProcessingCheckout.value = true
 
-    // Guardar datos del formulario en localStorage para recuperar después del pago
-    console.log('💾 Guardando datos del formulario en localStorage...')
-    localStorage.setItem('formData', JSON.stringify(formData.value))
-    localStorage.setItem('cartItems', JSON.stringify(cartStore.items))
+    // Generar orderNumber único
+    const timestamp = Date.now()
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toLowerCase()
+    const orderNumber = `NPA-CART-${timestamp}-${randomSuffix}`
+    
+    console.log('🔢 [ORDER] Order Number generado:', orderNumber)
 
-    // Preparar datos para Payphone usando el mismo formato que el componente funcional
-    const payphoneData = {
-      productId: `CART-${Date.now()}`, // ID único para esta compra
-      productName: `Compra de ${cartStore.totalItems} productos`,
-      price: cartStore.totalPrice,
-      description: `Carrito con ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
-    }
+    // Calcular totales correctamente según validación del backend
+    // subtotal = suma de todos los item.totalPrice
+    // tax = subtotal × taxRate  
+    // total = subtotal + tax + shippingCost - discount
+    
+    const subtotal = cartStore.items.reduce((sum, item) => {
+      return sum + (item.price * item.quantity)
+    }, 0)
+    
+    const taxRate = 0.12
+    const tax = Math.round((subtotal * taxRate) * 100) / 100
+    const shippingCost = 0 // Por ahora sin costo de envío
+    const discount = 0 // Por ahora sin descuento
+    const total = Math.round((subtotal + tax + shippingCost - discount) * 100) / 100
 
-    console.log('💳 Iniciando pago con Payphone:', payphoneData)
-    console.log('📊 Detalles del carrito:', {
-      totalItems: cartStore.totalItems,
-      totalPrice: cartStore.totalPrice,
-      items: cartStore.items.map(item => ({ name: item.name, quantity: item.quantity, price: item.price }))
+    console.log('💰 [TOTALS] Cálculo de totales corregido:', {
+      itemsCount: cartStore.items.length,
+      itemPrices: cartStore.items.map(item => ({ name: item.name, price: item.price, quantity: item.quantity, total: item.price * item.quantity })),
+      subtotal: subtotal,
+      tax: tax,
+      taxRate: taxRate,
+      shippingCost: shippingCost,
+      discount: discount,
+      total: total,
+      cartStoreTotal: cartStore.totalPrice // Para comparación
     })
 
-    // Iniciar el pago con Payphone usando el composable
+    // Preparar datos completos del carrito para preservar
+    const completeCartData = {
+      // Información básica de la orden
+      orderNumber: orderNumber,
+      customer: authStore.user._id,
+      
+      // Items del carrito transformados
+      items: cartStore.items.map(item => ({
+        productId: item.id,
+        productName: item.name,
+        productSku: `SKU-${item.id}`,
+        quantity: item.quantity,
+        unitPrice: Math.round(item.price * 100) / 100,
+        totalPrice: Math.round((item.price * item.quantity) * 100) / 100,
+        productImage: item.image || '/images/default-product.jpg'
+      })),
+      
+      // Totales calculados
+      subtotal: subtotal,
+      tax: tax,
+      taxRate: taxRate,
+      discount: discount,
+      discountType: 'fixed',
+      total: total,
+      
+      // Método de pago
+      paymentMethod: 'payphone',
+      paymentReference: null, // Se llenará después del pago
+      
+      // Información de facturación del formulario
+      billingInfo: {
+        cedula: formData.value.billingInfo.cedula,
+        fullName: formData.value.billingInfo.fullName,
+        phone: formData.value.billingInfo.phone,
+        email: formData.value.billingInfo.email || authStore.user.email,
+        address: {
+          street: formData.value.billingInfo.address?.street || formData.value.deliveryAddress.street,
+          city: formData.value.billingInfo.address?.city || formData.value.deliveryAddress.city,
+          state: formData.value.billingInfo.address?.state || formData.value.deliveryAddress.state,
+          zipCode: formData.value.billingInfo.address?.zipCode || formData.value.deliveryAddress.zipCode,
+          country: formData.value.billingInfo.address?.country || formData.value.deliveryAddress.country || 'Ecuador'
+        }
+      },
+      
+      // Dirección de entrega del formulario
+      deliveryAddress: {
+        street: formData.value.deliveryAddress.street,
+        city: formData.value.deliveryAddress.city,
+        state: formData.value.deliveryAddress.state,
+        zipCode: formData.value.deliveryAddress.zipCode,
+        country: formData.value.deliveryAddress.country,
+        recipientName: formData.value.deliveryAddress.recipientName,
+        recipientPhone: formData.value.deliveryAddress.recipientPhone,
+        latitude: formData.value.deliveryAddress.latitude,
+        longitude: formData.value.deliveryAddress.longitude,
+        googleMapsLink: formData.value.deliveryAddress.googleMapsLink || '',
+        locationNotes: formData.value.deliveryAddress.locationNotes || ''
+      },
+      
+      // Zona de entrega
+      deliveryZone: formData.value.deliveryZone,
+      
+      // Dirección de envío (para compatibilidad)
+      shippingAddress: {
+        recipientName: formData.value.deliveryAddress.recipientName,
+        recipientPhone: formData.value.deliveryAddress.recipientPhone,
+        street: formData.value.deliveryAddress.street,
+        city: formData.value.deliveryAddress.city,
+        state: formData.value.deliveryAddress.state,
+        zipCode: formData.value.deliveryAddress.zipCode,
+        country: formData.value.deliveryAddress.country,
+        notes: formData.value.deliveryAddress.locationNotes || ''
+      },
+      
+      // Método y costo de envío
+      shippingMethod: 'delivery',
+      shippingCost: shippingCost,
+      
+      // Notas adicionales
+      notes: `Orden creada desde carrito. Items: ${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
+    }
+
+    console.log('📦 [CART_DATA] Datos completos del carrito preparados:', completeCartData)
+
+    // Guardar datos completos en localStorage con múltiples claves para redundancia
+    console.log('💾 [STORAGE] Guardando datos en localStorage...')
+    
+    // Clave principal para PaymentConfirmationView
+    localStorage.setItem('cart', JSON.stringify(completeCartData))
+    
+    // Claves de respaldo
+    localStorage.setItem('formData', JSON.stringify(formData.value))
+    localStorage.setItem('cartItems', JSON.stringify(cartStore.items))
+    localStorage.setItem('customerData', JSON.stringify({
+      id: authStore.user._id,
+      email: authStore.user.email,
+      name: formData.value.billingInfo.fullName,
+      phone: formData.value.billingInfo.phone
+    }))
+
+    console.log('✅ [STORAGE] Datos guardados en localStorage con claves:', ['cart', 'formData', 'cartItems', 'customerData'])
+
+    // Preparar datos para Payphone
+    const payphoneData = {
+      productId: `CART-${timestamp}`,
+      productName: `Compra de ${cartStore.totalItems} productos - ${orderNumber}`,
+      price: total,
+      description: `${cartStore.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}`
+    }
+
+    console.log('💳 [PAYPHONE] Datos para Payphone preparados:', payphoneData)
+    
+    // Guardar datos de Payphone también
+    localStorage.setItem('payphoneData', JSON.stringify(payphoneData))
+    console.log('💾 [PAYPHONE] Datos de Payphone guardados en localStorage')
+
+    console.log('🚀 [PAYMENT] Iniciando pago con Payphone...')
+    console.log('📊 [SUMMARY] Resumen del proceso:', {
+      orderNumber: orderNumber,
+      totalItems: cartStore.totalItems,
+      totalPrice: total,
+      customerEmail: authStore.user.email,
+      deliveryZone: formData.value.deliveryZone
+    })
+
+    // Iniciar el pago con Payphone
     await initiatePayment(payphoneData)
 
-    console.log('✅ Pago iniciado correctamente, el usuario será redirigido a Payphone')
+    console.log('✅ [PAYMENT] Pago iniciado correctamente')
+    console.log('🔄 [REDIRECT] Usuario será redirigido a Payphone')
 
   } catch (err) {
-    console.error('❌ Error en checkout:', err)
+    console.error('💥 [ERROR] Error crítico en checkout:', err)
     const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
-    console.error('📝 Detalles del error:', errorMessage)
+    console.error('📚 [ERROR] Stack trace:', err instanceof Error ? err.stack : 'No stack available')
+    console.error('🔍 [ERROR] Detalles del contexto:', {
+      isAuthenticated: authStore.isAuthenticated,
+      cartItems: cartStore.totalItems,
+      formValid: isFormDataValid.value
+    })
+    
     showError(`Error al procesar el pago: ${errorMessage}`, {
       title: 'Error en el pago'
     })
   } finally {
     isProcessingCheckout.value = false
-    console.log('🔄 Proceso de checkout finalizado')
+    console.log('🏁 [CHECKOUT] ===== PROCESO DE CHECKOUT FINALIZADO =====')
   }
 }
 
