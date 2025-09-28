@@ -17,6 +17,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  cedulaError: {
+    type: String,
+    default: '',
+  },
 })
 
 const emit = defineEmits<{
@@ -147,9 +151,14 @@ const handleClearCart = () => {
     </div>
 
     <!-- Mensaje de validación -->
-    <div v-if="!isShippingValid" class="cart-summary__validation-message">
-      <i class="fas fa-info-circle"></i>
-      <span>Completa los datos de envío para continuar</span>
+    <div 
+      v-if="!isShippingValid" 
+      class="cart-summary__validation-message"
+      :class="{ 'cart-summary__validation-message--error': cedulaError }"
+    >
+      <i :class="cedulaError ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'"></i>
+      <span v-if="cedulaError">{{ cedulaError }}</span>
+      <span v-else>Completa los datos de envío para continuar</span>
     </div>
   </div>
 </template>
@@ -435,10 +444,7 @@ const handleClearCart = () => {
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
-    background-color: rgba($info, 0.1);
-    border: 1px solid rgba($info, 0.3);
     border-radius: 12px;
-    color: darken($info, 20%);
     font-size: 0.875rem;
     margin-top: 1rem;
 
@@ -449,6 +455,11 @@ const handleClearCart = () => {
       gap: 1rem;
       margin-top: 1.25rem;
     }
+
+    // Estilo por defecto (info)
+    background-color: rgba($info, 0.1);
+    border: 1px solid rgba($info, 0.3);
+    color: darken($info, 20%);
 
     i {
       color: $info;
@@ -462,6 +473,17 @@ const handleClearCart = () => {
 
     span {
       line-height: 1.4;
+    }
+  }
+
+  // Estilo específico para errores de cédula
+  &__validation-message--error {
+    background-color: rgba($error, 0.1) !important;
+    border: 1px solid rgba($error, 0.3) !important;
+    color: darken($error, 20%) !important;
+
+    i {
+      color: $error !important;
     }
   }
 }
