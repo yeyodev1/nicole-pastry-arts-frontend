@@ -747,9 +747,17 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
   gap: 0.25rem;
 }
 
-// Icon classes
-.icon-eye::before { content: "👁️"; }
-.icon-empty::before { content: "📋"; }
+// Font Awesome icon classes
+.icon-eye::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f06e"; 
+}
+.icon-empty::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f0ea"; 
+}
 
 @keyframes spin {
   from { transform: rotate(0deg); }
