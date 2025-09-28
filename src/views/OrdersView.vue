@@ -155,6 +155,15 @@ const formatCurrency = (amount: number) => {
   }).format(amount)
 }
 
+const formatDeliveryDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
 // ===== WATCHERS =====
 watch([selectedStatus, selectedPaymentStatus], () => {
   currentPage.value = 1
@@ -433,6 +442,13 @@ watch(isAuthenticated, (newValue) => {
               <div class="info-item">
                 <span class="info-label">Método de Pago:</span>
                 <span class="info-value">{{ selectedOrder.paymentMethod }}</span>
+              </div>
+              <div v-if="selectedOrder.deliveryDateWithMargin" class="info-item">
+                <span class="info-label">Fecha de Entrega Preferida:</span>
+                <span class="info-value info-value--delivery-date">
+                  <i class="fas fa-calendar-alt"></i>
+                  {{ formatDeliveryDate(selectedOrder.deliveryDateWithMargin) }}
+                </span>
               </div>
             </div>
           </div>
@@ -1075,6 +1091,23 @@ watch(isAuthenticated, (newValue) => {
 
   .info-value {
     color: #495057;
+
+    &--delivery-date {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2c3e50;
+      font-weight: 600;
+      background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+      padding: 0.75rem;
+      border-radius: 8px;
+      border-left: 4px solid #28a745;
+
+      i {
+        color: #28a745;
+        font-size: 1rem;
+      }
+    }
   }
 }
 
