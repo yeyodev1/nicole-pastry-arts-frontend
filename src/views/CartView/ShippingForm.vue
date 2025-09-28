@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
+import { validateEcuadorCedula } from '@/utils/ecuadorValidations'
 
 interface FormData {
   billingInfo: BillingInfo
@@ -32,6 +33,32 @@ const deliveryZones = [
 // Estado para mostrar/ocultar el campo de Google Maps
 const showGoogleMapsField = ref(false)
 
+// Estado para el error de cédula
+const cedulaError = ref('')
+
+// Función para validar cédula
+const validateCedula = (cedula: string) => {
+  cedulaError.value = ''
+  
+  if (!cedula.trim()) {
+    cedulaError.value = 'La cédula es obligatoria'
+    return false
+  }
+  
+  if (!validateEcuadorCedula(cedula)) {
+    cedulaError.value = 'Ingresa una cédula ecuatoriana válida'
+    return false
+  }
+  
+  return true
+}
+
+// Función para actualizar cédula con validación
+const updateCedula = (cedula: string) => {
+  updateFormData('billingInfo', 'cedula', cedula)
+  validateCedula(cedula)
+}
+
 // Calcular fecha mínima (3 días después de hoy)
 const getMinDeliveryDate = () => {
   const today = new Date()
@@ -46,6 +73,7 @@ const minDeliveryDate = getMinDeliveryDate()
 const isBillingInfoValid = computed(() => {
   const billing = props.formData.billingInfo
   return billing.cedula.trim() !== '' && 
+         validateEcuadorCedula(billing.cedula) &&
          billing.fullName.trim() !== '' && 
          billing.phone.trim() !== '' &&
          (billing.email ? billing.email.trim() !== '' : true)
@@ -143,13 +171,18 @@ defineExpose({
           <input
             id="cedula"
             :value="formData.billingInfo.cedula"
-            @input="updateFormData('billingInfo', 'cedula', ($event.target as HTMLInputElement).value)"
+            @input="updateCedula(($event.target as HTMLInputElement).value)"
             type="text"
             class="shipping-form__input"
+            :class="{ 'shipping-form__input--error': cedulaError }"
             placeholder="Ej: 0123456789"
             maxlength="10"
             required
           >
+          <div v-if="cedulaError" class="shipping-form__error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ cedulaError }}</span>
+          </div>
         </div>
 
         <div class="shipping-form__field">
