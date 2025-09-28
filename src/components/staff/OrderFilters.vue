@@ -733,10 +733,30 @@ onMounted(() => {
   font-style: italic;
 }
 
-// Icon classes
-.icon-search::before { content: "🔍"; }
-.icon-close::before { content: "✕"; }
-.icon-filter::before { content: "🔽"; }
-.icon-refresh::before { content: "🔄"; }
-.icon-calendar::before { content: "📅"; }
+// Font Awesome icon classes
+.icon-search::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f002"; 
+}
+.icon-close::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f00d"; 
+}
+.icon-filter::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f0b0"; 
+}
+.icon-refresh::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f021"; 
+}
+.icon-calendar::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f073"; 
+}
 </style>
