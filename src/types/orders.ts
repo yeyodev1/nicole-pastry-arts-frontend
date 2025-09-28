@@ -95,6 +95,7 @@ export interface Order {
   readonly shippingCost: number
   readonly estimatedDeliveryDate?: string
   readonly actualDeliveryDate?: string
+  readonly deliveryDateWithMargin?: string
   readonly notes?: string
   readonly internalNotes?: string // Only visible to staff/admin
   // Legacy fields for backward compatibility
@@ -130,6 +131,7 @@ export interface CreateOrderRequest {
   readonly shippingMethod: 'pickup' | 'delivery' | 'shipping'
   readonly shippingCost: number
   readonly estimatedDeliveryDate?: string
+  readonly deliveryDateWithMargin?: string
   readonly notes?: string
   readonly internalNotes?: string
   readonly mercatelyOrderId?: string
@@ -166,6 +168,7 @@ export interface UpdateOrderRequest {
   readonly shippingCost?: number
   readonly estimatedDeliveryDate?: string
   readonly actualDeliveryDate?: string
+  readonly deliveryDateWithMargin?: string
   readonly notes?: string
   readonly internalNotes?: string
   readonly mercatelyOrderId?: string
