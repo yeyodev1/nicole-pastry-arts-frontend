@@ -24,11 +24,19 @@ export class PayphoneService {
     description?: string;
   }): Promise<PayphoneResponse> {
     try {
+      console.log('🔧 [SERVICE] ===== PREPARANDO PAGO EN SERVICIO PAYPHONE =====');
+      console.log('🕐 [SERVICE] Timestamp:', new Date().toISOString());
+      
       // Generar ID único para la transacción
       const clientTransactionId = generateTransactionId(productData.productId);
+      console.log('🆔 [SERVICE] Client Transaction ID generado:', clientTransactionId);
       
       // Convertir precio a centavos
       const amountInCents = dollarsToCents(productData.price);
+      console.log('💰 [SERVICE] Conversión de precio:', {
+        originalPrice: productData.price,
+        amountInCents: amountInCents
+      });
       
       // Preparar el cuerpo de la solicitud
       const transactionData: PayphoneTransaction = {
@@ -45,11 +53,17 @@ export class PayphoneService {
         cancellationUrl: PAYPHONE_CONFIG.CANCEL_URL
       };
 
-      console.log('🚀 Preparando pago Payphone:', {
+      console.log('📋 [SERVICE] Datos de transacción preparados:', {
         product: productData.productName,
         amount: `$${productData.price}`,
-        transactionId: clientTransactionId
+        amountInCents: amountInCents,
+        transactionId: clientTransactionId,
+        storeId: PAYPHONE_CONFIG.STORE_ID,
+        responseUrl: PAYPHONE_CONFIG.RESPONSE_URL
       });
+
+      console.log('📡 [SERVICE] Enviando solicitud a API de Payphone...');
+      console.log('🔗 [SERVICE] URL:', PAYPHONE_CONFIG.BUTTON_PREPARE_URL);
 
       // Realizar la solicitud POST a la API de Payphone
       const response = await fetch(PAYPHONE_CONFIG.BUTTON_PREPARE_URL, {
@@ -58,28 +72,43 @@ export class PayphoneService {
         body: JSON.stringify(transactionData)
       });
 
+      console.log('📨 [SERVICE] Respuesta HTTP recibida:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Error en respuesta de Payphone:', {
+        console.error('❌ [SERVICE] Error en respuesta de Payphone:', {
           status: response.status,
           statusText: response.statusText,
-          error: errorText
+          error: errorText,
+          url: PAYPHONE_CONFIG.BUTTON_PREPARE_URL
         });
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       const result: PayphoneResponse = await response.json();
       
-      console.log('✅ Pago preparado exitosamente:', {
+      console.log('✅ [SERVICE] Pago preparado exitosamente:', {
         transactionId: result.transactionId,
         status: result.transactionStatus,
-        hasPaymentUrl: !!result.payWithPayPhone
+        hasPaymentUrl: !!result.payWithPayPhone,
+        paymentUrl: result.payWithPayPhone ? 'URL presente' : 'URL ausente'
       });
+
+      console.log('🎯 [SERVICE] Resultado completo de Payphone:', result);
 
       return result;
 
     } catch (error) {
-      console.error('❌ Error al preparar pago Payphone:', error);
+      console.error('❌ [SERVICE] Error crítico al preparar pago Payphone:', {
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : 'No stack available',
+        productData: productData
+      });
+      
       throw new Error(
         error instanceof Error 
           ? `Error al procesar el pago: ${error.message}`
@@ -99,39 +128,65 @@ export class PayphoneService {
     clientTransactionId: string
   ): Promise<PayphoneResponse> {
     try {
+      console.log('🔍 [SERVICE] ===== CONFIRMANDO PAGO EN SERVICIO PAYPHONE =====');
+      console.log('🕐 [SERVICE] Timestamp:', new Date().toISOString());
+      console.log('🆔 [SERVICE] Transaction ID a confirmar:', transactionId);
+      console.log('🆔 [SERVICE] Client Transaction ID:', clientTransactionId);
+
       const confirmData = {
         id: transactionId,
         clientTransactionId
       };
 
-      console.log('🔍 Confirmando pago Payphone:', confirmData);
+      console.log('📋 [SERVICE] Datos de confirmación preparados:', confirmData);
+      console.log('🔗 [SERVICE] URL de confirmación:', PAYPHONE_CONFIG.BUTTON_CONFIRM_URL);
 
+      console.log('📡 [SERVICE] Enviando solicitud de confirmación...');
       const response = await fetch(PAYPHONE_CONFIG.BUTTON_CONFIRM_URL, {
         method: 'POST',
         headers: PAYPHONE_CONFIG.DEFAULT_HEADERS,
         body: JSON.stringify(confirmData)
       });
 
+      console.log('📨 [SERVICE] Respuesta de confirmación recibida:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Error en confirmación de Payphone:', {
+        console.error('❌ [SERVICE] Error en confirmación de Payphone:', {
           status: response.status,
-          error: errorText
+          statusText: response.statusText,
+          error: errorText,
+          transactionId: transactionId,
+          clientTransactionId: clientTransactionId,
+          url: PAYPHONE_CONFIG.BUTTON_CONFIRM_URL
         });
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
       const result: PayphoneResponse = await response.json();
       
-      console.log('✅ Confirmación de pago:', {
+      console.log('✅ [SERVICE] Confirmación de pago exitosa:', {
         transactionId: result.transactionId,
-        status: result.transactionStatus
+        status: result.transactionStatus,
+        clientTransactionId: result.clientTransactionId
       });
+
+      console.log('🎯 [SERVICE] Resultado completo de confirmación:', result);
 
       return result;
 
     } catch (error) {
-      console.error('❌ Error al confirmar pago:', error);
+      console.error('❌ [SERVICE] Error crítico al confirmar pago:', {
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : 'No stack available',
+        transactionId: transactionId,
+        clientTransactionId: clientTransactionId
+      });
+      
       throw new Error(
         error instanceof Error 
           ? `Error al confirmar el pago: ${error.message}`
