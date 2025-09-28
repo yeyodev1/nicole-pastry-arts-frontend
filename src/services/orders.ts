@@ -33,16 +33,51 @@ class OrdersService extends APIBase {
    */
   async createOrder(orderData: CreateOrderRequest): Promise<OrderResponse> {
     try {
+      console.log('🏭 [SERVICE] ===== CREANDO ORDEN EN SERVICIO =====');
+      console.log('🕐 [SERVICE] Timestamp:', new Date().toISOString());
+      console.log('📋 [SERVICE] Datos de orden recibidos:', {
+        orderNumber: orderData.orderNumber,
+        customer: orderData.customer,
+        itemsCount: orderData.items?.length || 0,
+        subtotal: orderData.subtotal,
+        tax: orderData.tax,
+        total: orderData.total,
+        paymentMethod: orderData.paymentMethod,
+        paymentReference: orderData.paymentReference,
+        deliveryZone: orderData.deliveryZone
+      });
+
+      console.log('🔍 [SERVICE] Validando datos de orden...');
       this.validateCreateOrderData(orderData)
+      console.log('✅ [SERVICE] Validación exitosa');
+
+      console.log('📡 [SERVICE] Enviando solicitud HTTP al backend...');
+      console.log('🔗 [SERVICE] Endpoint:', this.ENDPOINTS.ORDERS);
 
       const response: AxiosResponse<OrderResponse> = await this.post<OrderResponse>(
         this.ENDPOINTS.ORDERS,
         orderData,
       )
 
+      console.log('📨 [SERVICE] Respuesta HTTP recibida:', {
+        status: response.status,
+        statusText: response.statusText,
+        hasData: !!response.data
+      });
+
+      console.log('✅ [SERVICE] Orden creada exitosamente en backend:', {
+        orderId: response.data.order._id,
+        orderNumber: response.data.order.orderNumber,
+        status: response.data.order.status,
+        paymentStatus: response.data.order.paymentStatus
+      });
+
       return response.data
     } catch (error) {
-      console.error('❌ [OrdersService] Error al crear orden:', error)
+      console.error('❌ [SERVICE] Error crítico al crear orden:', {
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        orderData: orderData
+      });
       throw this.handleServiceError(error, 'crear orden')
     }
   }
@@ -54,6 +89,16 @@ class OrdersService extends APIBase {
    */
   async createOrderFromPayphone(payphoneData: PayphoneOrderData): Promise<OrderResponse> {
     try {
+      console.log('💳 [SERVICE] ===== CREANDO ORDEN DESDE PAYPHONE EN SERVICIO =====');
+      console.log('🕐 [SERVICE] Timestamp:', new Date().toISOString());
+      console.log('📋 [SERVICE] Datos de Payphone recibidos:', {
+        customer: payphoneData.customer,
+        itemsCount: payphoneData.items?.length || 0,
+        amount: payphoneData.amount,
+        transactionId: payphoneData.transactionId,
+        hasShippingAddress: !!payphoneData.shippingAddress
+      });
+
       // Generar orderNumber único
       const generateOrderNumber = (): string => {
         const timestamp = Date.now()
@@ -61,9 +106,12 @@ class OrdersService extends APIBase {
         return `NPA-${timestamp}-${randomSuffix}`
       }
 
+      const orderNumber = generateOrderNumber();
+      console.log('🆔 [SERVICE] Order Number generado:', orderNumber);
+
       // Transformar datos de Payphone al formato de orden
       const orderData: CreateOrderRequest = {
-        orderNumber: generateOrderNumber(),
+        orderNumber: orderNumber,
         customer: payphoneData.customer.email || '', // Necesitarás obtener el ID del cliente
         items: payphoneData.items,
         subtotal: payphoneData.amount,
@@ -98,8 +146,24 @@ class OrdersService extends APIBase {
         shippingAddress: payphoneData.shippingAddress,
       }
 
+      console.log('🔄 [SERVICE] Datos transformados para orden:', {
+        orderNumber: orderData.orderNumber,
+        customer: orderData.customer,
+        itemsCount: orderData.items?.length || 0,
+        subtotal: orderData.subtotal,
+        total: orderData.total,
+        paymentMethod: orderData.paymentMethod,
+        paymentReference: orderData.paymentReference,
+        deliveryZone: orderData.deliveryZone
+      });
+
+      console.log('📞 [SERVICE] Llamando a createOrder...');
       return await this.createOrder(orderData)
     } catch (error) {
+      console.error('❌ [SERVICE] Error crítico al crear orden desde Payphone:', {
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        payphoneData: payphoneData
+      });
       throw this.handleServiceError(error, 'crear orden desde Payphone')
     }
   }
