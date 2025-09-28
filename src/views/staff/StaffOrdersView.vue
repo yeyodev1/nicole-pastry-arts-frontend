@@ -540,10 +540,30 @@ watch(searchQuery, (newValue) => {
   }
 }
 
-// Icon classes (assuming you have an icon font or will replace with actual icons)
-.icon-refresh::before { content: "🔄"; }
-.icon-filter::before { content: "🔍"; }
-.icon-search::before { content: "🔍"; }
-.icon-close::before { content: "✕"; }
-.icon-error::before { content: "⚠️"; }
+// Font Awesome icon classes
+.icon-refresh::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f021"; 
+}
+.icon-filter::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f0b0"; 
+}
+.icon-search::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f002"; 
+}
+.icon-close::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f00d"; 
+}
+.icon-error::before { 
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f071"; 
+}
 </style>
