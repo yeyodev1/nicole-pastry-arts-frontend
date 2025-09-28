@@ -73,6 +73,7 @@ export function validateEcuadorPhone(phone: string): boolean {
  * Delivery zone pricing configuration for Guayaquil, Ecuador
  */
 export const DELIVERY_ZONE_PRICES: Record<DeliveryZone, number> = {
+  '': 0, // Empty zone fallback
   samanes_suburbio: 6.00,    // Samanes and Suburbio: $6
   norte_sur_esteros: 7.00,   // Norte de Guayaquil (Pascuales) or Sur (Esteros): $7
   sambo: 6.00,               // Sambo: $6
