@@ -6,6 +6,7 @@ interface FormData {
   billingInfo: BillingInfo
   deliveryAddress: DeliveryAddress
   deliveryZone: DeliveryZone
+  deliveryDateWithMargin?: string
 }
 
 const props = defineProps({
@@ -31,6 +32,16 @@ const deliveryZones = [
 // Estado para mostrar/ocultar el campo de Google Maps
 const showGoogleMapsField = ref(false)
 
+// Calcular fecha mínima (3 días después de hoy)
+const getMinDeliveryDate = () => {
+  const today = new Date()
+  const minDate = new Date(today)
+  minDate.setDate(today.getDate() + 3)
+  return minDate.toISOString().split('T')[0] // Formato YYYY-MM-DD
+}
+
+const minDeliveryDate = getMinDeliveryDate()
+
 // Validaciones
 const isBillingInfoValid = computed(() => {
   const billing = props.formData.billingInfo
@@ -50,7 +61,9 @@ const isDeliveryAddressValid = computed(() => {
 const isFormValid = computed(() => {
   return isBillingInfoValid.value && 
          isDeliveryAddressValid.value && 
-         props.formData.deliveryZone !== null
+         props.formData.deliveryZone !== null &&
+         props.formData.deliveryDateWithMargin !== undefined &&
+         props.formData.deliveryDateWithMargin !== ''
 })
 
 // Función para actualizar datos
@@ -89,6 +102,14 @@ const updateDeliveryZone = (zone: DeliveryZone) => {
   emit('update:formData', {
     ...props.formData,
     deliveryZone: zone
+  })
+}
+
+// Función para actualizar fecha de entrega
+const updateDeliveryDate = (date: string) => {
+  emit('update:formData', {
+    ...props.formData,
+    deliveryDateWithMargin: date
   })
 }
 
@@ -217,6 +238,38 @@ defineExpose({
             <span class="shipping-form__zone-price">${{ zone.price.toFixed(2) }}</span>
           </div>
           <i class="fas fa-check shipping-form__zone-check"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fecha de Entrega -->
+    <section class="shipping-form__section">
+      <h3 class="shipping-form__title">
+        <i class="fas fa-calendar-alt"></i>
+        Fecha de Entrega Preferida
+      </h3>
+      
+      <div class="shipping-form__date-info">
+        <i class="fas fa-info-circle"></i>
+        <span>Selecciona tu fecha preferida de entrega (mínimo 3 días de anticipación)</span>
+      </div>
+
+      <div class="shipping-form__date-field">
+        <label for="deliveryDate" class="shipping-form__label">
+          Fecha de entrega *
+        </label>
+        <input
+          id="deliveryDate"
+          :value="formData.deliveryDateWithMargin || ''"
+          @input="updateDeliveryDate(($event.target as HTMLInputElement).value)"
+          type="date"
+          class="shipping-form__date-input"
+          :min="minDeliveryDate"
+          required
+        >
+        <div class="shipping-form__date-help">
+          <i class="fas fa-clock"></i>
+          <span>La fecha mínima de entrega es {{ new Date(minDeliveryDate).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
         </div>
       </div>
     </section>
@@ -708,6 +761,140 @@ defineExpose({
   }
 
   &__maps-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: rgba($success, 0.1);
+    border: 1px solid rgba($success, 0.3);
+    border-radius: 12px;
+    color: darken($success, 20%);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+    }
+
+    i {
+      color: $success;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    span {
+      line-height: 1.4;
+    }
+  }
+
+  &__date-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: rgba($NICOLE-PRIMARY, 0.1);
+    border: 1px solid rgba($NICOLE-PRIMARY, 0.3);
+    border-radius: 12px;
+    color: darken($NICOLE-PRIMARY, 20%);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+    }
+
+    i {
+      color: $NICOLE-PRIMARY;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  &__date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+
+    @media (min-width: 768px) {
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 1024px) {
+      gap: 0.5rem;
+    }
+  }
+
+  &__date-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+    border: 1px solid $border-light;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: $text-dark;
+    background-color: $white;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem;
+      border-radius: 16px;
+      font-size: 1.05rem;
+    }
+
+    @media (min-width: 1024px) {
+      padding: 0.875rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $NICOLE-PRIMARY;
+      box-shadow: 0 0 0 3px rgba($NICOLE-PRIMARY, 0.1);
+    }
+
+    &:hover {
+      border-color: rgba($NICOLE-PRIMARY, 0.5);
+    }
+
+    // Estilos específicos para el selector de fecha
+    &::-webkit-calendar-picker-indicator {
+      color: $NICOLE-PRIMARY;
+      cursor: pointer;
+      font-size: 1.125rem;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba($NICOLE-PRIMARY, 0.1);
+      }
+    }
+  }
+
+  &__date-help {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
