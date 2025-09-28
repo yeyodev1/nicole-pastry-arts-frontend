@@ -99,6 +99,27 @@ const router = createRouter({
       name: 'about',
       component: () => import('@/views/AboutView.vue'),
     },
+    // Rutas de Staff - Protegidas por rol
+    {
+      path: '/staff',
+      name: 'staff',
+      redirect: '/staff/orders',
+      meta: {
+        requiresAuth: true,
+        requiresStaff: true,
+        title: 'Panel de Staff'
+      }
+    },
+    {
+      path: '/staff/orders',
+      name: 'staff-orders',
+      component: () => import('@/views/staff/StaffOrdersView.vue'),
+      meta: {
+        requiresAuth: true,
+        requiresStaff: true,
+        title: 'Gestión de Órdenes'
+      }
+    },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -118,9 +139,19 @@ router.beforeEach((to, from, next) => {
       name: 'login',
       query: { redirect: to.fullPath } // Guardar la ruta de destino para redirigir después del login
     })
-  } else {
-    next()
+    return
   }
+  
+  // Verificar si la ruta requiere permisos de staff
+  if (to.meta.requiresStaff && !authStore.isStaff) {
+    // Redirigir al home si no tiene permisos de staff
+    next({
+      name: 'home'
+    })
+    return
+  }
+  
+  next()
 })
 
 export default router
