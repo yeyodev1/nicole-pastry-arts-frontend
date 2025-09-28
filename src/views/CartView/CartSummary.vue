@@ -9,6 +9,14 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  shippingCost: {
+    type: Number,
+    default: 0,
+  },
+  zoneName: {
+    type: String,
+    default: '',
+  },
   isShippingValid: {
     type: Boolean,
     required: true,
@@ -21,6 +29,11 @@ const props = defineProps({
     type: String,
     default: '',
   },
+})
+
+// Computed properties
+const finalTotal = computed(() => {
+  return Math.round((props.cartTotal + props.shippingCost) * 100) / 100
 })
 
 const emit = defineEmits<{
@@ -38,13 +51,17 @@ const formatPrice = (price: number): string => {
   }).format(price)
 }
 
-// Precio formateado
-const formattedTotal = computed(() => formatPrice(props.cartTotal))
+// Precios formateados
+const formattedSubtotal = computed(() => formatPrice(props.cartTotal))
+const formattedShipping = computed(() => formatPrice(props.shippingCost))
+const formattedTotal = computed(() => formatPrice(finalTotal.value))
 
 // Función para generar mensaje de WhatsApp profesional
 const generateWhatsAppMessage = (): string => {
   const items = cartStore.items
-  const total = props.cartTotal
+  const subtotal = props.cartTotal
+  const shipping = props.shippingCost
+  const total = finalTotal.value
   
   let message = '🍰 *PEDIDO - Nicole Pastry Arts* 🍰\n\n'
   message += '📋 *Detalles del pedido:*\n'
@@ -56,7 +73,10 @@ const generateWhatsAppMessage = (): string => {
     message += `   • Subtotal: ${formatPrice(item.price * item.quantity)}\n\n`
   })
   
-  message += `💰 *TOTAL: ${formatPrice(total)}*\n\n`
+  message += '💰 *Resumen de costos:*\n'
+  message += `   • Subtotal: ${formatPrice(subtotal)}\n`
+  message += `   • Envío: ${formatPrice(shipping)}\n`
+  message += `   • *TOTAL: ${formatPrice(total)}*\n\n`
   message += '📍 *Información de entrega:*\n'
   message += 'Por favor, confirme la dirección de entrega y fecha preferida.\n\n'
   message += '¡Gracias por elegir Nicole Pastry Arts! 🌟'
@@ -99,7 +119,14 @@ const handleClearCart = () => {
     <div class="cart-summary__content">
       <div class="cart-summary__line">
         <span class="cart-summary__label">Subtotal:</span>
-        <span class="cart-summary__value">{{ formattedTotal }}</span>
+        <span class="cart-summary__value">{{ formattedSubtotal }}</span>
+      </div>
+      
+      <div class="cart-summary__line">
+        <span class="cart-summary__label">
+          Envío{{ zoneName ? ` (${zoneName})` : '' }}:
+        </span>
+        <span class="cart-summary__value">{{ formattedShipping }}</span>
       </div>
       
       <div class="cart-summary__line cart-summary__line--total">
