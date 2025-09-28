@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, watch } from 'vue'
+import { ref, provide, onMounted, watch, computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/globals/AppHeader.vue'
 import AppFooter from '@/components/globals/AppFooter.vue'
+import StaffHeader from '@/components/staff/StaffHeader.vue'
+import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
+const authStore = useAuthStore()
+
+// Computed para determinar si el usuario es staff
+const isStaffUser = computed(() => {
+  return authStore.isAuthenticated && authStore.user?.role === 'staff'
+})
 
 // Estado global de carga
 const isAppLoaded = ref(false)
@@ -66,16 +74,21 @@ provide('showGlobalLoading', showGlobalLoading)
 
 <template>
   <div id="app">
-    <!-- Header - Se muestra siempre excepto durante la pantalla de carga inicial -->
-    <AppHeader v-if="!showLoadingScreen" />
+    <!-- Header - Condicional basado en el rol del usuario -->
+    <template v-if="!showLoadingScreen">
+      <!-- Header para Staff -->
+      <StaffHeader v-if="isStaffUser" />
+      <!-- Header para Clientes -->
+      <AppHeader v-else />
+    </template>
     
     <!-- Contenido principal -->
     <main class="main-content">
       <RouterView />
     </main>
     
-    <!-- Footer - Se muestra siempre excepto durante la pantalla de carga inicial -->
-    <AppFooter v-if="!showLoadingScreen" />
+    <!-- Footer - Se muestra siempre excepto durante la pantalla de carga inicial y para staff -->
+    <AppFooter v-if="!showLoadingScreen && !isStaffUser" />
   </div>
 </template>
 
