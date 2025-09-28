@@ -7,6 +7,7 @@ import { usePayphonePayment } from '@/composables/usePayphonePayment'
 import { useModal } from '@/composables/useModal'
 import Modal from '@/components/Modal.vue'
 import type { BillingInfo, DeliveryAddress, DeliveryZone } from '@/types/orders'
+import { validateEcuadorCedula } from '@/utils/ecuadorValidations'
 
 // Stores
 import CartHeader from './CartHeader.vue'
@@ -78,6 +79,7 @@ const totalItems = computed(() => cartStore.totalItems)
 const isBillingInfoValid = computed(() => {
   const billing = formData.value.billingInfo
   return billing.cedula.trim() !== '' && 
+         validateEcuadorCedula(billing.cedula) &&
          billing.fullName.trim() !== '' && 
          billing.phone.trim() !== '' &&
          (billing.email ? billing.email.trim() !== '' : true)
@@ -95,6 +97,18 @@ const isFormDataValid = computed(() => {
   return isBillingInfoValid.value && 
          isDeliveryAddressValid.value && 
          formData.value.deliveryZone !== null
+})
+
+// Detectar error específico de cédula
+const cedulaValidationError = computed(() => {
+  const cedula = formData.value.billingInfo.cedula.trim()
+  if (!cedula) {
+    return 'La cédula es obligatoria'
+  }
+  if (!validateEcuadorCedula(cedula)) {
+    return 'Ingresa una cédula ecuatoriana válida'
+  }
+  return ''
 })
 
 // Formatear precio
@@ -432,6 +446,7 @@ watch(formData, saveFormData, { deep: true })
             :cart-total="cartStore.totalPrice"
             :is-shipping-valid="isFormDataValid"
             :is-loading="isLoadingCheckout"
+            :cedula-error="cedulaValidationError"
             @proceed-checkout="proceedToCheckout"
             @continue-shopping="goToProducts"
             @clear-cart="clearCart"
