@@ -43,6 +43,12 @@ const primaryImage = computed(() => {
 // Precio formateado
 const formattedPrice = computed(() => {
   const price = parseFloat(props.product.price) || 0
+
+  // Si el precio es $0, mostrar "Producto Premium"
+  if (price === 0) {
+    return 'Producto Premium'
+  }
+
   const currency = 'USD'
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -61,11 +67,11 @@ const isAvailable = computed(() => {
 // Función para agregar al carrito
 const addToCart = async (event: Event) => {
   event.stopPropagation() // Evitar navegación al detalle
-  
+
   if (!isAvailable.value || isAddingToCart.value) return
-  
+
   isAddingToCart.value = true
-  
+
   try {
     const cartItem = {
       id: props.product.web_id,
@@ -74,10 +80,10 @@ const addToCart = async (event: Event) => {
       image: primaryImage.value || undefined,
       description: props.product.description || undefined
     }
-    
+
     cartStore.addItem(cartItem)
     emit('productAddedToCart', props.product.web_id)
-    
+
     // Pequeña pausa para mostrar feedback visual
     await new Promise(resolve => setTimeout(resolve, 300))
   } catch (error) {
@@ -90,11 +96,11 @@ const addToCart = async (event: Event) => {
 // Función para comprar ahora (agregar al carrito y navegar)
 const buyNow = async (event: Event) => {
   event.stopPropagation() // Evitar navegación al detalle
-  
+
   if (!isAvailable.value) return
-  
+
   await addToCart(event)
-  
+
   // Navegar al carrito después de agregar el producto
   router.push({ name: 'cart' })
 }
@@ -103,6 +109,43 @@ const buyNow = async (event: Event) => {
 const cartQuantity = computed(() => {
   return cartStore.getItemQuantity(props.product.web_id)
 })
+
+// Verificar si el producto tiene precio $0 (requiere cotización)
+const requiresQuote = computed(() => {
+  const price = parseFloat(props.product.price) || 0
+  return price === 0
+})
+
+// Función para abrir WhatsApp con mensaje del producto
+const contactWhatsApp = (event: Event) => {
+  event.stopPropagation() // Evitar navegación al detalle
+
+  const message = generateWhatsAppMessage()
+  const phoneNumber = '593987149283' // Número de WhatsApp de Nicole Pastry Arts
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+
+  window.open(whatsappUrl, '_blank')
+}
+
+// Generar mensaje para WhatsApp
+const generateWhatsAppMessage = () => {
+  const productName = props.product.title
+  const productDescription = props.product.description ?
+    props.product.description.replace(/<[^>]*>/g, '') : // Remover HTML tags
+    ''
+
+  let message = `¡Hola! Me interesa el siguiente producto:\n\n`
+  message += `🍰 *${productName}*\n`
+
+  if (productDescription) {
+    message += `📝 ${productDescription}\n`
+  }
+
+  message += `\n¿Podrías darme más información sobre precios y disponibilidad?\n\n`
+  message += `¡Gracias! 😊`
+
+  return message
+}
 </script>
 
 <template>
@@ -136,7 +179,7 @@ const cartQuantity = computed(() => {
       ></div>
       
       <div class="product-footer">
-        <span class="product-price">{{ formattedPrice }}</span>
+        <span class="product-price" :class="{ 'product-price--premium': requiresQuote }">{{ formattedPrice }}</span>
         
         <!-- Indicador de cantidad en carrito -->
         <div v-if="cartQuantity > 0" class="cart-quantity-badge">
@@ -146,25 +189,41 @@ const cartQuantity = computed(() => {
       
       <!-- Botones de acción -->
       <div class="product-actions">
+        <!-- Botón de WhatsApp para productos sin precio -->
         <button
-          class="btn btn--secondary add-to-cart-btn"
-          :class="{ 'btn--loading': isAddingToCart }"
-          :disabled="!isAvailable || isAddingToCart"
-          @click="addToCart"
+          v-if="requiresQuote"
+          class="btn btn--whatsapp whatsapp-btn"
+          :disabled="!isAvailable"
+          @click="contactWhatsApp"
         >
-          <span v-if="!isAddingToCart">
-            {{ cartQuantity > 0 ? 'Añadir más' : 'Añadir' }}
-          </span>
-          <span v-else class="loading-spinner"></span>
+          <svg class="whatsapp-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+          </svg>
+          Pedir por WhatsApp
         </button>
         
-        <button
-          class="btn btn--primary buy-now-btn"
-          :disabled="!isAvailable"
-          @click="buyNow"
-        >
-          Comprar Ahora
-        </button>
+        <!-- Botones normales para productos con precio -->
+        <template v-else>
+          <button
+            class="btn btn--secondary add-to-cart-btn"
+            :class="{ 'btn--loading': isAddingToCart }"
+            :disabled="!isAvailable || isAddingToCart"
+            @click="addToCart"
+          >
+            <span v-if="!isAddingToCart">
+              {{ cartQuantity > 0 ? 'Añadir más' : 'Añadir' }}
+            </span>
+            <span v-else class="loading-spinner"></span>
+          </button>
+          
+          <button
+            class="btn btn--primary buy-now-btn"
+            :disabled="!isAvailable"
+            @click="buyNow"
+          >
+            Comprar Ahora
+          </button>
+        </template>
       </div>
     </div>
   </article>
@@ -322,6 +381,22 @@ const cartQuantity = computed(() => {
   @media (min-width: 768px) {
     font-size: 1.3rem;
   }
+
+  // Estilos especiales para "Producto Premium"
+  &--premium {
+    background: linear-gradient(135deg, #8B5CF6, #A855F7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+
+    @media (min-width: 768px) {
+      font-size: 1rem;
+    }
+  }
 }
 
 .cart-quantity-badge {
@@ -344,7 +419,7 @@ const cartQuantity = computed(() => {
 .product-actions {
   display: flex;
   gap: 0.75rem;
-  
+
   @media (max-width: 480px) {
     flex-direction: column;
     gap: 0.5rem;
@@ -362,19 +437,19 @@ const cartQuantity = computed(() => {
   text-align: center;
   position: relative;
   overflow: hidden;
-  
+
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba($purple-primary, 0.2);
   }
-  
+
   &:disabled {
     cursor: not-allowed;
     opacity: 0.6;
     transform: none !important;
     box-shadow: none !important;
   }
-  
+
   @media (min-width: 768px) {
     font-size: 1rem;
     padding: 0.75rem 1.25rem;
@@ -385,7 +460,7 @@ const cartQuantity = computed(() => {
   background-color: $purple-primary;
   color: $white;
   flex: 1;
-  
+
   &:hover:not(:disabled) {
     background-color: $purple-hover;
     transform: translateY(-1px);
@@ -398,14 +473,14 @@ const cartQuantity = computed(() => {
   color: $purple-primary;
   border: 2px solid $purple-primary;
   flex: 1;
-  
+
   &:hover:not(:disabled) {
     background-color: $purple-primary;
     color: $white;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba($purple-primary, 0.2);
   }
-  
+
   &.btn--loading {
     color: transparent;
   }
@@ -425,7 +500,44 @@ const cartQuantity = computed(() => {
 }
 
 @keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.btn--whatsapp {
+  background-color: #25D366; // Color oficial de WhatsApp
+  color: $white;
+  width: 100%; // Ocupa todo el ancho disponible
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background-color: #128C7E; // Color más oscuro para hover
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+  }
+}
+
+.whatsapp-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    width: 20px;
+    height: 20px;
+  }
 }
 </style>
