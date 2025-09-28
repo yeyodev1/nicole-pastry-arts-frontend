@@ -26,6 +26,7 @@ export interface BillingInfo {
 
 // Delivery Zones Type
 export type DeliveryZone =
+  | ''
   | 'samanes_suburbio'
   | 'norte_sur_esteros'
   | 'sambo'
