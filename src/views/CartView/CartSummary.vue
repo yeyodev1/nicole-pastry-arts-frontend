@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useCartStore } from '@/stores/cart.store'
+
+const cartStore = useCartStore()
 
 const props = defineProps({
   cartTotal: {
@@ -33,6 +36,40 @@ const formatPrice = (price: number): string => {
 
 // Precio formateado
 const formattedTotal = computed(() => formatPrice(props.cartTotal))
+
+// Función para generar mensaje de WhatsApp profesional
+const generateWhatsAppMessage = (): string => {
+  const items = cartStore.items
+  const total = props.cartTotal
+  
+  let message = '🍰 *PEDIDO - Nicole Pastry Arts* 🍰\n\n'
+  message += '📋 *Detalles del pedido:*\n'
+  
+  items.forEach((item, index) => {
+    message += `${index + 1}. *${item.name}*\n`
+    message += `   • Cantidad: ${item.quantity}\n`
+    message += `   • Precio unitario: ${formatPrice(item.price)}\n`
+    message += `   • Subtotal: ${formatPrice(item.price * item.quantity)}\n\n`
+  })
+  
+  message += `💰 *TOTAL: ${formatPrice(total)}*\n\n`
+  message += '📍 *Información de entrega:*\n'
+  message += 'Por favor, confirme la dirección de entrega y fecha preferida.\n\n'
+  message += '¡Gracias por elegir Nicole Pastry Arts! 🌟'
+  
+  return message
+}
+
+// Función para abrir WhatsApp
+const openWhatsApp = () => {
+  const phoneNumber = '+593987149283' // Número sin espacios ni guiones
+  const message = generateWhatsAppMessage()
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`
+  
+  // Abrir en nueva ventana
+  window.open(whatsappUrl, '_blank')
+}
 
 // Handlers para eventos
 const handleProceedCheckout = () => {
@@ -68,6 +105,7 @@ const handleClearCart = () => {
     </div>
 
     <div class="cart-summary__actions">
+      <!-- Botón de pago tradicional -->
       <button
         @click="handleProceedCheckout"
         :disabled="!isShippingValid || isLoading"
@@ -77,6 +115,16 @@ const handleClearCart = () => {
         <i v-else class="fas fa-credit-card"></i>
         <span v-if="isLoading">Procesando...</span>
         <span v-else>Proceder al Pago</span>
+      </button>
+
+      <!-- Botón de WhatsApp -->
+      <button
+        @click="openWhatsApp"
+        :disabled="cartStore.isEmpty || isLoading"
+        class="cart-summary__whatsapp"
+      >
+        <i class="fab fa-whatsapp"></i>
+        <span>Comprar por WhatsApp</span>
       </button>
 
       <div class="cart-summary__secondary-actions">
@@ -264,6 +312,56 @@ const handleClearCart = () => {
 
       @media (min-width: 768px) {
         font-size: 1.125rem;
+      }
+    }
+  }
+
+  &__whatsapp {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #25D366 0%, darken(#25D366, 10%) 100%);
+    color: $white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 56px;
+
+    @media (min-width: 768px) {
+      padding: 1.125rem 2rem;
+      font-size: 1.05rem;
+      border-radius: 20px;
+      min-height: 60px;
+      gap: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(#25D366, 0.3);
+      background: linear-gradient(135deg, lighten(#25D366, 5%) 0%, #25D366 100%);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    i {
+      font-size: 1.125rem;
+
+      @media (min-width: 768px) {
+        font-size: 1.25rem;
       }
     }
   }
