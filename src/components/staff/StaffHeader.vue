@@ -45,30 +45,18 @@ const handleLogout = async () => {
 
 // Navegación principal del staff
 const staffNavigationItems = computed(() => [
-  { 
-    name: 'Dashboard', 
-    href: '/staff/dashboard', 
+  {
+    name: 'Dashboard',
+    href: '/staff/dashboard',
     icon: 'fas fa-chart-line',
     description: 'Panel principal'
   },
-  { 
-    name: 'Órdenes', 
-    href: '/staff/orders', 
+  {
+    name: 'Órdenes',
+    href: '/staff/orders',
     icon: 'fas fa-shopping-bag',
     description: 'Gestión de órdenes'
   },
-  { 
-    name: 'Entregas', 
-    href: '/staff/deliveries', 
-    icon: 'fas fa-truck',
-    description: 'Programación de entregas'
-  },
-  { 
-    name: 'Reportes', 
-    href: '/staff/reports', 
-    icon: 'fas fa-chart-bar',
-    description: 'Análisis y reportes'
-  }
 ])
 
 // Computed para estadísticas rápidas
