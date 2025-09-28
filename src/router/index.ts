@@ -103,7 +103,7 @@ const router = createRouter({
     {
       path: '/staff',
       name: 'staff',
-      redirect: '/staff/orders',
+      redirect: '/staff/dashboard',
       meta: {
         requiresAuth: true,
         requiresStaff: true,
@@ -111,13 +111,21 @@ const router = createRouter({
       }
     },
     {
+      path: '/staff/dashboard',
+      name: 'StaffDashboard',
+      component: () => import('@/views/staff/StaffDashboardView.vue'),
+      meta: {
+        requiresAuth: true,
+        requiresStaff: true
+      }
+    },
+    {
       path: '/staff/orders',
-      name: 'staff-orders',
+      name: 'StaffOrders',
       component: () => import('@/views/staff/StaffOrdersView.vue'),
       meta: {
         requiresAuth: true,
-        requiresStaff: true,
-        title: 'Gestión de Órdenes'
+        requiresStaff: true
       }
     },
     {
