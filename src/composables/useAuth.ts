@@ -4,19 +4,19 @@
  * Proporciona una API limpia y reutilizable para el manejo de autenticación
  */
 
-import { computed, onMounted, watch, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+// 1. Importar storeToRefs desde pinia
+import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
 import type {
-  User,
   RegisterData,
   LoginData,
   EmailConfirmationData,
-  AuthError,
   LoginOptions,
   RegisterOptions,
   ValidationErrors,
-  FormValidationState
+  FormValidationState,
 } from '@/types/auth'
 
 // ============================================================================
@@ -30,7 +30,8 @@ export function useAuth() {
   const authStore = useAuthStore()
   const router = useRouter()
 
-  // Estado reactivo del store
+  // 2. Usar storeToRefs para mantener la reactividad del estado y los getters
+  //    Esta es la corrección clave.
   const {
     user,
     token,
@@ -50,10 +51,10 @@ export function useAuth() {
     isAdmin,
     isStaff,
     sessionInfo,
-    isSessionExpiringSoon
-  } = authStore
+    isSessionExpiringSoon,
+  } = storeToRefs(authStore)
 
-  // Métodos del store
+  // Los métodos se pueden desestructurar directamente sin problemas
   const {
     initialize,
     register,
@@ -64,7 +65,7 @@ export function useAuth() {
     clearError,
     setRememberMe,
     hasRole,
-    hasAnyRole
+    hasAnyRole,
   } = authStore
 
   /**
@@ -78,8 +79,8 @@ export function useAuth() {
    * Maneja el registro con opciones adicionales
    */
   async function handleRegister(
-    userData: RegisterData, 
-    options: RegisterOptions = {}
+    userData: RegisterData,
+    options: RegisterOptions = {},
   ): Promise<void> {
     await register(userData, options)
   }
@@ -87,10 +88,7 @@ export function useAuth() {
   /**
    * Maneja el login con opciones adicionales
    */
-  async function handleLogin(
-    loginData: LoginData, 
-    options: LoginOptions = {}
-  ): Promise<void> {
+  async function handleLogin(loginData: LoginData, options: LoginOptions = {}): Promise<void> {
     await login(loginData, options)
   }
 
@@ -106,7 +104,7 @@ export function useAuth() {
    */
   async function handleLogout(redirectTo?: string): Promise<void> {
     await logout()
-    
+
     if (redirectTo) {
       await router.push(redirectTo)
     }
@@ -120,7 +118,7 @@ export function useAuth() {
   }
 
   return {
-    // Estado
+    // Estado y Getters (ahora son refs reactivas)
     user,
     token,
     status,
@@ -130,8 +128,6 @@ export function useAuth() {
     isLoggingIn,
     isConfirmingEmail,
     rememberMe,
-    
-    // Getters computados
     isAuthenticated,
     isUnauthenticated,
     isAnyLoading,
@@ -142,7 +138,7 @@ export function useAuth() {
     isStaff,
     sessionInfo,
     isSessionExpiringSoon,
-    
+
     // Métodos
     initializeAuth,
     handleRegister,
@@ -153,7 +149,7 @@ export function useAuth() {
     clearError,
     setRememberMe,
     hasRole,
-    hasAnyRole
+    hasAnyRole,
   }
 }
 
@@ -237,7 +233,7 @@ export function useAuthValidation() {
     return {
       isValid,
       errors,
-      touched: touchedFields.value
+      touched: touchedFields.value,
     }
   }
 
@@ -267,7 +263,7 @@ export function useAuthValidation() {
     return {
       isValid,
       errors,
-      touched: touchedFields.value
+      touched: touchedFields.value,
     }
   }
 
@@ -287,7 +283,7 @@ export function useAuthValidation() {
     return {
       isValid,
       errors,
-      touched: touchedFields.value
+      touched: touchedFields.value,
     }
   }
 
@@ -329,7 +325,7 @@ export function useAuthValidation() {
     touchField,
     clearValidationErrors,
     getFieldError,
-    hasFieldError
+    hasFieldError,
   }
 }
 
@@ -344,7 +340,8 @@ export function useAuthGuard() {
    * Requiere autenticación para acceder
    */
   function requireAuth(redirectTo = '/login'): boolean {
-    if (!isAuthenticated) {
+    if (!isAuthenticated.value) {
+      // .value es necesario porque ahora son refs
       router.push(redirectTo)
       return false
     }
@@ -356,8 +353,9 @@ export function useAuthGuard() {
    */
   function requireEmailVerified(redirectTo = '/verify-email'): boolean {
     if (!requireAuth()) return false
-    
-    if (!isEmailVerified) {
+
+    if (!isEmailVerified.value) {
+      // .value es necesario
       router.push(redirectTo)
       return false
     }
@@ -369,8 +367,9 @@ export function useAuthGuard() {
    */
   function requireRole(role: string, redirectTo = '/unauthorized'): boolean {
     if (!requireEmailVerified()) return false
-    
-    if (userRole !== role) {
+
+    if (userRole.value !== role) {
+      // .value es necesario
       router.push(redirectTo)
       return false
     }
@@ -382,8 +381,9 @@ export function useAuthGuard() {
    */
   function requireAnyRole(roles: string[], redirectTo = '/unauthorized'): boolean {
     if (!requireEmailVerified()) return false
-    
-    if (!userRole || !roles.includes(userRole)) {
+
+    if (!userRole.value || !roles.includes(userRole.value)) {
+      // .value es necesario
       router.push(redirectTo)
       return false
     }
@@ -410,7 +410,7 @@ export function useAuthGuard() {
     requireRole,
     requireAnyRole,
     requireAdmin,
-    requireStaff
+    requireStaff,
   }
 }
 
@@ -444,7 +444,7 @@ export function useAuthEvents() {
    * Limpia todos los listeners
    */
   function clearAuthEventListeners(): void {
-    Object.keys(eventListeners.value).forEach(eventType => {
+    Object.keys(eventListeners.value).forEach((eventType) => {
       offAuthEvent(eventType)
     })
   }
@@ -452,7 +452,7 @@ export function useAuthEvents() {
   return {
     onAuthEvent,
     offAuthEvent,
-    clearAuthEventListeners
+    clearAuthEventListeners,
   }
 }
 
