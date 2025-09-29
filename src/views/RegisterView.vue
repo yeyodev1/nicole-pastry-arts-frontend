@@ -1,19 +1,33 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
-import type { RegisterData } from '@/types/auth'
+import { useAuth, useAuthValidation } from '@/composables/useAuth'
+import type { RegisterData, ValidationErrors } from '@/types/auth'
 
-// Tipo extendido para el formulario de registro
+// Tipo extendido para el formulario, incluyendo campos de UI
 interface RegisterFormData extends RegisterData {
   confirmPassword: string
   acceptTerms: boolean
-  acceptMarketing: boolean
+}
+
+// Tipo extendido para errores de validación del formulario de registro
+interface RegisterValidationErrors extends ValidationErrors {
+  confirmPassword?: string
+  acceptTerms?: string
 }
 
 const router = useRouter()
 const route = useRoute()
-const { handleRegister, isRegistering, error, clearError, isAuthenticated } = useAuth()
+
+// 1. Importamos los composables de autenticación y validación
+const { handleRegister, isRegistering, error, clearError } = useAuth()
+const {
+  validateRegisterData,
+  clearValidationErrors
+} = useAuthValidation()
+
+// Estado local de errores de validación con tipo extendido
+const formErrors = ref<RegisterValidationErrors>({})
 
 // Estado del formulario
 const formData = ref<RegisterFormData>({
@@ -24,240 +38,137 @@ const formData = ref<RegisterFormData>({
   password: '',
   confirmPassword: '',
   acceptTerms: false,
-  acceptMarketing: false
 })
 
-// Estados adicionales
-const formErrors = ref<Record<string, string>>({})
+// Estados de la UI
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// Redirección después del registro
-const redirectTo = computed(() => {
-  return route.query.redirect as string || '/products'
-})
+const redirectTo = computed(() => route.query.redirect as string || '/verify-email-notice')
 
-// Validaciones
-const validateForm = (): boolean => {
-  formErrors.value = {}
-  let isValid = true
-
-  // Nombre
-  if (!formData.value.firstName.trim()) {
-    formErrors.value.firstName = 'El nombre es requerido'
-    isValid = false
-  }
-
-  // Apellido
-  if (!formData.value.lastName.trim()) {
-    formErrors.value.lastName = 'El apellido es requerido'
-    isValid = false
-  }
-
-  // Email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!formData.value.email.trim()) {
-    formErrors.value.email = 'El email es requerido'
-    isValid = false
-  } else if (!emailRegex.test(formData.value.email)) {
-    formErrors.value.email = 'El email no es válido'
-    isValid = false
-  }
-
-  // Teléfono
-  const phoneRegex = /^[0-9]{10}$/
-  if (!formData.value.phone?.trim()) {
-    formErrors.value.phone = 'El teléfono es requerido'
-    isValid = false
-  } else if (!phoneRegex.test(formData.value.phone.replace(/\D/g, ''))) {
-    formErrors.value.phone = 'El teléfono debe tener 10 dígitos'
-    isValid = false
-  }
-
-  // Contraseña
-  if (!formData.value.password) {
-    formErrors.value.password = 'La contraseña es requerida'
-    isValid = false
-  } else if (formData.value.password.length < 8) {
-    formErrors.value.password = 'La contraseña debe tener al menos 8 caracteres'
-    isValid = false
-  }
-
-  // Confirmar contraseña
-  if (!formData.value.confirmPassword) {
-    formErrors.value.confirmPassword = 'Confirma tu contraseña'
-    isValid = false
-  } else if (formData.value.password !== formData.value.confirmPassword) {
-    formErrors.value.confirmPassword = 'Las contraseñas no coinciden'
-    isValid = false
-  }
-
-  // Términos y condiciones
-  if (!formData.value.acceptTerms) {
-    formErrors.value.acceptTerms = 'Debes aceptar los términos y condiciones'
-    isValid = false
-  }
-
-  return isValid
-}
-
-// Validación individual de campos
-const validateField = (fieldName: string) => {
-  switch (fieldName) {
-    case 'firstName':
-      if (!formData.value.firstName.trim()) {
-        formErrors.value.firstName = 'El nombre es requerido'
-      } else {
-        delete formErrors.value.firstName
-      }
-      break
-    case 'lastName':
-      if (!formData.value.lastName.trim()) {
-        formErrors.value.lastName = 'El apellido es requerido'
-      } else {
-        delete formErrors.value.lastName
-      }
-      break
-    case 'email':
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!formData.value.email.trim()) {
-        formErrors.value.email = 'El email es requerido'
-      } else if (!emailRegex.test(formData.value.email)) {
-        formErrors.value.email = 'El email no es válido'
-      } else {
-        delete formErrors.value.email
-      }
-      break
-    case 'phone':
-      const phoneRegex = /^[0-9]{10}$/
-      if (!formData.value.phone?.trim()) {
-        formErrors.value.phone = 'El teléfono es requerido'
-      } else if (!phoneRegex.test(formData.value.phone.replace(/\D/g, ''))) {
-        formErrors.value.phone = 'El teléfono debe tener 10 dígitos'
-      } else {
-        delete formErrors.value.phone
-      }
-      break
-    case 'password':
-      if (!formData.value.password) {
-        formErrors.value.password = 'La contraseña es requerida'
-      } else if (formData.value.password.length < 8) {
-        formErrors.value.password = 'La contraseña debe tener al menos 8 caracteres'
-      } else {
-        delete formErrors.value.password
-      }
-      break
-    case 'confirmPassword':
-      if (!formData.value.confirmPassword) {
-        formErrors.value.confirmPassword = 'Confirma tu contraseña'
-      } else if (formData.value.password !== formData.value.confirmPassword) {
-        formErrors.value.confirmPassword = 'Las contraseñas no coinciden'
-      } else {
-        delete formErrors.value.confirmPassword
-      }
-      break
-  }
-}
-
-// Formatear teléfono
-const formatPhone = (value: string) => {
-  const numbers = value.replace(/\D/g, '')
-  if (numbers.length <= 10) {
-    return numbers.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
-  }
-  return value
-}
-
-// Formatear número de teléfono en tiempo real
-const formatPhoneNumber = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target) {
-    const formatted = formatPhone(target.value)
-    formData.value.phone = formatted
-  }
-}
-
-// Computed para validar si el formulario es válido
+// 2. Computed `isFormValid` simplificado, delega toda la lógica al composable
 const isFormValid = computed(() => {
-  return formData.value.firstName.trim() &&
-         formData.value.lastName.trim() &&
-         formData.value.email.trim() &&
-         formData.value.phone?.trim() &&
-         formData.value.password &&
-         formData.value.confirmPassword &&
-         formData.value.password === formData.value.confirmPassword &&
-         formData.value.acceptTerms &&
-         Object.keys(formErrors.value).length === 0
+  // También validamos los campos extra de la UI aquí
+  const customValidation = formData.value.password === formData.value.confirmPassword && formData.value.acceptTerms
+  return validateRegisterData(formData.value).isValid && customValidation
 })
 
-// Computed para mensaje de error específico
+// 3. `errorMessage` mejorado para devolver un objeto estructurado
 const errorMessage = computed(() => {
-  if (!error) return ''
-  
-  // Manejo específico para error 409 (usuario ya existe)
-  if (error.message?.includes('already exists') || error.message?.includes('User already exists')) {
-    return 'Ya existe una cuenta con este email. ¿Quieres iniciar sesión en su lugar?'
+  if (!error.value) return null
+
+  const errorMsg = error.value.message || ''
+
+  if (errorMsg.includes('already exists')) {
+    return {
+      type: 'conflict',
+      title: 'Email ya registrado',
+      message: 'Ya existe una cuenta con este email.',
+      action: 'Iniciar Sesión',
+    }
   }
-  
-  // Otros errores específicos
-  if (error.type === 'VALIDATION_ERROR') {
-    return 'Por favor verifica que todos los campos estén correctos'
+
+  return {
+    type: 'generic',
+    title: 'Error en el Registro',
+    message: errorMsg || 'Ha ocurrido un error inesperado. Por favor, intenta de nuevo.',
+    action: null,
   }
-  
-  if (error.type === 'NETWORK_ERROR') {
-    return 'Error de conexión. Por favor intenta nuevamente'
-  }
-  
-  if (error.type === 'AUTHENTICATION_ERROR') {
-    return 'Error de autenticación. Por favor verifica tus datos'
-  }
-  
-  return error.message || 'Error al crear la cuenta. Por favor intenta nuevamente'
 })
 
-// Manejo del envío del formulario
+// 4. `handleSubmit` refactorizado y limpio
 const handleSubmit = async () => {
-  if (!validateForm() || isRegistering) {
+  clearError()
+  clearValidationErrors()
+
+  // Validamos todo el formulario usando la función centralizada
+  const validation = validateRegisterData(formData.value)
+
+  // Creamos un objeto de errores extendido
+  const extendedErrors: RegisterValidationErrors = { ...validation.errors }
+
+  // Validaciones adicionales que son propias de este formulario
+  if (formData.value.password !== formData.value.confirmPassword) {
+    validation.isValid = false
+    extendedErrors.confirmPassword = 'Las contraseñas no coinciden'
+  }
+  if (!formData.value.acceptTerms) {
+    validation.isValid = false
+    extendedErrors.acceptTerms = 'Debes aceptar los términos y condiciones'
+  }
+
+  if (!validation.isValid) {
+    formErrors.value = extendedErrors
     return
   }
 
+  if (isRegistering.value) return
+
   try {
-    clearError()
-    
-    // Extraer solo los datos necesarios para el registro
     const registerData: RegisterData = {
       firstName: formData.value.firstName,
       lastName: formData.value.lastName,
       email: formData.value.email,
       password: formData.value.password,
-      phone: formData.value.phone
+      phone: formData.value.phone?.replace(/\D/g, ''), // Enviamos el teléfono sin formato
     }
-    
+
     await handleRegister(registerData)
-    
-    // Redireccionar después del registro exitoso
     await router.push(redirectTo.value)
+
   } catch (err) {
-    console.error('Error en registro:', err)
-    // El error ya está manejado por el store, no necesitamos hacer nada más aquí
+    // El error es manejado automáticamente por el `errorMessage` computed
   }
 }
 
-// Navegación al login
+// 5. Función de validación on-blur simplificada
+const validateField = (field: keyof RegisterFormData) => {
+  // Para campos que están en RegisterData, usamos la validación del composable
+  if (field !== 'confirmPassword' && field !== 'acceptTerms') {
+    const validation = validateRegisterData(formData.value)
+    const fieldKey = field as keyof ValidationErrors
+
+    if (validation.errors[fieldKey]) {
+      formErrors.value[fieldKey] = validation.errors[fieldKey]
+    } else {
+      delete formErrors.value[fieldKey]
+    }
+
+    // Lógica especial para contraseñas para re-validar la confirmación
+    if (field === 'password' && formData.value.confirmPassword) {
+      if (formData.value.password !== formData.value.confirmPassword) {
+        formErrors.value.confirmPassword = 'Las contraseñas no coinciden'
+      } else {
+        delete formErrors.value.confirmPassword
+      }
+    }
+  } else {
+    // Validación para campos específicos del formulario
+    if (field === 'confirmPassword') {
+      if (formData.value.password !== formData.value.confirmPassword) {
+        formErrors.value.confirmPassword = 'Las contraseñas no coinciden'
+      } else {
+        delete formErrors.value.confirmPassword
+      }
+    }
+    
+    if (field === 'acceptTerms') {
+      if (!formData.value.acceptTerms) {
+        formErrors.value.acceptTerms = 'Debes aceptar los términos y condiciones'
+      } else {
+        delete formErrors.value.acceptTerms
+      }
+    }
+  }
+}
+
 const goToLogin = () => {
   const currentRedirect = route.query.redirect as string
-  const loginRoute = currentRedirect 
+  const loginRoute = currentRedirect
     ? `/login?redirect=${encodeURIComponent(currentRedirect)}`
     : '/login'
   router.push(loginRoute)
 }
-
-// Verificar si ya está autenticado al montar
-onMounted(() => {
-  if (isAuthenticated) {
-    router.push(redirectTo.value)
-  }
-})
 </script>
 
 <template>
@@ -268,18 +179,19 @@ onMounted(() => {
         <p class="form-subtitle">Únete a Nicole Pastry Arts</p>
       </div>
 
-      <!-- Error general -->
-      <div v-if="error" class="error-banner">
+      <div v-if="errorMessage" class="error-banner" :class="`error-${errorMessage.type}`">
         <div class="error-content">
           <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
-          <span>{{ errorMessage }}</span>
+          <div class="error-text">
+            <div class="error-title">{{ errorMessage.title }}</div>
+            <div class="error-message">{{ errorMessage.message }}</div>
+          </div>
         </div>
-        <!-- Enlace al login si el usuario ya existe -->
-        <div v-if="error.message?.includes('already exists') || error.message?.includes('User already exists')" class="error-action">
-          <button @click="goToLogin" class="error-link">
-            Ir al inicio de sesión
+        <div v-if="errorMessage.action" class="error-actions">
+          <button @click="goToLogin" class="error-action-btn" type="button">
+            {{ errorMessage.action }}
           </button>
         </div>
       </div>
@@ -288,252 +200,119 @@ onMounted(() => {
         @submit.prevent="handleSubmit" 
         class="register-form"
         :class="{ 'form-loading': isRegistering }"
+        novalidate
       >
-        <!-- Nombre y Apellido -->
         <div class="form-row">
           <div class="form-group">
-            <label for="firstName" class="form-label">
-              Nombre <span class="required">*</span>
-            </label>
+            <label for="firstName" class="form-label">Nombre <span class="required">*</span></label>
             <input
               id="firstName"
               v-model="formData.firstName"
               type="text"
               class="form-input"
               :class="{ 'error': formErrors.firstName }"
-              placeholder="Tu nombre"
-              autocomplete="given-name"
               :disabled="isRegistering"
               @blur="validateField('firstName')"
-              @input="clearError"
             />
-            <div v-if="formErrors.firstName" class="error-message">
-              <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
-              {{ formErrors.firstName }}
-            </div>
+            <div v-if="formErrors.firstName" class="error-message">{{ formErrors.firstName }}</div>
           </div>
-
           <div class="form-group">
-            <label for="lastName" class="form-label">
-              Apellido <span class="required">*</span>
-            </label>
+            <label for="lastName" class="form-label">Apellido <span class="required">*</span></label>
             <input
               id="lastName"
               v-model="formData.lastName"
               type="text"
               class="form-input"
               :class="{ 'error': formErrors.lastName }"
-              placeholder="Tu apellido"
-              autocomplete="family-name"
               :disabled="isRegistering"
               @blur="validateField('lastName')"
-              @input="clearError"
             />
-            <div v-if="formErrors.lastName" class="error-message">
-              <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
-              {{ formErrors.lastName }}
-            </div>
+            <div v-if="formErrors.lastName" class="error-message">{{ formErrors.lastName }}</div>
           </div>
         </div>
 
-        <!-- Email -->
         <div class="form-group">
-          <label for="email" class="form-label">
-            Email <span class="required">*</span>
-          </label>
+          <label for="email" class="form-label">Email <span class="required">*</span></label>
           <input
             id="email"
             v-model="formData.email"
             type="email"
             class="form-input"
             :class="{ 'error': formErrors.email }"
-            placeholder="tu@email.com"
-            autocomplete="email"
             :disabled="isRegistering"
             @blur="validateField('email')"
-            @input="clearError"
           />
-          <div v-if="formErrors.email" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.email }}
-          </div>
+          <div v-if="formErrors.email" class="error-message">{{ formErrors.email }}</div>
         </div>
 
-        <!-- Teléfono -->
         <div class="form-group">
-          <label for="phone" class="form-label">
-            Teléfono <span class="required">*</span>
-          </label>
+          <label for="phone" class="form-label">Teléfono</label>
           <input
             id="phone"
             v-model="formData.phone"
             type="tel"
             class="form-input"
             :class="{ 'error': formErrors.phone }"
-            placeholder="(123) 456-7890"
-            autocomplete="tel"
             :disabled="isRegistering"
-            @input="formatPhoneNumber"
             @blur="validateField('phone')"
           />
-          <div v-if="formErrors.phone" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.phone }}
-          </div>
+          <div v-if="formErrors.phone" class="error-message">{{ formErrors.phone }}</div>
         </div>
 
-        <!-- Contraseña -->
         <div class="form-group">
-          <label for="password" class="form-label">
-            Contraseña <span class="required">*</span>
-          </label>
+          <label for="password" class="form-label">Contraseña <span class="required">*</span></label>
           <div class="password-input-container">
             <input
               id="password"
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
-              class="form-input password-input"
+              class="form-input"
               :class="{ 'error': formErrors.password }"
-              placeholder="Tu contraseña"
-              autocomplete="new-password"
               :disabled="isRegistering"
               @blur="validateField('password')"
-              @input="clearError"
             />
-            <button
-              type="button"
-              class="password-toggle"
-              :disabled="isRegistering"
-              @click="showPassword = !showPassword"
-              :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-            >
-              <svg v-if="showPassword" class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-              </svg>
-              <svg v-else class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
+            <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+              </button>
           </div>
-          <div v-if="formErrors.password" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.password }}
-          </div>
+          <div v-if="formErrors.password" class="error-message">{{ formErrors.password }}</div>
         </div>
 
-        <!-- Confirmar Contraseña -->
         <div class="form-group">
-          <label for="confirmPassword" class="form-label">
-            Confirmar Contraseña <span class="required">*</span>
-          </label>
+          <label for="confirmPassword" class="form-label">Confirmar Contraseña <span class="required">*</span></label>
           <div class="password-input-container">
             <input
               id="confirmPassword"
               v-model="formData.confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
-              class="form-input password-input"
+              class="form-input"
               :class="{ 'error': formErrors.confirmPassword }"
-              placeholder="Confirma tu contraseña"
-              autocomplete="new-password"
               :disabled="isRegistering"
               @blur="validateField('confirmPassword')"
-              @input="clearError"
             />
-            <button
-              type="button"
-              class="password-toggle"
-              :disabled="isRegistering"
-              @click="showConfirmPassword = !showConfirmPassword"
-              :aria-label="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-            >
-              <svg v-if="showConfirmPassword" class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-              </svg>
-              <svg v-else class="toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </button>
+            <button type="button" class="password-toggle" @click="showConfirmPassword = !showConfirmPassword">
+                </button>
           </div>
-          <div v-if="formErrors.confirmPassword" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.confirmPassword }}
-          </div>
+          <div v-if="formErrors.confirmPassword" class="error-message">{{ formErrors.confirmPassword }}</div>
         </div>
 
-        <!-- Términos y condiciones -->
         <div class="form-group">
           <label class="checkbox-container">
-            <input
-              v-model="formData.acceptTerms"
-              type="checkbox"
-              class="checkbox-input"
-              :disabled="isRegistering"
-            />
+            <input v-model="formData.acceptTerms" type="checkbox" class="checkbox-input" :disabled="isRegistering"/>
             <span class="checkbox-custom"></span>
-            <span class="checkbox-label">
-              Acepto los <a href="#" class="terms-link">términos y condiciones</a> <span class="required">*</span>
-            </span>
+            <span class="checkbox-label">Acepto los <a href="/terms" target="_blank" class="terms-link">términos y condiciones</a> <span class="required">*</span></span>
           </label>
-          <div v-if="formErrors.acceptTerms" class="error-message">
-            <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            {{ formErrors.acceptTerms }}
-          </div>
+          <div v-if="formErrors.acceptTerms" class="error-message">{{ formErrors.acceptTerms }}</div>
         </div>
 
-        <!-- Marketing -->
-        <div class="form-group">
-          <label class="checkbox-container">
-            <input
-              v-model="formData.acceptMarketing"
-              type="checkbox"
-              class="checkbox-input"
-              :disabled="isRegistering"
-            />
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-label">Acepto recibir comunicaciones de marketing</span>
-          </label>
-        </div>
-
-        <!-- Botón de envío -->
-        <button
-          type="submit"
-          class="register-button"
-          :class="{ 'loading': isRegistering }"
-          :disabled="!isFormValid || isRegistering"
-        >
-          <div class="button-content">
-            <div v-if="isRegistering" class="loading-spinner">
-              <div class="spinner"></div>
-            </div>
-            <span class="button-text">
-              {{ isRegistering ? 'Creando cuenta...' : 'Crear Cuenta' }}
-            </span>
-          </div>
+        <button type="submit" class="register-button" :disabled="!isFormValid || isRegistering">
+          <span v-if="isRegistering" class="spinner"></span>
+          {{ isRegistering ? 'Creando cuenta...' : 'Crear Cuenta' }}
         </button>
       </form>
 
-      <!-- Enlace al login -->
       <div class="login-link">
         <p>¿Ya tienes una cuenta?</p>
-        <button @click="goToLogin" class="link">
-          Iniciar sesión
-        </button>
+        <button @click="goToLogin" class="link">Iniciar sesión</button>
       </div>
     </div>
   </div>
@@ -592,62 +371,73 @@ onMounted(() => {
 }
 
 .error-banner {
-  background: #fee;
-  border: 1px solid #fcc;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   margin-bottom: 24px;
+  color: #721c24;
 
   .error-content {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #dc3545;
-    font-size: 14px;
+    align-items: flex-start;
+    gap: 12px;
 
     .error-icon {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .error-text {
+      flex: 1;
+
+      .error-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .error-message {
+        font-size: 13px;
+        line-height: 1.4;
+        opacity: 0.9;
+      }
     }
   }
 
-  .error-action {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #fcc;
+  .error-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f5c6cb;
 
-    .error-link {
-      background: none;
+    .error-action-btn {
+      background: #721c24;
+      color: white;
       border: none;
-      color: #d4a574;
-      font-size: 14px;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      text-decoration: underline;
-      padding: 0;
-      transition: color 0.3s ease;
+      transition: background-color 0.2s ease;
 
       &:hover {
-        color: #b8935f;
-      }
-
-      &:focus {
-        outline: none;
-        color: #b8935f;
+        background: #5a161e;
       }
     }
   }
 }
 
+
 .register-form {
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 1.5rem;
 
-    @media (max-width: 480px) {
+    @media (max-width: 576px) {
       grid-template-columns: 1fr;
       gap: 0;
     }
@@ -666,6 +456,7 @@ onMounted(() => {
 
     .required {
       color: #dc3545;
+      margin-left: 2px;
     }
   }
 
@@ -742,7 +533,7 @@ onMounted(() => {
       opacity: 0;
       cursor: pointer;
 
-      &:checked + .checkbox-custom {
+      &:checked+.checkbox-custom {
         background: #d4a574;
         border-color: #d4a574;
 
@@ -752,7 +543,7 @@ onMounted(() => {
         }
       }
 
-      &:focus + .checkbox-custom {
+      &:focus+.checkbox-custom {
         box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
       }
     }
@@ -787,10 +578,6 @@ onMounted(() => {
       color: #374151;
       font-size: 14px;
       line-height: 1.4;
-
-      .required {
-        color: #dc3545;
-      }
     }
   }
 
@@ -819,6 +606,11 @@ onMounted(() => {
     position: relative;
     overflow: hidden;
     margin-top: 1rem;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 
     &:hover:not(:disabled) {
       background: linear-gradient(135deg, #c19653 0%, #a67c3a 100%);
@@ -827,35 +619,11 @@ onMounted(() => {
     }
 
     &:disabled {
-      opacity: 0.6;
+      background: #cccccc;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
-    }
-
-    &.loading {
-      background: linear-gradient(135deg, #d4a574 0%, #c19653 100%);
-      cursor: not-allowed;
-      
-      .button-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-      }
-    }
-
-    .button-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .loading-spinner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      opacity: 0.7;
     }
 
     .spinner {
@@ -866,11 +634,6 @@ onMounted(() => {
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
-    .button-text {
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
   }
 }
 
@@ -879,7 +642,7 @@ onMounted(() => {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #e5e7eb;
-  
+
   p {
     color: #6c757d;
     font-size: 14px;
@@ -903,47 +666,27 @@ onMounted(() => {
   }
 }
 
-// Estilos para el loading mejorado
 .form-loading {
   opacity: 0.7;
   pointer-events: none;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-// Estilos para inputs deshabilitados durante loading
-input:disabled,
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.password-toggle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-// Mejoras visuales para el estado de loading
-.form-loading input,
-.form-loading button {
-  transition: opacity 0.3s ease;
 }
 
 .error-message {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 4px;
+  color: #721c24;
+  font-size: 13px;
+  margin-top: 6px;
+}
 
-  .error-icon {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>
