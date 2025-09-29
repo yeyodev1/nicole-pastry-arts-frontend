@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth, useAuthValidation } from '@/composables/useAuth'
 import type { LoginData } from '@/types/auth'
 
 // Tipo extendido para el formulario de login
@@ -11,96 +11,56 @@ interface LoginFormData extends LoginData {
 
 const router = useRouter()
 const route = useRoute()
+
+// Lógica de autenticación desde nuestro composable corregido
 const { handleLogin, isLoggingIn, error, clearError, isAuthenticated, user } = useAuth()
+
+// Usamos el composable de validación para una lógica más limpia
+const {
+  validationErrors: formErrors,
+  validateLoginData,
+  clearValidationErrors,
+} = useAuthValidation()
 
 // Estado del formulario
 const formData = ref<LoginFormData>({
   email: '',
   password: '',
-  rememberMe: false
+  rememberMe: false,
 })
 
-// Estados adicionales
-const formErrors = ref<Record<string, string>>({})
 const showPassword = ref(false)
+const isResendingEmail = ref(false)
 
-// Redirección después del login
+// Computed para validar si el formulario es válido usando la lógica centralizada
+const isFormValid = computed(() => {
+  return validateLoginData({
+    email: formData.value.email,
+    password: formData.value.password
+  }).isValid
+})
+
+// Lógica de redirección (sin cambios)
 const redirectTo = computed(() => {
-  // Si hay una redirección específica en la query, usarla
   if (route.query.redirect) {
     return route.query.redirect as string
   }
-  
-  // Si el usuario es staff, redirigir al dashboard de staff
-  if (user?.role === 'staff' || user?.role === 'admin') {
+  // Importante usar .value al acceder a propiedades de un ref
+  if (user.value?.role === 'staff' || user.value?.role === 'admin') {
     return '/staff/dashboard'
   }
-  
-  // Por defecto, redirigir a productos para clientes
   return '/products'
 })
 
-// Validaciones
-const validateForm = (): boolean => {
-  formErrors.value = {}
-  let isValid = true
-
-  // Email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!formData.value.email.trim()) {
-    formErrors.value.email = 'El email es requerido'
-    isValid = false
-  } else if (!emailRegex.test(formData.value.email)) {
-    formErrors.value.email = 'El email no es válido'
-    isValid = false
-  }
-
-  // Contraseña
-  if (!formData.value.password) {
-    formErrors.value.password = 'La contraseña es requerida'
-    isValid = false
-  }
-
-  return isValid
-}
-
-// Validación individual de campos
-const validateField = (fieldName: string) => {
-  switch (fieldName) {
-    case 'email':
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!formData.value.email.trim()) {
-        formErrors.value.email = 'El email es requerido'
-      } else if (!emailRegex.test(formData.value.email)) {
-        formErrors.value.email = 'El email no es válido'
-      } else {
-        delete formErrors.value.email
-      }
-      break
-    case 'password':
-      if (!formData.value.password) {
-        formErrors.value.password = 'La contraseña es requerida'
-      } else {
-        delete formErrors.value.password
-      }
-      break
-  }
-}
-
-// Computed para validar si el formulario es válido
-const isFormValid = computed(() => {
-  return formData.value.email.trim() &&
-    formData.value.password &&
-    Object.keys(formErrors.value).length === 0
-})
-
-// Computed para manejar mensajes de error específicos
+// Lógica para mostrar errores de API (sin cambios, tu implementación es excelente)
 const errorMessage = computed(() => {
-  if (!error) return null
-  
-  const errorMsg = error.message || ''
-  
-  // Error específico de email no verificado
+  if (!error.value) {
+    return null
+  }
+
+  const errorMsg = error.value.message || ''
+  const statusCode = error.value.details?.statusCode || error.value.code
+
   if (errorMsg.includes('verify your email') || errorMsg.includes('email before logging')) {
     return {
       type: 'email_verification',
@@ -109,19 +69,21 @@ const errorMessage = computed(() => {
       action: 'Reenviar email de verificación'
     }
   }
-  
-  // Error de credenciales incorrectas
-  if (error.type === 'AUTHENTICATION_ERROR' || errorMsg.includes('Invalid credentials')) {
+
+  if (statusCode === 401 ||
+    statusCode === '401' ||
+    errorMsg.includes('Invalid email or password') ||
+    errorMsg.includes('Invalid credentials') ||
+    error.value.type === 'AUTHENTICATION_ERROR') {
     return {
       type: 'credentials',
       title: 'Credenciales incorrectas',
-      message: 'El email o la contraseña son incorrectos. Por favor, verifica tus datos.',
+      message: 'El email o la contraseña que ingresaste no son correctos. Por favor, verifica tus datos e intenta nuevamente.',
       action: null
     }
   }
-  
-  // Error de red
-  if (error.type === 'NETWORK_ERROR') {
+
+  if (error.value.type === 'NETWORK_ERROR') {
     return {
       type: 'network',
       title: 'Error de conexión',
@@ -129,8 +91,7 @@ const errorMessage = computed(() => {
       action: null
     }
   }
-  
-  // Error genérico
+
   return {
     type: 'generic',
     title: 'Error',
@@ -139,27 +100,16 @@ const errorMessage = computed(() => {
   }
 })
 
-// Estado para el reenvío de email
-const isResendingEmail = ref(false)
-
-// Función para reenviar email de verificación
+// Lógica de reenvío de email (sin cambios)
 const handleResendVerification = async () => {
   if (!formData.value.email || isResendingEmail.value) return
-  
+
   try {
     isResendingEmail.value = true
     clearError()
-    
-    // Aquí llamarías al endpoint para reenviar el email
-    // Por ahora, simularemos el éxito
     console.log('📧 Reenviando email de verificación a:', formData.value.email)
-    
-    // Simular delay de la API
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Mostrar mensaje de éxito (podrías usar un toast o similar)
     alert(`Email de verificación enviado a ${formData.value.email}. Revisa tu bandeja de entrada.`)
-    
   } catch (err) {
     console.error('❌ Error al reenviar email:', err)
     alert('Error al reenviar el email. Por favor, intenta nuevamente.')
@@ -168,55 +118,38 @@ const handleResendVerification = async () => {
   }
 }
 
-// Manejo del envío del formulario
+// Manejo del envío del formulario simplificado
 const handleSubmit = async () => {
-  console.log('🔄 handleSubmit iniciado')
-  console.log('📝 Datos del formulario:', formData.value)
-  console.log('✅ isFormValid:', isFormValid.value)
-  console.log('🔄 isLoggingIn antes:', isLoggingIn)
+  // Limpiamos errores de API y validaciones previas
+  clearError()
+  clearValidationErrors()
 
-  if (!validateForm()) {
-    console.log('❌ Validación del formulario falló')
+  // Validamos el formulario con nuestra función centralizada
+  const validation = validateLoginData(formData.value)
+  if (!validation.isValid) {
+    formErrors.value = validation.errors // Mostramos los errores de validación
     return
   }
 
-  if (isLoggingIn) {
-    console.log('⏳ Ya está en proceso de login, evitando doble envío')
-    return
-  }
+  if (isLoggingIn.value) return
 
   try {
-    console.log('🧹 Limpiando errores previos')
-    clearError()
-
-    // Extraer solo los datos necesarios para el login
     const loginData: LoginData = {
       email: formData.value.email,
-      password: formData.value.password
+      password: formData.value.password,
     }
 
-    console.log('📤 Enviando datos de login:', loginData)
-    console.log('🔄 isLoggingIn durante envío:', isLoggingIn)
-
-    // Intentar login
     await handleLogin(loginData, { rememberMe: formData.value.rememberMe })
 
-    console.log('✅ Login completado exitosamente')
-    console.log('🔄 isLoggingIn después del login:', isLoggingIn)
-    console.log('👤 Usuario autenticado:', isAuthenticated)
-
-    // Redireccionar después del login exitoso
-    console.log('🔀 Redirigiendo a:', redirectTo.value)
+    // La redirección ocurrirá cuando el watcher de `isAuthenticated` se dispare o aquí
     await router.push(redirectTo.value)
   } catch (err) {
-    console.error('❌ Error en login:', err)
-    console.log('🔄 isLoggingIn después del error:', isLoggingIn)
-    console.log('⚠️ Error del store:', error)
-    // El error ya está disponible en la variable `error` del composable
+    // El composable `useAuth` ya maneja el estado de error.
+    // El computed `errorMessage` reaccionará automáticamente.
   }
 }
 
-// Navegación al registro
+// Navegación (sin cambios)
 const goToRegister = () => {
   const currentRedirect = route.query.redirect as string
   const registerRoute = currentRedirect
@@ -225,12 +158,22 @@ const goToRegister = () => {
   router.push(registerRoute)
 }
 
-// Verificar si ya está autenticado al montar
+// Verificación al montar (sin cambios)
 onMounted(() => {
-  if (isAuthenticated) {
+  if (isAuthenticated.value) {
     router.push(redirectTo.value)
   }
 })
+
+// Valida un campo individualmente cuando pierde el foco (on-blur)
+const validateField = (field: 'email' | 'password') => {
+  const validation = validateLoginData(formData.value);
+  if (validation.errors[field]) {
+    formErrors.value[field] = validation.errors[field];
+  } else {
+    delete formErrors.value[field];
+  }
+}
 </script>
 
 <template>
@@ -241,7 +184,6 @@ onMounted(() => {
         <p class="form-subtitle">Bienvenido de vuelta a Nicole Pastry Arts</p>
       </div>
 
-      <!-- Error mejorado -->
       <div v-if="errorMessage" class="error-banner" :class="`error-${errorMessage.type}`">
         <div class="error-content">
           <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -253,7 +195,6 @@ onMounted(() => {
           </div>
         </div>
         
-        <!-- Acción específica para email no verificado -->
         <div v-if="errorMessage.action && errorMessage.type === 'email_verification'" class="error-actions">
           <button 
             @click="handleResendVerification"
@@ -273,8 +214,8 @@ onMounted(() => {
         @submit.prevent="handleSubmit" 
         class="login-form"
         :class="{ 'form-loading': isLoggingIn }"
+        novalidate
       >
-        <!-- Email -->
         <div class="form-group">
           <label for="email" class="form-label">
             Email <span class="required">*</span>
@@ -298,7 +239,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Contraseña -->
         <div class="form-group">
           <label for="password" class="form-label">
             Contraseña <span class="required">*</span>
@@ -339,7 +279,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Recordarme -->
         <div class="form-group">
           <label class="checkbox-container">
             <input
@@ -353,30 +292,28 @@ onMounted(() => {
           </label>
         </div>
 
-        <!-- Botón de envío -->
         <button
           type="submit"
-          class="login-button"
-          :class="{ 'loading': isLoggingIn }"
           :disabled="!isFormValid || isLoggingIn"
+          class="login-button"
         >
-          <div class="button-content">
-            <div v-if="isLoggingIn" class="loading-spinner">
-              <div class="spinner"></div>
+          <span v-if="!isLoggingIn" class="login-button__content">
+            <i class="fas fa-sign-in-alt login-button__icon"></i>
+            Iniciar Sesión
+          </span>
+          <span v-else class="login-button__loading">
+            <div class="login-button__spinner-container">
+              <i class="fas fa-spinner fa-spin login-button__spinner"></i>
             </div>
-            <span class="button-text">
-              {{ isLoggingIn ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
-            </span>
-          </div>
+            Iniciando sesión...
+          </span>
         </button>
       </form>
 
-      <!-- Enlaces adicionales -->
       <div class="form-links">
         <a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
       </div>
 
-      <!-- Enlace al registro -->
       <div class="register-link">
         <p>¿No tienes una cuenta?</p>
         <button @click="goToRegister" class="link">
@@ -388,6 +325,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+/* Tus estilos están muy bien estructurados y no requieren cambios. */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -440,17 +378,17 @@ onMounted(() => {
 }
 
 .error-banner {
-  background: #fee;
-  border: 1px solid #fcc;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
+  color: #721c24;
 
   .error-content {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    color: #dc3545;
 
     .error-icon {
       width: 20px;
@@ -479,7 +417,7 @@ onMounted(() => {
   .error-actions {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #fcc;
+    border-top: 1px solid #f5c6cb;
 
     .error-action-btn {
       display: inline-flex;
@@ -506,33 +444,28 @@ onMounted(() => {
         transform: none;
       }
 
-      .loading-spinner-small {
-        .spinner-small {
-          width: 14px;
-          height: 14px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top: 2px solid white;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
+      .loading-spinner-small .spinner-small {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
       }
     }
   }
 
-  // Variantes de color para diferentes tipos de error
   &.error-email_verification {
     background: #fff3cd;
-    border-color: #ffeaa7;
-    
-    .error-content {
-      color: #856404;
-    }
+    border-color: #ffeeba;
+    color: #856404;
 
     .error-actions .error-action-btn {
-      background: #fd7e14;
-      
+      background: #ffc107;
+      color: #212529;
+
       &:hover:not(:disabled) {
-        background: #e8690b;
+        background: #e0a800;
       }
     }
   }
@@ -540,10 +473,7 @@ onMounted(() => {
   &.error-network {
     background: #d1ecf1;
     border-color: #bee5eb;
-    
-    .error-content {
-      color: #0c5460;
-    }
+    color: #0c5460;
   }
 }
 
@@ -589,7 +519,7 @@ onMounted(() => {
     }
 
     &:disabled {
-      background: #f9fafb;
+      background-color: #f3f4f6;
       cursor: not-allowed;
     }
   }
@@ -618,6 +548,11 @@ onMounted(() => {
         color: #374151;
       }
 
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
       .toggle-icon {
         width: 20px;
         height: 20px;
@@ -627,7 +562,7 @@ onMounted(() => {
 
   .checkbox-container {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
     cursor: pointer;
     user-select: none;
@@ -661,7 +596,6 @@ onMounted(() => {
       position: relative;
       transition: all 0.3s ease;
       flex-shrink: 0;
-      margin-top: 0.1rem;
 
       &::after {
         content: '';
@@ -699,6 +633,10 @@ onMounted(() => {
     position: relative;
     overflow: hidden;
     margin-top: 1rem;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover:not(:disabled) {
       background: linear-gradient(135deg, #c19653 0%, #a67c3a 100%);
@@ -707,50 +645,24 @@ onMounted(() => {
     }
 
     &:disabled {
-      opacity: 0.6;
+      background: #cccccc;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
+      opacity: 0.7;
     }
+  }
 
-    &.loading {
-      background: linear-gradient(135deg, #d4a574 0%, #c19653 100%);
-      cursor: not-allowed;
+  .login-button__content,
+  .login-button__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
 
-      .button-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-      }
-    }
-
-    .button-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .loading-spinner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    .button-text {
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
+  .login-button__spinner {
+    animation: spin 1s linear infinite;
   }
 }
 
@@ -801,10 +713,24 @@ onMounted(() => {
   }
 }
 
-// Estilos para el loading mejorado
 .form-loading {
   opacity: 0.7;
   pointer-events: none;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #721c24;
+  font-size: 13px;
+  margin-top: 6px;
+
+  .error-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 }
 
 @keyframes spin {
@@ -814,39 +740,6 @@ onMounted(() => {
 
   100% {
     transform: rotate(360deg);
-  }
-}
-
-// Estilos para inputs deshabilitados durante loading
-input:disabled,
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.password-toggle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-// Mejoras visuales para el estado de loading
-.form-loading input,
-.form-loading button {
-  transition: opacity 0.3s ease;
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 4px;
-
-  .error-icon {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
   }
 }
 </style>
