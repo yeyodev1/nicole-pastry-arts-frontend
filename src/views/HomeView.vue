@@ -54,15 +54,15 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
             </div>
           </div>
           <div class="hero__actions">
-            <router-link to="/productos" class="btn btn--primary btn--hero">
+            <router-link to="/products" class="btn btn--primary btn--hero">
               <span>Explorar Productos</span>
               <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </router-link>
-            <router-link to="/contacto" class="btn btn--secondary btn--hero">
+            <a href="https://wa.me/593987149283?text=Hola%2C%20me%20gustar%C3%ADa%20obtener%20ayuda%20e%20informaci%C3%B3n%20sobre%20sus%20productos%20de%20pasteler%C3%ADa.%20%C2%BFPodr%C3%ADan%20ayudarme%3F" target="_blank" rel="noopener noreferrer" class="btn btn--secondary btn--hero">
               <span>Contactar</span>
-            </router-link>
+            </a>
           </div>
         </div>
         <div class="hero__image">
