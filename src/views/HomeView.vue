@@ -69,28 +69,15 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           <div class="hero__image-frame">
             <div class="hero__image-content">
               <div class="hero__floating-card hero__floating-card--1">
-                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                  <path d="M19 15L19.5 17L21 17.5L19.5 18L19 20L18.5 18L17 17.5L18.5 17L19 15Z" fill="currentColor"/>
-                  <path d="M5 15L5.5 17L7 17.5L5.5 18L5 20L4.5 18L3 17.5L4.5 17L5 15Z" fill="currentColor"/>
-                </svg>
+                <i class="fas fa-birthday-cake hero__card-icon"></i>
                 <span>Pasteles</span>
               </div>
               <div class="hero__floating-card hero__floating-card--2">
-                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z" fill="currentColor"/>
-                  <path d="M21 9C21 7.9 20.1 7 19 7H5C3.9 7 3 7.9 3 9V10C3 11.1 3.9 12 5 12H19C20.1 12 21 11.1 21 10V9Z" fill="currentColor"/>
-                  <path d="M20 13H4C3.45 13 3 13.45 3 14V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V14C21 13.45 20.55 13 20 13Z" fill="currentColor"/>
-                </svg>
+                <i class="fas fa-cubes hero__card-icon"></i>
                 <span>Cupcakes</span>
               </div>
               <div class="hero__floating-card hero__floating-card--3">
-                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                  <circle cx="8" cy="10" r="1.5" fill="white"/>
-                  <circle cx="16" cy="10" r="1.5" fill="white"/>
-                  <path d="M8 15C8 15 10 17 12 17C14 17 16 15 16 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <i class="fas fa-cookie-bite hero__card-icon"></i>
                 <span>Galletas</span>
               </div>
             </div>
@@ -616,19 +603,16 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
   }
 
   &__card-icon {
-    width: 16px;
-    height: 16px;
+    font-size: 16px;
     color: #D2691E;
     flex-shrink: 0;
 
     @media (min-width: 480px) {
-      width: 18px;
-      height: 18px;
+      font-size: 18px;
     }
 
     @media (min-width: 768px) {
-      width: 20px;
-      height: 20px;
+      font-size: 20px;
     }
   }
 }
