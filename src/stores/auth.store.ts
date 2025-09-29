@@ -142,7 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function initialize(): Promise<void> {
     try {
-      setLoading(true)
+      isLoading.value = true
       clearError()
 
       const storedToken = authService.getStoredToken()
@@ -180,7 +180,7 @@ export const useAuthStore = defineStore('auth', () => {
          await logout()
        }
     } finally {
-      setLoading(false)
+      isLoading.value = false
     }
   }
 
@@ -189,7 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function register(userData: RegisterData, options: RegisterOptions = {}): Promise<void> {
     try {
-      setRegistering(true)
+      isRegistering.value = true
       clearError()
 
       const response = await authService.register(userData)
@@ -222,7 +222,7 @@ export const useAuthStore = defineStore('auth', () => {
       handleError(error)
       throw error
     } finally {
-      setRegistering(false)
+      isRegistering.value = false
     }
   }
 
@@ -230,12 +230,29 @@ export const useAuthStore = defineStore('auth', () => {
    * Inicia sesión de usuario
    */
   async function login(loginData: LoginData, options: LoginOptions = {}): Promise<void> {
+    // Asegurar que no hay múltiples peticiones simultáneas
+    if (isLoggingIn.value) {
+      console.warn('Login ya en progreso, evitando petición duplicada')
+      return
+    }
+
     try {
-      setLoggingIn(true)
+      // Activar estado de loading ANTES de cualquier operación
+      isLoggingIn.value = true
       clearError()
 
+      console.log('🔄 Estado isLoggingIn activado:', isLoggingIn.value)
+
       const shouldRemember = options.rememberMe ?? rememberMe.value
-      const response = await authService.login(loginData, shouldRemember)
+      
+      // Crear promesas para la petición y el delay mínimo
+      const loginPromise = authService.login(loginData, shouldRemember)
+      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 2000)) // 2 segundos mínimo
+      
+      console.log('⏳ Iniciando petición con delay mínimo de 2 segundos...')
+      
+      // Esperar tanto la petición como el delay mínimo
+      const [response] = await Promise.all([loginPromise, minDelayPromise])
 
       if (!response || !response.user || !response.token) {
         throw new Error('Respuesta de login inválida')
@@ -247,13 +264,15 @@ export const useAuthStore = defineStore('auth', () => {
       status.value = 'authenticated'
       rememberMe.value = shouldRemember
 
+      console.log('✅ Login exitoso, desactivando loading')
+
       // Emitir evento personalizado
       window.dispatchEvent(new CustomEvent('auth:login', { 
         detail: { user: response.user }
       }))
 
     } catch (error: any) {
-      console.error('Error en login:', error)
+      console.error('❌ Error en login:', error)
       
       // Asegurar que el estado se limpia en caso de error
       user.value = null
@@ -263,7 +282,9 @@ export const useAuthStore = defineStore('auth', () => {
       handleError(error)
       throw error
     } finally {
-      setLoggingIn(false)
+      // SIEMPRE desactivar el loading, sin importar el resultado
+      isLoggingIn.value = false
+      console.log('🔄 Estado isLoggingIn desactivado:', isLoggingIn.value)
     }
   }
 
@@ -272,7 +293,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function confirmEmail(confirmationData: EmailConfirmationData): Promise<void> {
     try {
-      setConfirmingEmail(true)
+      isConfirmingEmail.value = true
       clearError()
 
       const response = await authService.confirmEmail(confirmationData)
@@ -291,7 +312,7 @@ export const useAuthStore = defineStore('auth', () => {
       handleError(error)
       throw error
     } finally {
-      setConfirmingEmail(false)
+      isConfirmingEmail.value = false
     }
   }
 
@@ -300,7 +321,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function logout(): Promise<void> {
     try {
-      setLoading(true)
+      isLoading.value = true
       clearError()
 
       // Intentar logout en el servidor, pero no fallar si hay error de red
@@ -334,7 +355,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Emitir evento personalizado
       window.dispatchEvent(new CustomEvent('auth:logout'))
       
-      setLoading(false)
+      isLoading.value = false
     }
   }
 
@@ -345,7 +366,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!isAuthenticated.value) return
 
     try {
-      setLoading(true)
+      isLoading.value = true
       const currentUser = await authService.getCurrentUser()
       
       if (currentUser) {
@@ -357,7 +378,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.warn('Error al refrescar usuario:', error)
       await logout()
     } finally {
-      setLoading(false)
+      isLoading.value = false
     }
   }
 
