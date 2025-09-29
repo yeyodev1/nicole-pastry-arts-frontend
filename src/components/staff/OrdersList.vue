@@ -51,13 +51,13 @@ const sortDirection = ref<'asc' | 'desc'>('desc')
 // Computed
 const sortedOrders = computed(() => {
   if (!props.orders.length) return []
-  
+
   return [...props.orders].sort((a, b) => {
     const aValue = getNestedValue(a, sortColumn.value)
     const bValue = getNestedValue(b, sortColumn.value)
-    
+
     if (aValue === bValue) return 0
-    
+
     const comparison = aValue > bValue ? 1 : -1
     return sortDirection.value === 'asc' ? comparison : -comparison
   })
@@ -65,11 +65,11 @@ const sortedOrders = computed(() => {
 
 const hasSelection = computed(() => selectedOrderIds.value.size > 0)
 
-const allSelected = computed(() => 
+const allSelected = computed(() =>
   props.orders.length > 0 && selectedOrderIds.value.size === props.orders.length
 )
 
-const someSelected = computed(() => 
+const someSelected = computed(() =>
   selectedOrderIds.value.size > 0 && selectedOrderIds.value.size < props.orders.length
 )
 
@@ -487,7 +487,8 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
   border-collapse: collapse;
   background: $white;
 
-  th, td {
+  th,
+  td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid $border-light;
@@ -527,8 +528,13 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
     opacity: 0.5;
     font-size: 0.75rem;
 
-    &.asc::before { content: "▲"; }
-    &.desc::before { content: "▼"; }
+    &.asc::before {
+      content: "▲";
+    }
+
+    &.desc::before {
+      content: "▼";
+    }
   }
 
   .checkbox-column {
@@ -542,7 +548,7 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
 
     &:hover {
       background: $purple-primary;
-      
+
       .total-amount,
       .date-text {
         color: $white;
@@ -591,12 +597,30 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
     font-weight: 600;
     cursor: pointer;
 
-    &.status-pending { background: $warning-light; color: $warning-dark; }
-    &.status-confirmed { background: $purple-light; color: $purple-dark; }
-    &.status-delivered { background: $success; color: $white; }
+    &.status-pending {
+      background: $warning-light;
+      color: $warning-dark;
+    }
 
-    &.payment-pending { background: $warning-light; color: $warning-dark; }
-    &.payment-paid { background: $success; color: $white; }
+    &.status-confirmed {
+      background: $purple-light;
+      color: $purple-dark;
+    }
+
+    &.status-delivered {
+      background: $success;
+      color: $white;
+    }
+
+    &.payment-pending {
+      background: $warning-light;
+      color: $warning-dark;
+    }
+
+    &.payment-paid {
+      background: $success;
+      color: $white;
+    }
   }
 
   .date-text {
@@ -738,19 +762,25 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
 }
 
 // Font Awesome icon classes
-.icon-eye::before { 
+.icon-eye::before {
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  content: "\f06e"; 
+  content: "\f06e";
 }
-.icon-empty::before { 
+
+.icon-empty::before {
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  content: "\f0ea"; 
+  content: "\f0ea";
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
