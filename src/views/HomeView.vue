@@ -128,7 +128,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 2rem 0;
+  padding: 1rem 0;
 
   @media (min-width: 768px) {
     padding: 4rem 0;
@@ -164,10 +164,11 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     bottom: 0;
     background: linear-gradient(
       135deg,
-      rgba($purple-primary, 0.8) 0%,
-      rgba($purple-dark, 0.6) 25%,
-      rgba($background-cream, 0.3) 50%,
-      rgba($purple-primary, 0.7) 100%
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.2) 25%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.15) 75%,
+      rgba(0, 0, 0, 0.25) 100%
     );
     z-index: 2;
   }
@@ -199,25 +200,54 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     text-align: center;
     opacity: 0;
     transform: translateY(50px);
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     animation: heroContentSlideUp 1.2s ease-out 0.3s forwards;
+
+    @media (min-width: 768px) {
+      padding: 2.5rem;
+      border-radius: 20px;
+    }
 
     @media (min-width: 1024px) {
       text-align: left;
+      padding: 3rem;
+      border-radius: 24px;
     }
   }
 
   &__badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.75rem 1.5rem;
-    background: rgba($white, 0.15);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba($white, 0.2);
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     opacity: 0;
     transform: translateY(20px);
     animation: badgeFadeIn 1s ease-out 0.6s forwards;
+    
+    &::before {
+      content: '✨';
+      font-size: 0.875rem;
+    }
+
+    @media (min-width: 768px) {
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      margin-bottom: 2rem;
+
+      &::before {
+        font-size: 1rem;
+      }
+    }
   }
 
   &__badge-text {
@@ -226,19 +256,24 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     color: $white;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
 
   &__title {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     line-height: 1.1;
+
+    @media (min-width: 768px) {
+      margin-bottom: 2rem;
+    }
   }
 
   &__title-main {
     display: block;
     font-size: 3rem;
     font-weight: 800;
-    color: $white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
     margin-bottom: 0.5rem;
     opacity: 0;
     transform: translateX(-50px);
@@ -257,8 +292,9 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     display: block;
     font-size: 1.2rem;
     font-weight: 400;
-    color: rgba($white, 0.9);
+    color: rgba(255, 255, 255, 0.9);
     font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
     opacity: 0;
     transform: translateX(50px);
     animation: titleSubSlideIn 1s ease-out 1.2s forwards;
@@ -269,10 +305,11 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
   }
 
   &__description {
-    font-size: 1.1rem;
-    color: rgba($white, 0.9);
-    line-height: 1.7;
-    margin-bottom: 3rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+    line-height: 1.6;
+    margin-bottom: 2rem;
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
@@ -281,10 +318,13 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     animation: descriptionFadeIn 1s ease-out 1.5s forwards;
 
     @media (min-width: 768px) {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 3rem;
     }
 
     @media (min-width: 1024px) {
+      font-size: 1.2rem;
       margin-left: 0;
       margin-right: 0;
     }
@@ -293,30 +333,50 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
   &__stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
     opacity: 0;
     transform: translateY(30px);
     animation: statsFadeIn 1s ease-out 1.8s forwards;
 
+    @media (min-width: 480px) {
+      gap: 1rem;
+    }
+
     @media (min-width: 768px) {
       gap: 2rem;
+      margin-bottom: 3rem;
     }
   }
 
   &__stat {
     text-align: center;
-    padding: 1.5rem 1rem;
+    padding: 0.75rem 0.5rem;
     background: rgba($white, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba($white, 0.2);
-    border-radius: 16px;
+    border-radius: 12px;
     transition: all 0.3s ease;
 
     &:hover {
-      transform: translateY(-5px);
+      transform: translateY(-3px);
       background: rgba($white, 0.15);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (min-width: 480px) {
+      padding: 1rem 0.75rem;
+      border-radius: 14px;
+    }
+
+    @media (min-width: 768px) {
+      padding: 1.5rem 1rem;
+      border-radius: 16px;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
     }
 
     @media (min-width: 1024px) {
@@ -326,20 +386,38 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 
   &__stat-number {
     display: block;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 800;
-    color: $white;
-    margin-bottom: 0.5rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    margin-bottom: 0.25rem;
+
+    @media (min-width: 480px) {
+      font-size: 1.75rem;
+      margin-bottom: 0.375rem;
+    }
 
     @media (min-width: 768px) {
       font-size: 2.5rem;
+      margin-bottom: 0.5rem;
     }
   }
 
   &__stat-label {
-    font-size: 0.9rem;
-    color: rgba($white, 0.8);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
     font-weight: 500;
+    line-height: 1.2;
+
+    @media (min-width: 480px) {
+      font-size: 0.8rem;
+    }
+
+    @media (min-width: 768px) {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
   }
 
   &__actions {
@@ -363,26 +441,49 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 
   &__image {
     position: relative;
-    display: none;
+    display: block;
     opacity: 0;
     transform: scale(0.8);
     animation: imageZoomIn 1.2s ease-out 2.4s forwards;
+    margin-top: 2rem;
+
+    @media (min-width: 768px) {
+      margin-top: 0;
+    }
 
     @media (min-width: 1024px) {
-      display: block;
+      margin-top: 0;
     }
   }
 
   &__image-frame {
     position: relative;
     width: 100%;
-    height: 500px;
+    height: 200px;
     background: rgba($white, 0.1);
     backdrop-filter: blur(15px);
-    border: 2px solid rgba($white, 0.2);
-    border-radius: 24px;
+    border: 1px solid rgba($white, 0.2);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+    @media (min-width: 480px) {
+      height: 250px;
+      border-radius: 18px;
+    }
+
+    @media (min-width: 768px) {
+      height: 350px;
+      border: 2px solid rgba($white, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+    }
+
+    @media (min-width: 1024px) {
+      height: 500px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
   }
 
   &__image-content {
@@ -404,42 +505,100 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 
   &__floating-card {
     position: absolute;
-    padding: 1rem 1.5rem;
-    background: rgba($white, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     font-weight: 600;
-    color: $text-dark;
+    color: $white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
     animation: floatingCard 3s ease-in-out infinite;
+    transition: all 0.3s ease;
 
     span:first-child {
-      font-size: 1.5rem;
+      font-size: 1rem;
     }
 
     span:last-child {
-      font-size: 0.9rem;
+      font-size: 0.7rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (min-width: 480px) {
+      padding: 0.75rem 1rem;
+      border-radius: 14px;
+      gap: 0.625rem;
+
+      span:first-child {
+        font-size: 1.25rem;
+      }
+
+      span:last-child {
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (min-width: 768px) {
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      gap: 0.75rem;
+
+      span:first-child {
+        font-size: 1.5rem;
+      }
+
+      span:last-child {
+        font-size: 0.9rem;
+      }
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
     }
 
     &--1 {
-      top: 20%;
-      left: -10%;
+      top: 10%;
+      left: -5%;
       animation-delay: 0s;
+
+      @media (min-width: 768px) {
+        top: 20%;
+        left: -10%;
+      }
     }
 
     &--2 {
-      top: 60%;
-      right: -15%;
+      top: 50%;
+      right: -8%;
       animation-delay: 1s;
+
+      @media (min-width: 768px) {
+        top: 60%;
+        right: -15%;
+      }
     }
 
     &--3 {
-      bottom: 15%;
-      left: 10%;
+      bottom: 10%;
+      left: 5%;
       animation-delay: 2s;
+
+      @media (min-width: 768px) {
+        bottom: 15%;
+        left: 10%;
+      }
     }
   }
 }
