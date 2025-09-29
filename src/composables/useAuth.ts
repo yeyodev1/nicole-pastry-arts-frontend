@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 // 1. Importar storeToRefs desde pinia
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
+import { validateEcuadorPhone } from '@/utils/ecuadorValidations'
 import type {
   RegisterData,
   LoginData,
@@ -469,11 +470,10 @@ function isValidEmail(email: string): boolean {
 }
 
 /**
- * Valida formato de teléfono
+ * Valida formato de teléfono usando validación específica de Ecuador
  */
 function isValidPhone(phone: string): boolean {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))
+  return validateEcuadorPhone(phone)
 }
 
 /**
