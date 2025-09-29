@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useStaffStore } from '@/stores/staff.store'
 
-// Stores
+// Router y Stores
+const router = useRouter()
 const authStore = useAuthStore()
 const staffStore = useStaffStore()
 
@@ -39,8 +41,16 @@ const currentUser = computed(() => authStore.user)
 
 // Función para cerrar sesión
 const handleLogout = async () => {
-  await authStore.logout()
-  closeMobileMenu()
+  try {
+    await authStore.logout()
+    closeMobileMenu()
+    // Redirigir a la página de login después del logout
+    await router.push('/login')
+  } catch (error) {
+    console.error('Error durante el logout:', error)
+    // Incluso si hay error, redirigir a login
+    await router.push('/login')
+  }
 }
 
 // Navegación principal del staff

@@ -11,7 +11,7 @@ interface LoginFormData extends LoginData {
 
 const router = useRouter()
 const route = useRoute()
-const { handleLogin, isLoggingIn, error, clearError, isAuthenticated } = useAuth()
+const { handleLogin, isLoggingIn, error, clearError, isAuthenticated, user } = useAuth()
 
 // Estado del formulario
 const formData = ref<LoginFormData>({
@@ -26,7 +26,18 @@ const showPassword = ref(false)
 
 // Redirección después del login
 const redirectTo = computed(() => {
-  return route.query.redirect as string || '/products'
+  // Si hay una redirección específica en la query, usarla
+  if (route.query.redirect) {
+    return route.query.redirect as string
+  }
+  
+  // Si el usuario es staff, redirigir al dashboard de staff
+  if (user?.role === 'staff' || user?.role === 'admin') {
+    return '/staff/dashboard'
+  }
+  
+  // Por defecto, redirigir a productos para clientes
+  return '/products'
 })
 
 // Validaciones

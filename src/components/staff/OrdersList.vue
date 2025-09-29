@@ -116,10 +116,7 @@ const getStatusClass = (status: string): string => {
   const statusClasses: Record<string, string> = {
     'pending': 'status-pending',
     'confirmed': 'status-confirmed',
-    'preparing': 'status-preparing',
-    'ready': 'status-ready',
-    'delivered': 'status-delivered',
-    'cancelled': 'status-cancelled'
+    'delivered': 'status-delivered'
   }
   return statusClasses[status] || 'status-default'
 }
@@ -127,9 +124,7 @@ const getStatusClass = (status: string): string => {
 const getPaymentStatusClass = (status: string): string => {
   const statusClasses: Record<string, string> = {
     'pending': 'payment-pending',
-    'paid': 'payment-paid',
-    'failed': 'payment-failed',
-    'refunded': 'payment-refunded'
+    'paid': 'payment-paid'
   }
   return statusClasses[status] || 'payment-default'
 }
@@ -174,7 +169,7 @@ const handlePageChange = (page: number) => {
 
 const updateOrderStatus = async (orderId: string, status: string) => {
   try {
-    const validStatus = status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+    const validStatus = status as 'pending' | 'confirmed' | 'delivered'
     await staffStore.updateOrderStatus(orderId, { status: validStatus })
     emit('orderUpdate')
   } catch (error) {
@@ -184,7 +179,7 @@ const updateOrderStatus = async (orderId: string, status: string) => {
 
 const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
   try {
-    const validPaymentStatus = paymentStatus as 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
+    const validPaymentStatus = paymentStatus as 'pending' | 'paid'
     await staffStore.updatePaymentStatus(orderId, { paymentStatus: validPaymentStatus })
     emit('orderUpdate')
   } catch (error) {
@@ -326,10 +321,7 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
               >
                 <option value="pending">Pendiente</option>
                 <option value="confirmed">Confirmada</option>
-                <option value="preparing">Preparando</option>
-                <option value="ready">Lista</option>
                 <option value="delivered">Entregada</option>
-                <option value="cancelled">Cancelada</option>
               </select>
             </td>
             <td class="payment-status">
@@ -342,8 +334,6 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
               >
                 <option value="pending">Pendiente</option>
                 <option value="paid">Pagado</option>
-                <option value="failed">Fallido</option>
-                <option value="refunded">Reembolsado</option>
               </select>
             </td>
             <td class="order-date">
@@ -548,10 +538,15 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
 
   .order-row {
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 
     &:hover {
-      background: $background-light;
+      background: $purple-primary;
+      
+      .total-amount,
+      .date-text {
+        color: $white;
+      }
     }
 
     &.selected {
@@ -598,15 +593,10 @@ const updatePaymentStatus = async (orderId: string, paymentStatus: string) => {
 
     &.status-pending { background: $warning-light; color: $warning-dark; }
     &.status-confirmed { background: $purple-light; color: $purple-dark; }
-    &.status-preparing { background: $purple-light; color: $purple-primary; }
-    &.status-ready { background: $success-light; color: $success-dark; }
     &.status-delivered { background: $success; color: $white; }
-    &.status-cancelled { background: $error-light; color: $error-dark; }
 
     &.payment-pending { background: $warning-light; color: $warning-dark; }
     &.payment-paid { background: $success; color: $white; }
-    &.payment-failed { background: $error-light; color: $error-dark; }
-    &.payment-refunded { background: $purple-light; color: $purple-dark; }
   }
 
   .date-text {
