@@ -78,7 +78,7 @@ const errorMessage = computed(() => {
     return {
       type: 'credentials',
       title: 'Credenciales incorrectas',
-      message: 'El email o la contraseña que ingresaste no son correctos. Por favor, verifica tus datos e intenta nuevamente.',
+      message: 'El email o la contraseña que ingresaste no son correctos. Verifica tus datos e intenta nuevamente o crea una cuenta.',
       action: null
     }
   }
