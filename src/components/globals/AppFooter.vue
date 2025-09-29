@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import YeyoTrademark from './YeyoTrademark.vue'
+
 const whatsappNumber = '+593987149283'
 const whatsappMessage = 'Hola! Necesito ayuda, vengo de su página web'
 
@@ -92,6 +94,9 @@ const openSanMarino = () => {
           <a href="#" class="footer__legal-link">Términos de Servicio</a>
         </div>
       </div>
+
+      <!-- Trademark de YeyoDev -->
+      <YeyoTrademark />
     </div>
   </footer>
 </template>
