@@ -69,15 +69,28 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           <div class="hero__image-frame">
             <div class="hero__image-content">
               <div class="hero__floating-card hero__floating-card--1">
-                <span>🍰</span>
+                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+                  <path d="M19 15L19.5 17L21 17.5L19.5 18L19 20L18.5 18L17 17.5L18.5 17L19 15Z" fill="currentColor"/>
+                  <path d="M5 15L5.5 17L7 17.5L5.5 18L5 20L4.5 18L3 17.5L4.5 17L5 15Z" fill="currentColor"/>
+                </svg>
                 <span>Pasteles</span>
               </div>
               <div class="hero__floating-card hero__floating-card--2">
-                <span>🧁</span>
+                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z" fill="currentColor"/>
+                  <path d="M21 9C21 7.9 20.1 7 19 7H5C3.9 7 3 7.9 3 9V10C3 11.1 3.9 12 5 12H19C20.1 12 21 11.1 21 10V9Z" fill="currentColor"/>
+                  <path d="M20 13H4C3.45 13 3 13.45 3 14V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V14C21 13.45 20.55 13 20 13Z" fill="currentColor"/>
+                </svg>
                 <span>Cupcakes</span>
               </div>
               <div class="hero__floating-card hero__floating-card--3">
-                <span>🍪</span>
+                <svg class="hero__card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                  <circle cx="8" cy="10" r="1.5" fill="white"/>
+                  <circle cx="16" cy="10" r="1.5" fill="white"/>
+                  <path d="M8 15C8 15 10 17 12 17C14 17 16 15 16 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
                 <span>Galletas</span>
               </div>
             </div>
@@ -505,100 +518,117 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 
   &__floating-card {
     position: absolute;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 0.75rem 1rem;
     border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: $white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-    animation: floatingCard 3s ease-in-out infinite;
+    color: #8B4513;
     transition: all 0.3s ease;
-
-    span:first-child {
-      font-size: 1rem;
-    }
-
-    span:last-child {
-      font-size: 0.7rem;
-    }
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
+    z-index: 2;
+    min-width: 90px;
+    white-space: nowrap;
 
     @media (min-width: 480px) {
-      padding: 0.75rem 1rem;
-      border-radius: 14px;
-      gap: 0.625rem;
-
-      span:first-child {
-        font-size: 1.25rem;
-      }
-
-      span:last-child {
-        font-size: 0.8rem;
-      }
+      padding: 0.875rem 1.125rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      min-width: 100px;
     }
 
     @media (min-width: 768px) {
-      padding: 1rem 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+      gap: 1rem;
+      font-size: 1rem;
+      min-width: 120px;
+    }
 
-      span:first-child {
-        font-size: 1.5rem;
-      }
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
 
-      span:last-child {
-        font-size: 0.9rem;
-      }
-
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      @media (min-width: 768px) {
+        transform: scale(1.1);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
       }
     }
 
     &--1 {
-      top: 10%;
-      left: -5%;
-      animation-delay: 0s;
+      top: 15%;
+      left: 5%;
+
+      @media (min-width: 480px) {
+        top: 20%;
+        left: 8%;
+      }
 
       @media (min-width: 768px) {
-        top: 20%;
-        left: -10%;
+        top: 25%;
+        left: 12%;
       }
     }
 
     &--2 {
-      top: 50%;
-      right: -8%;
-      animation-delay: 1s;
+      top: 60%;
+      right: 5%;
+
+      @media (min-width: 480px) {
+        top: 65%;
+        right: 8%;
+      }
 
       @media (min-width: 768px) {
-        top: 60%;
-        right: -15%;
+        top: 70%;
+        right: 12%;
       }
     }
 
     &--3 {
-      bottom: 10%;
-      left: 5%;
-      animation-delay: 2s;
+      top: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+
+      @media (min-width: 480px) {
+        top: 40%;
+      }
 
       @media (min-width: 768px) {
-        bottom: 15%;
-        left: 10%;
+        top: 45%;
       }
+
+      &:hover {
+        transform: translateX(-50%) scale(1.05);
+
+        @media (min-width: 768px) {
+          transform: translateX(-50%) scale(1.1);
+        }
+      }
+    }
+  }
+
+  &__card-icon {
+    width: 16px;
+    height: 16px;
+    color: #D2691E;
+    flex-shrink: 0;
+
+    @media (min-width: 480px) {
+      width: 18px;
+      height: 18px;
+    }
+
+    @media (min-width: 768px) {
+      width: 20px;
+      height: 20px;
     }
   }
 }
