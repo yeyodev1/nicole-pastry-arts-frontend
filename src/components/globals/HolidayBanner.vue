@@ -23,7 +23,7 @@ onMounted(() => {
   <div v-if="visible" class="holiday-banner">
     <div class="holiday-banner__content">
       <div class="holiday-banner__info">
-        <i class="fas fa-snowflake holiday-banner__icon" aria-hidden="true"></i>
+        <i class="fas fa-tree holiday-banner__icon" aria-hidden="true"></i>
         <span class="holiday-banner__text">
           ¡Se acerca la Navidad! Realiza tus pedidos anticipados.
         </span>
@@ -41,14 +41,13 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@use 'sass:color';
 .holiday-banner {
   position: fixed;
   top: 70px;
   left: 0;
   right: 0;
   z-index: 900;
-  background: linear-gradient(135deg, color.scale($error, $saturation: -12%, $lightness: -6%), color.scale($error-dark, $saturation: -10%, $lightness: -4%));
+  background: linear-gradient(135deg, $purple-primary, $purple-dark);
   color: $white;
   border-bottom: 1px solid rgba($white, 0.12);
   box-shadow: 0 6px 20px rgba($gray-900, 0.12);
