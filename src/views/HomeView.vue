@@ -29,15 +29,14 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
       <div class="hero__container">
         <div class="hero__content">
           <div class="hero__badge">
-            <span class="hero__badge-text">Pastelería Artesanal</span>
+            <span class="hero__badge-text">Especial Navidad</span>
           </div>
           <h1 class="hero__title">
             <span class="hero__title-main">Nicole Pastry Arts</span>
-            <span class="hero__title-sub">Donde cada dulce cuenta una historia</span>
+            <span class="hero__title-sub">Celebra la Navidad con sabores artesanales</span>
           </h1>
           <p class="hero__description">
-            Creamos experiencias únicas con pastelería artesanal de la más alta calidad. 
-            Cada producto es elaborado con amor, dedicación y los mejores ingredientes.
+            Descubre nuestra colección navideña con productos artesanales, perfectos para compartir y regalar.
           </p>
           <div class="hero__stats">
             <div class="hero__stat">
@@ -55,7 +54,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           </div>
           <div class="hero__actions">
             <router-link to="/products" class="btn btn--primary btn--hero">
-              <span>Explorar Productos</span>
+              <span>Ver Colección Navideña</span>
               <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -69,16 +68,16 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           <div class="hero__image-frame">
             <div class="hero__image-content">
               <div class="hero__floating-card hero__floating-card--1">
-                <i class="fas fa-birthday-cake hero__card-icon"></i>
-                <span>Pasteles</span>
+                <i class="fas fa-gift hero__card-icon"></i>
+                <span>Panettone</span>
               </div>
               <div class="hero__floating-card hero__floating-card--2">
-                <i class="fas fa-cubes hero__card-icon"></i>
-                <span>Cupcakes</span>
+                <i class="fas fa-candy-cane hero__card-icon"></i>
+                <span>Galletas navideñas</span>
               </div>
               <div class="hero__floating-card hero__floating-card--3">
-                <i class="fas fa-cookie-bite hero__card-icon"></i>
-                <span>Galletas</span>
+                <i class="fas fa-star hero__card-icon"></i>
+                <span>Trufas artesanales</span>
               </div>
             </div>
           </div>
@@ -140,7 +139,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('@/assets/background/NPR42.JPG');
+    background: url('@/assets/background/navidad/panetone.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -235,7 +234,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     animation: badgeFadeIn 1s ease-out 0.6s forwards;
     
     &::before {
-      content: '✨';
+      content: '🎄';
       font-size: 0.875rem;
     }
 
