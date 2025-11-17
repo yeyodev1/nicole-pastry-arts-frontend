@@ -113,9 +113,9 @@ const transformCartItems = (cartItems: any[]): any[] => {
  */
 const getValidCustomerId = (customer: any): string => {
   // Si hay un usuario autenticado, usar su ID
-  if (isAuthenticated && user?._id) {
-    console.log('[AUTH] Usuario autenticado encontrado:', user._id);
-    return user._id;
+  if (isAuthenticated.value && user.value?._id) {
+    console.log('[AUTH] Usuario autenticado encontrado:', user.value._id);
+    return user.value._id;
   }
   
   // Si el cliente tiene un ID válido (ObjectId), usarlo
@@ -145,21 +145,21 @@ const createProfessionalCustomerData = (customer: any) => {
     email: customer?.email || '',
     name: customer?.name || customer?.firstName || '',
     phone: customer?.phone || '',
-    isAuthenticated: isAuthenticated,
-    userType: isAuthenticated ? 'registered' : 'guest',
-    registrationDate: isAuthenticated ? user?.createdAt : new Date().toISOString()
+    isAuthenticated: isAuthenticated.value,
+    userType: isAuthenticated.value ? 'registered' : 'guest',
+    registrationDate: isAuthenticated.value ? user.value?.createdAt : new Date().toISOString()
   };
 
   // Si es un usuario autenticado, usar sus datos completos
-  if (isAuthenticated && user) {
+  if (isAuthenticated.value && user.value) {
     return {
       ...baseCustomer,
-      id: user._id,
-      email: user.email,
-      name: `${user.firstName} ${user.lastName}`.trim(),
-      phone: user.phone || customer?.phone || '',
-      role: user.role,
-      isEmailVerified: user.isEmailVerified
+      id: user.value._id,
+      email: user.value.email,
+      name: `${user.value.firstName} ${user.value.lastName}`.trim(),
+      phone: user.value.phone || customer?.phone || '',
+      role: user.value.role,
+      isEmailVerified: user.value.isEmailVerified
     };
   }
 
@@ -170,7 +170,7 @@ const createProfessionalCustomerData = (customer: any) => {
  * Guarda información del usuario invitado para futuras referencias
  */
 const saveGuestUserInfo = (customerData: any, orderId: string) => {
-  if (!isAuthenticated && customerData.email) {
+  if (!isAuthenticated.value && customerData.email) {
     const guestInfo = {
       email: customerData.email,
       name: customerData.name,

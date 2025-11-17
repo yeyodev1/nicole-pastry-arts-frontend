@@ -81,8 +81,8 @@ const verifyEmail = async () => {
     verificationStatus.value = 'error'
     
     // Manejar diferentes tipos de errores
-    if (error?.message) {
-      verificationMessage.value = error.message
+    if (error.value?.message) {
+      verificationMessage.value = error.value.message
     } else if (err?.message) {
       verificationMessage.value = err.message
     } else {
