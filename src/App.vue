@@ -7,6 +7,7 @@ import StaffHeader from '@/components/staff/StaffHeader.vue'
 import Snowfall from '@/components/globals/Snowfall.vue'
 import HolidayBanner from '@/components/globals/HolidayBanner.vue'
 import SantaSleigh from '@/components/globals/SantaSleigh.vue'
+import ExperiencePrompt from '@/components/globals/ExperiencePrompt.vue'
 import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
@@ -95,6 +96,7 @@ provide('showGlobalLoading', showGlobalLoading)
     
     <!-- Footer - Se muestra siempre excepto durante la pantalla de carga inicial y para staff -->
     <AppFooter v-if="!showLoadingScreen && !isStaffUser" />
+    <ExperiencePrompt v-if="!isStaffUser" />
   </div>
 </template>
 
