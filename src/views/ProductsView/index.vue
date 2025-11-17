@@ -26,6 +26,10 @@ const handleCategorySelect = async (category: Category | null) => {
     await productsStore.fetchProducts()
   }
 }
+
+const isChristmas = (category: Category) => {
+  return (category.name || '').toLowerCase().includes('navidad')
+}
 </script>
 
 <template>
@@ -61,9 +65,13 @@ const handleCategorySelect = async (category: Category | null) => {
             v-for="category in productsStore.categoriesWithProducts"
             :key="category.web_id"
             class="category-btn"
-            :class="{ 'active': productsStore.selectedCategory?.web_id === category.web_id }"
+            :class="{
+              'active': productsStore.selectedCategory?.web_id === category.web_id,
+              'category-btn--christmas': isChristmas(category)
+            }"
             @click="handleCategorySelect(category)"
           >
+            <i v-if="isChristmas(category)" class="fas fa-tree"></i>
             {{ category.name }}
           </button>
         </nav>
@@ -71,10 +79,10 @@ const handleCategorySelect = async (category: Category | null) => {
     </header>
 
     <!-- Contenido principal -->
-    <main class="products-content">
+    <main class="products-content" :class="{ 'products-content--christmas': productsStore.selectedCategory && isChristmas(productsStore.selectedCategory) }">
       <div class="products-container">
         <!-- Información de la categoría actual -->
-        <div v-if="productsStore.selectedCategory" class="category-info">
+        <div v-if="productsStore.selectedCategory" class="category-info" :class="{ 'category-info--christmas': productsStore.selectedCategory && isChristmas(productsStore.selectedCategory) }">
           <h2 class="category-title">{{ productsStore.selectedCategory.name }}</h2>
           <p v-if="productsStore.selectedCategory.description" class="category-description">
             {{ productsStore.selectedCategory.description }}
@@ -89,6 +97,7 @@ const handleCategorySelect = async (category: Category | null) => {
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
 .product-view {
   min-height: 100vh;
   background-color: $background-light;
@@ -195,9 +204,36 @@ const handleCategorySelect = async (category: Category | null) => {
   }
 }
 
+.category-btn--christmas {
+  border-color: color.scale($error, $saturation: -10%);
+  color: color.scale($error, $saturation: -10%);
+}
+
+.category-btn--christmas i {
+  margin-right: 0.5rem;
+  color: color.scale($error, $saturation: -10%);
+}
+
+.category-btn--christmas:hover {
+  background: linear-gradient(135deg, color.scale($error, $lightness: -6%), color.scale($error-dark, $lightness: -4%));
+  border-color: color.scale($warning, $lightness: -10%);
+  box-shadow: 0 6px 18px rgba($error, 0.4);
+}
+
+.category-btn--christmas.active {
+  background: linear-gradient(135deg, color.scale($error, $lightness: -6%), color.scale($error-dark, $lightness: -4%));
+  border-color: rgba($white, 0.5);
+  color: $white;
+}
+
 .products-content {
   padding: 2rem 0;
   min-height: 60vh;
+}
+
+.products-content--christmas {
+  background: radial-gradient(ellipse at top, rgba($error, 0.05), transparent 60%),
+              radial-gradient(ellipse at bottom, rgba($warning, 0.04), transparent 60%);
 }
 
 .products-container {
@@ -235,5 +271,13 @@ const handleCategorySelect = async (category: Category | null) => {
     margin: 0 auto;
     line-height: 1.6;
   }
+}
+
+.category-info--christmas .category-title {
+  color: color.scale($error, $saturation: -10%);
+}
+
+.category-info--christmas .category-description {
+  color: color.scale($error, $saturation: -20%);
 }
 </style>
