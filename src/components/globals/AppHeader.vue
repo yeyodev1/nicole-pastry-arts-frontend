@@ -321,6 +321,7 @@ const navigationItems = computed(() => {
     top: 70px;
     left: 0;
     right: 0;
+    z-index: 1002;
     background-color: $white;
     border-bottom: 1px solid $border-light;
     transform: translateY(-100%);
@@ -379,7 +380,7 @@ const navigationItems = computed(() => {
     right: 0;
     bottom: 0;
     background-color: rgba($text-dark, 0.5);
-    z-index: 999;
+    z-index: 1001;
 
     @media (min-width: 768px) {
       display: none;
