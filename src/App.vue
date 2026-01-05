@@ -4,9 +4,6 @@ import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/globals/AppHeader.vue'
 import AppFooter from '@/components/globals/AppFooter.vue'
 import StaffHeader from '@/components/staff/StaffHeader.vue'
-import Snowfall from '@/components/globals/Snowfall.vue'
-import HolidayBanner from '@/components/globals/HolidayBanner.vue'
-import SantaSleigh from '@/components/globals/SantaSleigh.vue'
 import ExperiencePrompt from '@/components/globals/ExperiencePrompt.vue'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -78,8 +75,6 @@ provide('showGlobalLoading', showGlobalLoading)
 
 <template>
   <div id="app">
-    <Snowfall />
-    <SantaSleigh />
     <!-- Header - Condicional basado en el rol del usuario -->
     <template v-if="!showLoadingScreen">
       <!-- Header para Staff -->
@@ -90,7 +85,6 @@ provide('showGlobalLoading', showGlobalLoading)
     
     <!-- Contenido principal -->
     <main class="main-content">
-      <HolidayBanner v-if="!showLoadingScreen && !isStaffUser" />
       <RouterView />
     </main>
     

@@ -29,14 +29,14 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
       <div class="hero__container">
         <div class="hero__content">
           <div class="hero__badge">
-            <span class="hero__badge-text">Especial Navidad</span>
+            <span class="hero__badge-text">Pastelería Artesanal</span>
           </div>
           <h1 class="hero__title">
             <span class="hero__title-main">Nicole Pastry Arts</span>
-            <span class="hero__title-sub">Celebra la Navidad con sabores artesanales</span>
+            <span class="hero__title-sub">Disfruta los mejores postres con nosotros</span>
           </h1>
           <p class="hero__description">
-            Descubre nuestra colección navideña con productos artesanales, perfectos para compartir y regalar.
+            Descubre nuestra selección de productos artesanales, elaborados con pasión para endulzar cada uno de tus momentos.
           </p>
           <div class="hero__stats">
             <div class="hero__stat">
@@ -54,7 +54,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           </div>
           <div class="hero__actions">
             <router-link to="/products" class="btn btn--primary btn--hero">
-              <span>Ver Colección Navideña</span>
+              <span>Explorar Productos</span>
               <svg class="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -68,16 +68,16 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
           <div class="hero__image-frame">
             <div class="hero__image-content">
               <div class="hero__floating-card hero__floating-card--1">
-                <i class="fas fa-gift hero__card-icon"></i>
-                <span>Panettone</span>
+                <i class="fas fa-birthday-cake hero__card-icon"></i>
+                <span>Pasteles</span>
               </div>
               <div class="hero__floating-card hero__floating-card--2">
-                <i class="fas fa-candy-cane hero__card-icon"></i>
-                <span>Galletas navideñas</span>
+                <i class="fas fa-cookie hero__card-icon"></i>
+                <span>Galletas</span>
               </div>
               <div class="hero__floating-card hero__floating-card--3">
-                <i class="fas fa-star hero__card-icon"></i>
-                <span>Trufas artesanales</span>
+                <i class="fas fa-ice-cream hero__card-icon"></i>
+                <span>Postres</span>
               </div>
             </div>
           </div>
@@ -139,7 +139,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('@/assets/background/navidad/panetone.jpg');
+    background: url('@/assets/background/NPR42.JPG');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -161,14 +161,12 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.2) 25%,
-      rgba(0, 0, 0, 0.1) 50%,
-      rgba(0, 0, 0, 0.15) 75%,
-      rgba(0, 0, 0, 0.25) 100%
-    );
+    background: linear-gradient(135deg,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.2) 25%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.15) 75%,
+        rgba(0, 0, 0, 0.25) 100%);
     z-index: 2;
   }
 
@@ -232,9 +230,9 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(20px);
     animation: badgeFadeIn 1s ease-out 0.6s forwards;
-    
+
     &::before {
-      content: '🎄';
+      content: '✨';
       font-size: 0.875rem;
     }
 
@@ -489,12 +487,10 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     position: relative;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      45deg,
-      rgba($purple-primary, 0.1) 0%,
-      rgba($background-cream, 0.2) 50%,
-      rgba($purple-primary, 0.1) 100%
-    );
+    background: linear-gradient(45deg,
+        rgba($purple-primary, 0.1) 0%,
+        rgba($background-cream, 0.2) 50%,
+        rgba($purple-primary, 0.1) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -771,6 +767,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(50px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -782,6 +779,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -793,6 +791,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateX(-50px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -804,6 +803,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateX(50px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -815,6 +815,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -826,6 +827,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -837,6 +839,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -848,6 +851,7 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
     opacity: 0;
     transform: scale(0.8);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -855,13 +859,14 @@ const handleLoadingComplete = inject<() => void>('handleGlobalLoadingComplete')
 }
 
 @keyframes floatingCard {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
-
-
 </style>
